@@ -53,6 +53,8 @@ def get_indexes(config):
 
     indexes.sort()
 
+    print(f'number of indexes: {len(indexes)}')
+
     return indexes
 
 

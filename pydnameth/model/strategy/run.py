@@ -473,8 +473,6 @@ class PlotRunStrategy(RunStrategy):
                 add = config.experiment.method_params['add']
                 fit = config.experiment.method_params['fit']
                 semi_window = config.experiment.method_params['semi_window']
-                box_b = config.experiment.method_params['box_b']
-                box_t = config.experiment.method_params['box_t']
 
                 plot_data = []
 
@@ -555,6 +553,8 @@ class PlotRunStrategy(RunStrategy):
 
                     # Adding box curve
                     if fit == 'no' and semi_window != 'none':
+                        box_b = config.experiment.method_params['box_b']
+                        box_t = config.experiment.method_params['box_t']
                         xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
 
                         scatter = go.Scatter(
@@ -598,6 +598,9 @@ class PlotRunStrategy(RunStrategy):
 
                     # Adding best curve
                     if fit == 'yes' and semi_window != 'none':
+
+                        box_b = config.experiment.method_params['box_b']
+                        box_t = config.experiment.method_params['box_t']
 
                         residuals = data
 
