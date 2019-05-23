@@ -20,7 +20,6 @@ def load_betas_horvath_calculator(config):
     else:
         raise ValueError(f'No specified file with cpgs for Horvath\'s calculator.')
 
-
     if not os.path.isfile(fn_data_csv):
 
         fn_betas = get_data_base_path(config) + '/' + 'betas.txt'
@@ -32,7 +31,7 @@ def load_betas_horvath_calculator(config):
         load_betas(config)
 
         num_cols = len(headers)
-        num_rows = len(cpgs) + 1 # header row
+        num_rows = len(cpgs) + 1  # header row
 
         betas = np.zeros((num_rows, num_cols), dtype=object)
         row_id = 0
@@ -43,7 +42,7 @@ def load_betas_horvath_calculator(config):
             if cpg in config.betas_dict:
                 cpg_row_id = config.betas_dict[cpg]
                 curr_betas = list(config.betas_data[cpg_row_id])
-                #curr_betas = [str(x) for x in curr_betas]
+                # curr_betas = [str(x) for x in curr_betas]
                 line = [cpg] + curr_betas
                 betas[row_id] = line
             else:
@@ -52,5 +51,5 @@ def load_betas_horvath_calculator(config):
 
             row_id += 1
 
-        #np.savetxt(fn_data_csv, betas, fmt='%s', delimiter=',')
+        # np.savetxt(fn_data_csv, betas, fmt='%s', delimiter=',')
         pd.DataFrame(betas).to_csv(fn_data_csv, index=False, header=False)
