@@ -1,6 +1,8 @@
 import abc
 from pydnameth.config.experiment.types import Task
 from pydnameth.infrastucture.load.betas import load_betas
+from pydnameth.infrastucture.load.betas_adj import load_betas_adj
+from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
 from pydnameth.infrastucture.load.residuals_common import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
@@ -51,7 +53,7 @@ class BetasLoadStrategy(LoadStrategy):
 class BetasAdjLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas(config)
+        load_betas_adj(config)
         config.base_list = config.cpg_list
         config.base_dict = config.betas_adj_dict
         config.base_data = config.betas_adj_data
@@ -62,6 +64,12 @@ class BetasAdjLoadStrategy(LoadStrategy):
 
             for config_child in configs_child:
                 self.load_child(config_child)
+
+
+class BetasHorvathCalculatorLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        load_betas_horvath_calculator(config)
 
 
 class ResidualsCommonLoadStrategy(LoadStrategy):

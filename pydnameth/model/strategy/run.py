@@ -620,6 +620,9 @@ class PlotRunStrategy(RunStrategy):
 
                         characteristics_dict['best_R2'].append(R2)
 
+                        xs = []
+                        ys_t = []
+                        ys_b = []
                         if characteristics_dict['box_t_best_type'] == [0]:  # lin-lin axes
 
                             ys_t = np.zeros(2, dtype=float)
@@ -1004,10 +1007,22 @@ class PlotRunStrategy(RunStrategy):
 
                     color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
 
+                    if 'legend_size' in config.experiment.method_params:
+                        legend_size = config.experiment.method_params['legend_size']
+                        parts = get_names(config_child).split(')_')
+                        if len(parts) > 1:
+                            name = ')_'.join(parts[0:legend_size]) + ')'
+                        elif legend_size > len(parts):
+                            name = get_names(config_child)
+                        else:
+                            name = get_names(config_child)
+                    else:
+                        name = get_names(config_child)
+
                     if config_child.experiment.method == Method.histogram:
                         histogram = go.Histogram(
                             x=targets,
-                            name=get_names(config_child),
+                            name=name,
                             xbins=xbins,
                             marker=dict(
                                 opacity=config.experiment.method_params['opacity'],
@@ -1024,3 +1039,15 @@ class PlotRunStrategy(RunStrategy):
                     plot_data += curr_plot_data
 
                 config.experiment_data['data'] = plot_data
+
+
+class CreateRunStrategy(RunStrategy):
+
+    def single(self, item, config_child, configs_child):
+        pass
+
+    def iterate(self, config, configs_child):
+        pass
+
+    def run(self, config, configs_child):
+        pass
