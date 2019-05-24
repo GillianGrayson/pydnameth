@@ -475,11 +475,14 @@ class PlotRunStrategy(RunStrategy):
                 semi_window = config.experiment.method_params['semi_window']
 
                 plot_data = []
-
+                num_points = []
                 for config_child in configs_child:
+
+                    curr_plot_data = []
 
                     # Plot data
                     targets = self.get_strategy.get_target(config_child)
+                    num_points.append(len(targets))
                     data = self.get_strategy.get_single_base(config_child, [item])[0]
 
                     # Colors setup
@@ -488,11 +491,23 @@ class PlotRunStrategy(RunStrategy):
                     color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
                     color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
 
+                    if 'legend_size' in config.experiment.method_params:
+                        legend_size = config.experiment.method_params['legend_size']
+                        parts = get_names(config_child).split(')_')
+                        if len(parts) > 1:
+                            name = ')_'.join(parts[0:legend_size]) + ')'
+                        elif legend_size > len(parts):
+                            name = get_names(config_child)
+                        else:
+                            name = get_names(config_child)
+                    else:
+                        name = get_names(config_child)
+
                     # Adding scatter
                     scatter = go.Scatter(
                         x=targets,
                         y=data,
-                        name=get_names(config_child),
+                        name=name,
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -503,7 +518,7 @@ class PlotRunStrategy(RunStrategy):
                             )
                         ),
                     )
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
                     # Linear regression
                     x = sm.add_constant(targets)
@@ -533,7 +548,7 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding polygon area
                     if add == 'polygon':
@@ -549,7 +564,7 @@ class PlotRunStrategy(RunStrategy):
                             method=config_child.experiment.method
                         )
                         scatter = pr.get_scatter(color_transparent)
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding box curve
                     if fit == 'no' and semi_window != 'none':
@@ -568,7 +583,7 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
@@ -581,7 +596,7 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
@@ -594,7 +609,7 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding best curve
                     if fit == 'yes' and semi_window != 'none':
@@ -707,7 +722,7 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
@@ -720,9 +735,15 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
-                config.experiment_data['data'] = plot_data
+                    plot_data.append(curr_plot_data)
+
+                # Sorting by total number of points
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = []
+                for index in order:
+                    config.experiment_data['data'] += plot_data[index]
 
             elif config.experiment.method == Method.variance_histogram:
 
@@ -803,12 +824,16 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method == Method.scatter:
 
                 plot_data = []
+                num_points = []
 
                 y_type = config.experiment.method_params['y_type']
 
                 for config_child in configs_child:
 
+                    curr_plot_data = []
+
                     indexes = config_child.attributes_indexes
+                    num_points.append(len(indexes))
 
                     x = self.get_strategy.get_target(config_child)
                     y = np.zeros(len(indexes), dtype=int)
@@ -837,7 +862,7 @@ class PlotRunStrategy(RunStrategy):
                             )
                         ),
                     )
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
                     # Adding regression line
 
@@ -874,9 +899,14 @@ class PlotRunStrategy(RunStrategy):
                         showlegend=False
                     )
 
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
-                config.experiment_data['data'] = plot_data
+                    plot_data.append(curr_plot_data)
+
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = []
+                for index in order:
+                    config.experiment_data['data'] += plot_data[index]
 
             elif config.experiment.method == Method.range:
 
@@ -989,11 +1019,13 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method == Method.histogram:
 
                 plot_data = []
+                num_points = []
                 for config_child in configs_child:
 
                     curr_plot_data = []
 
                     targets = self.get_strategy.get_target(config_child)
+                    num_points.append(len(targets))
                     is_number_list = [is_float(t) for t in targets]
                     if False in is_number_list:
                         xbins = {}
@@ -1038,7 +1070,9 @@ class PlotRunStrategy(RunStrategy):
 
                     plot_data += curr_plot_data
 
-                config.experiment_data['data'] = plot_data
+                # Sorting by total number of points
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = [plot_data[index] for index in order]
 
 
 class CreateRunStrategy(RunStrategy):
