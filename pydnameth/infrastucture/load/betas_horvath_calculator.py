@@ -42,7 +42,6 @@ def load_betas_horvath_calculator(config):
             if cpg in config.betas_dict:
                 cpg_row_id = config.betas_dict[cpg]
                 curr_betas = list(config.betas_data[cpg_row_id])
-                # curr_betas = [str(x) for x in curr_betas]
                 line = [cpg] + curr_betas
                 betas[row_id] = line
             else:
@@ -51,5 +50,4 @@ def load_betas_horvath_calculator(config):
 
             row_id += 1
 
-        # np.savetxt(fn_data_csv, betas, fmt='%s', delimiter=',')
         pd.DataFrame(betas).to_csv(fn_data_csv, index=False, header=False)
