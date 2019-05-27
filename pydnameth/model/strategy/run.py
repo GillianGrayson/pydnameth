@@ -278,15 +278,28 @@ class TableRunStrategy(RunStrategy):
 
                         diff_begin = abs(box_ts_all[child_id][0] - box_bs_all[child_id][0])
                         diff_end = abs(box_ts_all[child_id][-1] - box_bs_all[child_id][-1])
-                        increasing = diff_end / diff_begin
-                        increasing_box_special.append(max(increasing, 1.0 / increasing))
+                        if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
+                            increasing = diff_end / diff_begin
+                            increasing_box_special.append(max(increasing, 1.0 / increasing))
+                        else:
+                            increasing_box_special.append(0.0)
 
-                    intersection_box = polygons_region_box_special[0]
-                    union_box = polygons_region_box_special[0]
-                    for polygon in polygons_region_box_special[1::]:
-                        intersection_box = intersection_box.intersection(polygon)
-                        union_box = union_box.union(polygon)
-                    area_intersection_rel_box = intersection_box.area / union_box.area
+                    all_polygons_is_valid = True
+                    for polygon in polygons_region_box_special:
+                        if polygon.is_valid is False:
+                            all_polygons_is_valid = False
+                            break
+
+                    if all_polygons_is_valid:
+                        intersection_box = polygons_region_box_special[0]
+                        union_box = polygons_region_box_special[0]
+                        for polygon in polygons_region_box_special[1::]:
+                            intersection_box = intersection_box.intersection(polygon)
+                            union_box = union_box.union(polygon)
+                        area_intersection_rel_box = intersection_box.area / union_box.area
+                    else:
+                        area_intersection_rel_box = 1.0
+
                     config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
                     config.metrics['increasing_box_special'].append(max(increasing_box_special))
 
@@ -311,15 +324,29 @@ class TableRunStrategy(RunStrategy):
 
                         diff_begin = abs(box_ts_all[child_id][begin_id] - box_bs_all[child_id][begin_id])
                         diff_end = abs(box_ts_all[child_id][end_id] - box_bs_all[child_id][end_id])
-                        increasing = diff_end / diff_begin
-                        increasing_box_common.append(max(increasing, 1.0 / increasing))
 
-                    intersection_box = polygons_region_box_common[0]
-                    union_box = polygons_region_box_common[0]
-                    for polygon in polygons_region_box_common[1::]:
-                        intersection_box = intersection_box.intersection(polygon)
-                        union_box = union_box.union(polygon)
-                    area_intersection_rel_box = intersection_box.area / union_box.area
+                        if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
+                            increasing = diff_end / diff_begin
+                            increasing_box_common.append(max(increasing, 1.0 / increasing))
+                        else:
+                            increasing_box_common.append(0.0)
+
+                    all_polygons_is_valid = True
+                    for polygon in polygons_region_box_common:
+                        if polygon.is_valid is False:
+                            all_polygons_is_valid = False
+                            break
+
+                    if all_polygons_is_valid:
+                        intersection_box = polygons_region_box_common[0]
+                        union_box = polygons_region_box_common[0]
+                        for polygon in polygons_region_box_common[1::]:
+                            intersection_box = intersection_box.intersection(polygon)
+                            union_box = union_box.union(polygon)
+                        area_intersection_rel_box = intersection_box.area / union_box.area
+                    else:
+                        area_intersection_rel_box = 1.0
+
                     config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
                     config.metrics['increasing_box_common'].append(max(increasing_box_common))
 
