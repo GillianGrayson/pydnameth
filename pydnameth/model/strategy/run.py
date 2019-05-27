@@ -15,6 +15,7 @@ from pydnameth.routines.polygon.types import PolygonRoutines
 from statsmodels.stats.stattools import jarque_bera, omni_normtest, durbin_watson
 from tqdm import tqdm
 from pydnameth.routines.residuals.variance import process_box, variance_processing, init_variance_characteristics_dict
+from pydnameth.routines.common import find_nearest_id
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -227,7 +228,17 @@ class TableRunStrategy(RunStrategy):
 
                 elif config.experiment.method_params['method'] == Method.variance:
 
-                    polygons_region_box = []
+                    polygons_region_box_common = []
+                    polygons_region_box_special = []
+
+                    increasing_box_common = []
+                    increasing_box_special = []
+
+                    box_xs_all = []
+                    box_bs_all = []
+                    box_ts_all = []
+                    left_x = float('-inf')
+                    right_x = float('inf')
 
                     for config_child in configs_child:
 
@@ -236,41 +247,85 @@ class TableRunStrategy(RunStrategy):
                         targets = np.squeeze(np.asarray(targets))
                         data = np.squeeze(np.asarray(data))
 
-                        exog = sm.add_constant(targets)
-                        endog = data
-                        results = sm.OLS(endog, exog).fit()
-                        residuals = results.resid
-
                         semi_window = config_child.experiment.method_params['semi_window']
                         box_b = config_child.experiment.method_params['box_b']
                         box_t = config_child.experiment.method_params['box_t']
 
-                        box_xs, box_bs, box_ms, box_ts = process_box(targets, residuals, semi_window, box_b, box_t)
+                        box_xs, box_bs, box_ms, box_ts = process_box(targets, data, semi_window, box_b, box_t)
+                        box_xs_all.append(box_xs)
+                        if (box_xs[0] > left_x):
+                            left_x = box_xs[0]
+                        if (box_xs[-1] < right_x):
+                            right_x = box_xs[-1]
+                        box_bs_all.append(box_bs)
+                        box_ts_all.append(box_ts)
+
+                    for child_id in range(0, len(box_xs_all)):
+
                         points_box = []
-                        for p_id in range(0, len(box_xs)):
+                        for p_id in range(0, len(box_xs_all[child_id])):
                             points_box.append(geometry.Point(
-                                box_xs[p_id],
-                                box_ts[p_id]
+                                box_xs_all[child_id][p_id],
+                                box_ts_all[child_id][p_id]
                             ))
-                        for p_id in range(len(box_xs) - 1, -1, -1):
+                        for p_id in range(len(box_xs_all[child_id]) - 1, -1, -1):
                             points_box.append(geometry.Point(
-                                box_xs[p_id],
-                                box_bs[p_id]
+                                box_xs_all[child_id][p_id],
+                                box_bs_all[child_id][p_id]
                             ))
                         polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
-                        polygons_region_box.append(polygon)
+                        polygons_region_box_special.append(polygon)
 
-                    intersection_box = polygons_region_box[0]
-                    union_box = polygons_region_box[0]
-                    for polygon in polygons_region_box[1::]:
+                        diff_begin = abs(box_ts_all[child_id][0] - box_bs_all[child_id][0])
+                        diff_end = abs(box_ts_all[child_id][-1] - box_bs_all[child_id][-1])
+                        increasing = diff_end / diff_begin
+                        increasing_box_special.append(max(increasing, 1.0 / increasing))
+
+                    intersection_box = polygons_region_box_special[0]
+                    union_box = polygons_region_box_special[0]
+                    for polygon in polygons_region_box_special[1::]:
                         intersection_box = intersection_box.intersection(polygon)
                         union_box = union_box.union(polygon)
                     area_intersection_rel_box = intersection_box.area / union_box.area
+                    config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
+                    config.metrics['increasing_box_special'].append(max(increasing_box_special))
+
+                    for child_id in range(0, len(box_xs_all)):
+
+                        begin_id = find_nearest_id(box_xs_all[child_id], left_x)
+                        end_id = find_nearest_id(box_xs_all[child_id], right_x)
+
+                        points_box = []
+                        for p_id in range(begin_id, end_id + 1):
+                            points_box.append(geometry.Point(
+                                box_xs_all[child_id][p_id],
+                                box_ts_all[child_id][p_id]
+                            ))
+                        for p_id in range(end_id, begin_id - 1, -1):
+                            points_box.append(geometry.Point(
+                                box_xs_all[child_id][p_id],
+                                box_bs_all[child_id][p_id]
+                            ))
+                        polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
+                        polygons_region_box_common.append(polygon)
+
+                        diff_begin = abs(box_ts_all[child_id][begin_id] - box_bs_all[child_id][begin_id])
+                        diff_end = abs(box_ts_all[child_id][end_id] - box_bs_all[child_id][end_id])
+                        increasing = diff_end / diff_begin
+                        increasing_box_common.append(max(increasing, 1.0 / increasing))
+
+                    intersection_box = polygons_region_box_common[0]
+                    union_box = polygons_region_box_common[0]
+                    for polygon in polygons_region_box_common[1::]:
+                        intersection_box = intersection_box.intersection(polygon)
+                        union_box = union_box.union(polygon)
+                    area_intersection_rel_box = intersection_box.area / union_box.area
+                    config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
+                    config.metrics['increasing_box_common'].append(max(increasing_box_common))
 
                     config.metrics['item'].append(item)
                     aux = self.get_strategy.get_aux(config, item)
                     config.metrics['aux'].append(aux)
-                    config.metrics['area_intersection_rel_box'].append(area_intersection_rel_box)
 
             elif config.experiment.method == Method.z_test_linreg:
 
@@ -617,15 +672,13 @@ class PlotRunStrategy(RunStrategy):
                         box_b = config.experiment.method_params['box_b']
                         box_t = config.experiment.method_params['box_t']
 
-                        residuals = data
-
                         characteristics_dict = {}
 
                         init_variance_characteristics_dict(characteristics_dict, 'box_b')
                         init_variance_characteristics_dict(characteristics_dict, 'box_m')
                         init_variance_characteristics_dict(characteristics_dict, 'box_t')
 
-                        xs_box, bs_box, ms_box, ts_box = process_box(targets, residuals, semi_window, box_b, box_t)
+                        xs_box, bs_box, ms_box, ts_box = process_box(targets, data, semi_window, box_b, box_t)
                         variance_processing(xs_box, bs_box, characteristics_dict, 'box_b')
                         variance_processing(xs_box, ms_box, characteristics_dict, 'box_m')
                         variance_processing(xs_box, ts_box, characteristics_dict, 'box_t')

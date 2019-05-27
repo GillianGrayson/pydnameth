@@ -1,4 +1,5 @@
 import plotly.graph_objs as go
+import numpy as np
 
 
 def is_float(value):
@@ -7,6 +8,12 @@ def is_float(value):
         return True
     except ValueError:
         return False
+
+
+def find_nearest_id(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
 
 
 def normalize_to_0_1(values):

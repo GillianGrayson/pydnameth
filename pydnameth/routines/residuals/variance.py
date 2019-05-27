@@ -56,14 +56,14 @@ def process_box(targets, values, semi_window=2, box_b='left', box_t='right'):
 def variance_processing(exog, endog, characteristics_dict, key_prefix):
     is_same_elements = all(x == endog[0] for x in endog)
     if is_same_elements:
-        characteristics_dict[key_prefix + '_lin_lin_R2'].append(1.0)
-        characteristics_dict[key_prefix + '_lin_lin_intercept'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_slope'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_intercept_std'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_slope_std'].append(0.0)
+        characteristics_dict[key_prefix + '_lin_lin_R2'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_intercept'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_slope'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_intercept_std'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_slope_std'].append('NA')
         characteristics_dict[key_prefix + '_lin_lin_intercept_p_value'].append('NA')
         characteristics_dict[key_prefix + '_lin_lin_slope_p_value'].append('NA')
-        R2s = [1.0]
+        R2s = [-1]
     else:
         lin_lin_exog = sm.add_constant(exog)
         lin_lin_endog = endog
