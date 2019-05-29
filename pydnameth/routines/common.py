@@ -15,6 +15,12 @@ def find_nearest_id(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+def dict_slice(origin_dict, id):
+    new_dict = {}
+    for key, value in origin_dict.items():
+        new_dict[key] = [value[id]]
+    return new_dict
+
 
 def normalize_to_0_1(values):
     values_normed = [(float(val) - min(values)) / (float(max(values)) - float(min(values))) for val in values]

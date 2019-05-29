@@ -14,8 +14,8 @@ from pydnameth.routines.common import is_float, get_names, normalize_to_0_1
 from pydnameth.routines.polygon.types import PolygonRoutines
 from statsmodels.stats.stattools import jarque_bera, omni_normtest, durbin_watson
 from tqdm import tqdm
-from pydnameth.routines.residuals.variance import process_box, variance_processing, init_variance_characteristics_dict
-from pydnameth.routines.common import find_nearest_id
+from pydnameth.routines.variance.functions import process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
+from pydnameth.routines.common import find_nearest_id, dict_slice
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -148,20 +148,14 @@ class TableRunStrategy(RunStrategy):
                         targets = self.get_strategy.get_target(config_child)
                         item_id = config_child.advanced_dict[item]
 
-                        intercept = config_child.advanced_data['intercept'][item_id]
+                        metrics_dict = dict_slice(config_child.advanced_data, item_id)
+
                         slope = config_child.advanced_data['slope'][item_id]
-                        intercept_std = config_child.advanced_data['intercept_std'][item_id]
                         slope_std = config_child.advanced_data['slope_std'][item_id]
 
                         pr = PolygonRoutines(
                             x=targets,
-                            y=[],
-                            params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
-                            },
+                            params=metrics_dict,
                             method=config_child.experiment.method
                         )
                         points_region = pr.get_border_points()
@@ -177,13 +171,7 @@ class TableRunStrategy(RunStrategy):
 
                         pr_min = PolygonRoutines(
                             x=[border_l, border_r],
-                            y=[],
-                            params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
-                            },
+                            params=metrics_dict,
                             method=config_child.experiment.method
                         )
                         points_region_min = pr_min.get_border_points()
@@ -234,50 +222,48 @@ class TableRunStrategy(RunStrategy):
                     increasing_box_common = []
                     increasing_box_special = []
 
-                    box_xs_all = []
-                    box_bs_all = []
-                    box_ts_all = []
+                    xs_all = []
+                    ys_b_all = []
+                    ys_t_all = []
                     left_x = float('-inf')
                     right_x = float('inf')
 
                     for config_child in configs_child:
 
-                        targets = self.get_strategy.get_target(config_child)
-                        data = self.get_strategy.get_single_base(config_child, [item])
-                        targets = np.squeeze(np.asarray(targets))
-                        data = np.squeeze(np.asarray(data))
+                        targets = np.squeeze(np.asarray(self.get_strategy.get_target(config_child)))
+                        item_id = config_child.advanced_dict[item]
 
-                        semi_window = config_child.experiment.method_params['semi_window']
-                        box_b = config_child.experiment.method_params['box_b']
-                        box_t = config_child.experiment.method_params['box_t']
+                        metrics_dict = dict_slice(config_child.advanced_data, item_id)
 
-                        box_xs, box_bs, box_ms, box_ts = process_box(targets, data, semi_window, box_b, box_t)
-                        box_xs_all.append(box_xs)
-                        if (box_xs[0] > left_x):
-                            left_x = box_xs[0]
-                        if (box_xs[-1] < right_x):
-                            right_x = box_xs[-1]
-                        box_bs_all.append(box_bs)
-                        box_ts_all.append(box_ts)
+                        xs = get_box_xs(targets)
+                        ys_b, ys_t = fit_variance(xs, metrics_dict)
 
-                    for child_id in range(0, len(box_xs_all)):
+                        xs_all.append(xs)
+                        if (xs[0] > left_x):
+                            left_x = xs[0]
+                        if (xs[-1] < right_x):
+                            right_x = xs[-1]
+                        ys_b_all.append(ys_b)
+                        ys_t_all.append(ys_t)
+
+                    for child_id in range(0, len(xs_all)):
 
                         points_box = []
-                        for p_id in range(0, len(box_xs_all[child_id])):
+                        for p_id in range(0, len(xs_all[child_id])):
                             points_box.append(geometry.Point(
-                                box_xs_all[child_id][p_id],
-                                box_ts_all[child_id][p_id]
+                                xs_all[child_id][p_id],
+                                ys_t_all[child_id][p_id]
                             ))
-                        for p_id in range(len(box_xs_all[child_id]) - 1, -1, -1):
+                        for p_id in range(len(xs_all[child_id]) - 1, -1, -1):
                             points_box.append(geometry.Point(
-                                box_xs_all[child_id][p_id],
-                                box_bs_all[child_id][p_id]
+                                xs_all[child_id][p_id],
+                                ys_b_all[child_id][p_id]
                             ))
                         polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
                         polygons_region_box_special.append(polygon)
 
-                        diff_begin = abs(box_ts_all[child_id][0] - box_bs_all[child_id][0])
-                        diff_end = abs(box_ts_all[child_id][-1] - box_bs_all[child_id][-1])
+                        diff_begin = abs(ys_t_all[child_id][0] - ys_b_all[child_id][0])
+                        diff_end = abs(ys_t_all[child_id][-1] - ys_b_all[child_id][-1])
                         if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
                             increasing = diff_end / diff_begin
                             increasing_box_special.append(max(increasing, 1.0 / increasing))
@@ -297,33 +283,35 @@ class TableRunStrategy(RunStrategy):
                             intersection_box = intersection_box.intersection(polygon)
                             union_box = union_box.union(polygon)
                         area_intersection_rel_box = intersection_box.area / union_box.area
+                        increasing_box_special_val = max(increasing_box_special) / min(increasing_box_special)
                     else:
                         area_intersection_rel_box = 1.0
+                        increasing_box_special_val = 0.0
 
                     config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
-                    config.metrics['increasing_box_special'].append(max(increasing_box_special))
+                    config.metrics['increasing_box_special'].append(increasing_box_special_val)
 
-                    for child_id in range(0, len(box_xs_all)):
+                    for child_id in range(0, len(xs_all)):
 
-                        begin_id = find_nearest_id(box_xs_all[child_id], left_x)
-                        end_id = find_nearest_id(box_xs_all[child_id], right_x)
+                        begin_id = find_nearest_id(xs_all[child_id], left_x)
+                        end_id = find_nearest_id(xs_all[child_id], right_x)
 
                         points_box = []
                         for p_id in range(begin_id, end_id + 1):
                             points_box.append(geometry.Point(
-                                box_xs_all[child_id][p_id],
-                                box_ts_all[child_id][p_id]
+                                xs_all[child_id][p_id],
+                                ys_t_all[child_id][p_id]
                             ))
                         for p_id in range(end_id, begin_id - 1, -1):
                             points_box.append(geometry.Point(
-                                box_xs_all[child_id][p_id],
-                                box_bs_all[child_id][p_id]
+                                xs_all[child_id][p_id],
+                                ys_b_all[child_id][p_id]
                             ))
                         polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
                         polygons_region_box_common.append(polygon)
 
-                        diff_begin = abs(box_ts_all[child_id][begin_id] - box_bs_all[child_id][begin_id])
-                        diff_end = abs(box_ts_all[child_id][end_id] - box_bs_all[child_id][end_id])
+                        diff_begin = abs(ys_t_all[child_id][begin_id] - ys_b_all[child_id][begin_id])
+                        diff_end = abs(ys_t_all[child_id][end_id] - ys_b_all[child_id][end_id])
 
                         if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
                             increasing = diff_end / diff_begin
@@ -344,11 +332,13 @@ class TableRunStrategy(RunStrategy):
                             intersection_box = intersection_box.intersection(polygon)
                             union_box = union_box.union(polygon)
                         area_intersection_rel_box = intersection_box.area / union_box.area
+                        increasing_box_common_value = max(increasing_box_common) / min(increasing_box_common)
                     else:
                         area_intersection_rel_box = 1.0
+                        increasing_box_common_value = 0.0
 
                     config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
-                    config.metrics['increasing_box_common'].append(max(increasing_box_common))
+                    config.metrics['increasing_box_common'].append(increasing_box_common_value)
 
                     config.metrics['item'].append(item)
                     aux = self.get_strategy.get_aux(config, item)
@@ -422,14 +412,7 @@ class TableRunStrategy(RunStrategy):
                 box_b = config.experiment.method_params['box_b']
                 box_t = config.experiment.method_params['box_t']
 
-                xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
-                variance_processing(xs, bs, config.metrics, 'box_b')
-                variance_processing(xs, ms, config.metrics, 'box_m')
-                variance_processing(xs, ts, config.metrics, 'box_t')
-
-                R2 = np.min([config.metrics['box_b_best_R2'][-1], config.metrics['box_t_best_R2'][-1]])
-
-                config.metrics['best_R2'].append(R2)
+                process_variance(targets, data, semi_window, box_b, box_t, config.metrics)
 
                 config.metrics['item'].append(item)
                 aux = self.get_strategy.get_aux(config, item)
@@ -636,12 +619,11 @@ class PlotRunStrategy(RunStrategy):
                     if add == 'polygon':
                         pr = PolygonRoutines(
                             x=targets,
-                            y=[],
                             params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
+                                'intercept': [intercept],
+                                'slope': [slope],
+                                'intercept_std': [intercept_std],
+                                'slope_std': [slope_std]
                             },
                             method=config_child.experiment.method
                         )
@@ -699,97 +681,14 @@ class PlotRunStrategy(RunStrategy):
                         box_b = config.experiment.method_params['box_b']
                         box_t = config.experiment.method_params['box_t']
 
-                        characteristics_dict = {}
+                        metrics_dict = {}
+                        init_variance_metrics_dict(metrics_dict, 'box_b')
+                        init_variance_metrics_dict(metrics_dict, 'box_m')
+                        init_variance_metrics_dict(metrics_dict, 'box_t')
 
-                        init_variance_characteristics_dict(characteristics_dict, 'box_b')
-                        init_variance_characteristics_dict(characteristics_dict, 'box_m')
-                        init_variance_characteristics_dict(characteristics_dict, 'box_t')
+                        xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict)
 
-                        xs_box, bs_box, ms_box, ts_box = process_box(targets, data, semi_window, box_b, box_t)
-                        variance_processing(xs_box, bs_box, characteristics_dict, 'box_b')
-                        variance_processing(xs_box, ms_box, characteristics_dict, 'box_m')
-                        variance_processing(xs_box, ts_box, characteristics_dict, 'box_t')
-
-                        R2 = np.min([characteristics_dict['box_b_best_R2'][-1],
-                                     characteristics_dict['box_t_best_R2'][-1]])
-
-                        characteristics_dict['best_R2'].append(R2)
-
-                        xs = []
-                        ys_t = []
-                        ys_b = []
-                        if characteristics_dict['box_t_best_type'] == [0]:  # lin-lin axes
-
-                            ys_t = np.zeros(2, dtype=float)
-                            ys_b = np.zeros(2, dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_lin_lin_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_lin_lin_slope'][0]
-
-                            intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                            slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-
-                            ys_t[0] = slope_box_t * xs_box[0] + intercept_box_t
-                            ys_b[0] = slope_box_b * xs_box[0] + intercept_box_b
-
-                            ys_t[1] = slope_box_t * xs_box[-1] + intercept_box_t
-                            ys_b[1] = slope_box_b * xs_box[-1] + intercept_box_b
-
-                            xs = [xs_box[0], xs_box[-1]]
-
-                        elif characteristics_dict['box_t_best_type'] == [1]:  # lin-log axes
-
-                            ys_t = np.zeros(len(ts_box), dtype=float)
-                            ys_b = np.zeros(len(bs_box), dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_lin_log_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_lin_log_slope'][0]
-
-                            if characteristics_dict['box_b_lin_log_intercept'][0] != 'NA' and \
-                                    characteristics_dict['box_b_lin_log_slope'][0] != 'NA':
-                                intercept_box_b = characteristics_dict['box_b_lin_log_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_log_slope'][0]
-                                is_lin_log = True
-                            else:
-                                intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-                                is_lin_log = False
-
-                            for box_id in range(0, len(xs_box)):
-                                ys_t[box_id] = np.exp(slope_box_t * xs_box[box_id] + intercept_box_t)
-                                if is_lin_log:
-                                    ys_b[box_id] = np.exp(slope_box_b * xs_box[box_id] + intercept_box_b)
-                                else:
-                                    ys_b[box_id] = slope_box_b * xs_box[box_id] + intercept_box_b
-
-                            xs = xs_box
-
-                        elif characteristics_dict['box_t_best_type'] == [2]:  # log-log axes
-
-                            ys_t = np.zeros(len(ts_box), dtype=float)
-                            ys_b = np.zeros(len(bs_box), dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_log_log_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_log_log_slope'][0]
-
-                            if characteristics_dict['box_b_log_log_intercept'][0] != 'NA' and \
-                                    characteristics_dict['box_b_log_log_slope'][0] != 'NA':
-                                intercept_box_b = characteristics_dict['box_b_log_log_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_log_log_slope'][0]
-                                is_log_log = True
-                            else:
-                                intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-                                is_log_log = False
-
-                            for box_id in range(0, len(xs_box)):
-                                ys_t[box_id] = np.exp(slope_box_t * np.log(xs_box[box_id]) + intercept_box_t)
-                                if is_log_log:
-                                    ys_b[box_id] = np.exp(slope_box_b * np.log(xs_box[box_id]) + intercept_box_b)
-                                else:
-                                    ys_b[box_id] = slope_box_b * xs_box[box_id] + intercept_box_b
-
-                            xs = xs_box
+                        ys_b, ys_t = fit_variance(xs, metrics_dict)
 
                         scatter = go.Scatter(
                             x=xs,
