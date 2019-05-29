@@ -14,7 +14,8 @@ from pydnameth.routines.common import is_float, get_names, normalize_to_0_1
 from pydnameth.routines.polygon.types import PolygonRoutines
 from statsmodels.stats.stattools import jarque_bera, omni_normtest, durbin_watson
 from tqdm import tqdm
-from pydnameth.routines.variance.functions import process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
+from pydnameth.routines.variance.functions import \
+    process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
 from pydnameth.routines.common import find_nearest_id, dict_slice
 
 

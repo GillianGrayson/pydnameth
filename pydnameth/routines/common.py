@@ -15,6 +15,7 @@ def find_nearest_id(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+
 def dict_slice(origin_dict, id):
     new_dict = {}
     for key, value in origin_dict.items():
