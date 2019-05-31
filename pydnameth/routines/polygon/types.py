@@ -7,12 +7,10 @@ import plotly.graph_objs as go
 class PolygonRoutines:
     def __init__(self,
                  x,
-                 y,
                  params,
                  method,
                  ):
         self.x = x
-        self.y = y
         self.params = params
         self.method = method
 
@@ -22,10 +20,10 @@ class PolygonRoutines:
 
             sigma = 3.0
 
-            intercept = self.params['intercept']
-            slope = self.params['slope']
-            intercept_std = self.params['intercept_std']
-            slope_std = self.params['slope_std']
+            intercept = self.params['intercept'][0]
+            slope = self.params['slope'][0]
+            intercept_std = self.params['intercept_std'][0]
+            slope_std = self.params['slope_std'][0]
 
             x_min = np.min(self.x)
             x_max = np.max(self.x)
@@ -50,10 +48,10 @@ class PolygonRoutines:
 
         elif self.method == Method.variance_linreg:
 
-            intercept = self.params['intercept']
-            slope = self.params['slope']
-            intercept_var = self.params['intercept_var']
-            slope_var = self.params['slope_var']
+            intercept = self.params['intercept'][0]
+            slope = self.params['slope'][0]
+            intercept_var = self.params['intercept_var'][0]
+            slope_var = self.params['slope_var'][0]
 
             x_min = np.min(self.x)
             x_max = np.max(self.x)

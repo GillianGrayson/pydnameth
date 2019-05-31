@@ -145,3 +145,9 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         layout.xaxis.range = config.experiment.method_params['x_range']
 
                 config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+
+class CreateReleaseStrategy(ReleaseStrategy):
+
+    def release(self, config, configs_child):
+        pass

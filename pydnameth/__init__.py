@@ -31,6 +31,9 @@ from pydnameth.scripts.develop.betas.plot import \
     betas_plot_curve_clock,\
     betas_plot_variance_histogram_dev
 
+from pydnameth.scripts.develop.betas_horvath_calculator.create import \
+    betas_horvath_calculator_create_regular
+
 from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
 from pydnameth.scripts.develop.epimutations.plot import \

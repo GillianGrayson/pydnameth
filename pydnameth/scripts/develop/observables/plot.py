@@ -42,7 +42,7 @@ def observables_plot_histogram(
         data=copy.deepcopy(data),
         experiment=Experiment(
             data=DataType.observables,
-            task=Task.observables,
+            task=Task.plot,
             method=Method.histogram,
             method_params=copy.deepcopy(method_params)
         ),

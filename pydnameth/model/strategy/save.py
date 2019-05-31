@@ -62,3 +62,12 @@ class PlotSaveStrategy(SaveStrategy):
             return True
         else:
             return False
+
+
+class CreateSaveStrategy(SaveStrategy):
+
+    def save(self, config, configs_child):
+        pass
+
+    def is_result_exist(self, config, configs_child):
+        pass
