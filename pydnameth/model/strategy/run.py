@@ -628,7 +628,7 @@ class PlotRunStrategy(RunStrategy):
                         scatter = go.Scatter(
                             x=xs,
                             y=bs,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -654,7 +654,7 @@ class PlotRunStrategy(RunStrategy):
                         scatter = go.Scatter(
                             x=xs,
                             y=ts,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -695,7 +695,7 @@ class PlotRunStrategy(RunStrategy):
                         scatter = go.Scatter(
                             x=xs,
                             y=ys_b,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
