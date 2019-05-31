@@ -557,23 +557,11 @@ class PlotRunStrategy(RunStrategy):
                     color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
                     color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
 
-                    if 'legend_size' in config.experiment.method_params:
-                        legend_size = config.experiment.method_params['legend_size']
-                        parts = get_names(config_child).split(')_')
-                        if len(parts) > 1:
-                            name = ')_'.join(parts[0:legend_size]) + ')'
-                        elif legend_size > len(parts):
-                            name = get_names(config_child)
-                        else:
-                            name = get_names(config_child)
-                    else:
-                        name = get_names(config_child)
-
                     # Adding scatter
                     scatter = go.Scatter(
                         x=targets,
                         y=data,
-                        name=name,
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -653,7 +641,7 @@ class PlotRunStrategy(RunStrategy):
                         scatter = go.Scatter(
                             x=xs,
                             y=ms,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=6,
@@ -694,7 +682,7 @@ class PlotRunStrategy(RunStrategy):
                         scatter = go.Scatter(
                             x=xs,
                             y=ys_t,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -784,7 +772,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=xs,
                         y=ys,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='lines+markers',
                         marker=dict(
                             size=10,
@@ -831,7 +819,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=x,
                         y=y,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -949,7 +937,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=x,
                         y=y,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -1019,22 +1007,10 @@ class PlotRunStrategy(RunStrategy):
 
                     color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
 
-                    if 'legend_size' in config.experiment.method_params:
-                        legend_size = config.experiment.method_params['legend_size']
-                        parts = get_names(config_child).split(')_')
-                        if len(parts) > 1:
-                            name = ')_'.join(parts[0:legend_size]) + ')'
-                        elif legend_size > len(parts):
-                            name = get_names(config_child)
-                        else:
-                            name = get_names(config_child)
-                    else:
-                        name = get_names(config_child)
-
                     if config_child.experiment.method == Method.histogram:
                         histogram = go.Histogram(
                             x=targets,
-                            name=name,
+                            name=get_names(config_child, config.experiment.method_params),
                             xbins=xbins,
                             marker=dict(
                                 opacity=config.experiment.method_params['opacity'],

@@ -76,8 +76,23 @@ def get_margin():
     return margin
 
 
-def get_names(config):
+def process_names(config):
     name = str(config.attributes.observables)
     if 'gender' in name:
         name = name.replace('gender', 'sex')
+    return name
+
+
+def get_names(config, plot_params):
+    if 'legend_size' in plot_params:
+        legend_size = plot_params['legend_size']
+        parts = process_names(config).split(')_')
+        if len(parts) > 1:
+            name = ')_'.join(parts[0:legend_size]) + ')'
+        elif legend_size > len(parts):
+            name = process_names(config)
+        else:
+            name = process_names(config)
+    else:
+        name = process_names(config)
     return name

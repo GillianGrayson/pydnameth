@@ -19,6 +19,15 @@ def pass_indexes(config, target, variable, any):
     return passed_indexes
 
 
+def pass_indexes_interval(config, target, left, right):
+    passed_indexes = []
+    attributes = config.attributes_dict[target]
+    for index in range(0, len(attributes)):
+        if left <= attributes[index] < right:
+            passed_indexes.append(index)
+    return passed_indexes
+
+
 def get_indexes(config):
     indexes = list(range(0, len(list(config.attributes_dict.values())[0])))
 
@@ -26,26 +35,31 @@ def get_indexes(config):
         any = CommonTypes.any.value
         if obs in config.attributes_dict:
 
-            if isinstance(value, list):
+            if obs == 'age':
 
-                passed_indexes = []
+                if len(value) == 2:
+                    left = float(value[0])
+                    right = float(value[1])
+                    passed_indexes = pass_indexes_interval(config, obs, left, right)
+                else:
+                    raise ValueError('Wrong attributes_dict key for age. It should be (left, right).')
 
-                for v in value:
-
-                    if is_float(v):
-                        v = float(v)
-                        if v.is_integer():
-                            v = int(v)
-
-                    passed_indexes += pass_indexes(config, obs, v, any)
             else:
 
-                if is_float(value):
-                    value = float(value)
-                    if value.is_integer():
-                        value = int(value)
-
-                passed_indexes = pass_indexes(config, obs, value, any)
+                if isinstance(value, list):
+                    passed_indexes = []
+                    for v in value:
+                        if is_float(v):
+                            v = float(v)
+                            if v.is_integer():
+                                v = int(v)
+                        passed_indexes += pass_indexes(config, obs, v, any)
+                else:
+                    if is_float(value):
+                        value = float(value)
+                        if value.is_integer():
+                            value = int(value)
+                    passed_indexes = pass_indexes(config, obs, value, any)
 
             indexes = list(set(indexes).intersection(passed_indexes))
         else:
