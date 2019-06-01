@@ -140,7 +140,7 @@ class TestLoadAnnotations(unittest.TestCase):
 
     def test_get_indexes_age_and_m(self):
         self.config.attributes_dict = load_observables_dict(self.config)
-        self.config.attributes.observables.types = {'age': [20, 21, 22], 'gender': 'M'}
+        self.config.attributes.observables.types = {'age': (20, 22.1), 'gender': 'M'}
         self.assertEqual(len(get_indexes(self.config)), 14)
 
 

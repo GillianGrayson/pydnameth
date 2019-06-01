@@ -148,7 +148,10 @@ def get_method_metrics_keys(config):
                     metrics = [
                         'item',
                         'aux',
-                        'area_intersection_rel_box'
+                        'area_intersection_rel_box_common',
+                        'area_intersection_rel_box_special',
+                        'increasing_box_common',
+                        'increasing_box_special'
                     ]
 
             elif config.experiment.method == Method.special:

@@ -14,7 +14,9 @@ from pydnameth.routines.common import is_float, get_names, normalize_to_0_1
 from pydnameth.routines.polygon.types import PolygonRoutines
 from statsmodels.stats.stattools import jarque_bera, omni_normtest, durbin_watson
 from tqdm import tqdm
-from pydnameth.routines.residuals.variance import process_box, variance_processing, init_variance_characteristics_dict
+from pydnameth.routines.variance.functions import \
+    process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
+from pydnameth.routines.common import find_nearest_id, dict_slice
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -147,20 +149,14 @@ class TableRunStrategy(RunStrategy):
                         targets = self.get_strategy.get_target(config_child)
                         item_id = config_child.advanced_dict[item]
 
-                        intercept = config_child.advanced_data['intercept'][item_id]
+                        metrics_dict = dict_slice(config_child.advanced_data, item_id)
+
                         slope = config_child.advanced_data['slope'][item_id]
-                        intercept_std = config_child.advanced_data['intercept_std'][item_id]
                         slope_std = config_child.advanced_data['slope_std'][item_id]
 
                         pr = PolygonRoutines(
                             x=targets,
-                            y=[],
-                            params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
-                            },
+                            params=metrics_dict,
                             method=config_child.experiment.method
                         )
                         points_region = pr.get_border_points()
@@ -176,13 +172,7 @@ class TableRunStrategy(RunStrategy):
 
                         pr_min = PolygonRoutines(
                             x=[border_l, border_r],
-                            y=[],
-                            params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
-                            },
+                            params=metrics_dict,
                             method=config_child.experiment.method
                         )
                         points_region_min = pr_min.get_border_points()
@@ -227,50 +217,133 @@ class TableRunStrategy(RunStrategy):
 
                 elif config.experiment.method_params['method'] == Method.variance:
 
-                    polygons_region_box = []
+                    polygons_region_box_common = []
+                    polygons_region_box_special = []
+
+                    increasing_box_common = []
+                    increasing_box_special = []
+
+                    xs_all = []
+                    ys_b_all = []
+                    ys_t_all = []
+                    left_x = float('-inf')
+                    right_x = float('inf')
 
                     for config_child in configs_child:
 
-                        targets = self.get_strategy.get_target(config_child)
-                        data = self.get_strategy.get_single_base(config_child, [item])
-                        targets = np.squeeze(np.asarray(targets))
-                        data = np.squeeze(np.asarray(data))
+                        targets = np.squeeze(np.asarray(self.get_strategy.get_target(config_child)))
+                        item_id = config_child.advanced_dict[item]
 
-                        exog = sm.add_constant(targets)
-                        endog = data
-                        results = sm.OLS(endog, exog).fit()
-                        residuals = results.resid
+                        metrics_dict = dict_slice(config_child.advanced_data, item_id)
 
-                        semi_window = config_child.experiment.method_params['semi_window']
-                        box_b = config_child.experiment.method_params['box_b']
-                        box_t = config_child.experiment.method_params['box_t']
+                        xs = get_box_xs(targets)
+                        ys_b, ys_t = fit_variance(xs, metrics_dict)
 
-                        box_xs, box_bs, box_ms, box_ts = process_box(targets, residuals, semi_window, box_b, box_t)
+                        xs_all.append(xs)
+                        if (xs[0] > left_x):
+                            left_x = xs[0]
+                        if (xs[-1] < right_x):
+                            right_x = xs[-1]
+                        ys_b_all.append(ys_b)
+                        ys_t_all.append(ys_t)
+
+                    for child_id in range(0, len(xs_all)):
+
                         points_box = []
-                        for p_id in range(0, len(box_xs)):
+                        for p_id in range(0, len(xs_all[child_id])):
                             points_box.append(geometry.Point(
-                                box_xs[p_id],
-                                box_ts[p_id]
+                                xs_all[child_id][p_id],
+                                ys_t_all[child_id][p_id]
                             ))
-                        for p_id in range(len(box_xs) - 1, -1, -1):
+                        for p_id in range(len(xs_all[child_id]) - 1, -1, -1):
                             points_box.append(geometry.Point(
-                                box_xs[p_id],
-                                box_bs[p_id]
+                                xs_all[child_id][p_id],
+                                ys_b_all[child_id][p_id]
                             ))
                         polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
-                        polygons_region_box.append(polygon)
+                        polygons_region_box_special.append(polygon)
 
-                    intersection_box = polygons_region_box[0]
-                    union_box = polygons_region_box[0]
-                    for polygon in polygons_region_box[1::]:
-                        intersection_box = intersection_box.intersection(polygon)
-                        union_box = union_box.union(polygon)
-                    area_intersection_rel_box = intersection_box.area / union_box.area
+                        diff_begin = abs(ys_t_all[child_id][0] - ys_b_all[child_id][0])
+                        diff_end = abs(ys_t_all[child_id][-1] - ys_b_all[child_id][-1])
+                        if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
+                            increasing = diff_end / diff_begin
+                            increasing_box_special.append(max(increasing, 1.0 / increasing))
+                        else:
+                            increasing_box_special.append(0.0)
+
+                    all_polygons_is_valid = True
+                    for polygon in polygons_region_box_special:
+                        if polygon.is_valid is False:
+                            all_polygons_is_valid = False
+                            break
+
+                    if all_polygons_is_valid:
+                        intersection_box = polygons_region_box_special[0]
+                        union_box = polygons_region_box_special[0]
+                        for polygon in polygons_region_box_special[1::]:
+                            intersection_box = intersection_box.intersection(polygon)
+                            union_box = union_box.union(polygon)
+                        area_intersection_rel_box = intersection_box.area / union_box.area
+                        increasing_box_special_val = max(increasing_box_special) / min(increasing_box_special)
+                    else:
+                        area_intersection_rel_box = 1.0
+                        increasing_box_special_val = 0.0
+
+                    config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
+                    config.metrics['increasing_box_special'].append(increasing_box_special_val)
+
+                    for child_id in range(0, len(xs_all)):
+
+                        begin_id = find_nearest_id(xs_all[child_id], left_x)
+                        end_id = find_nearest_id(xs_all[child_id], right_x)
+
+                        points_box = []
+                        for p_id in range(begin_id, end_id + 1):
+                            points_box.append(geometry.Point(
+                                xs_all[child_id][p_id],
+                                ys_t_all[child_id][p_id]
+                            ))
+                        for p_id in range(end_id, begin_id - 1, -1):
+                            points_box.append(geometry.Point(
+                                xs_all[child_id][p_id],
+                                ys_b_all[child_id][p_id]
+                            ))
+                        polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
+                        polygons_region_box_common.append(polygon)
+
+                        diff_begin = abs(ys_t_all[child_id][begin_id] - ys_b_all[child_id][begin_id])
+                        diff_end = abs(ys_t_all[child_id][end_id] - ys_b_all[child_id][end_id])
+
+                        if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
+                            increasing = diff_end / diff_begin
+                            increasing_box_common.append(max(increasing, 1.0 / increasing))
+                        else:
+                            increasing_box_common.append(0.0)
+
+                    all_polygons_is_valid = True
+                    for polygon in polygons_region_box_common:
+                        if polygon.is_valid is False:
+                            all_polygons_is_valid = False
+                            break
+
+                    if all_polygons_is_valid:
+                        intersection_box = polygons_region_box_common[0]
+                        union_box = polygons_region_box_common[0]
+                        for polygon in polygons_region_box_common[1::]:
+                            intersection_box = intersection_box.intersection(polygon)
+                            union_box = union_box.union(polygon)
+                        area_intersection_rel_box = intersection_box.area / union_box.area
+                        increasing_box_common_value = max(increasing_box_common) / min(increasing_box_common)
+                    else:
+                        area_intersection_rel_box = 1.0
+                        increasing_box_common_value = 0.0
+
+                    config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
+                    config.metrics['increasing_box_common'].append(increasing_box_common_value)
 
                     config.metrics['item'].append(item)
                     aux = self.get_strategy.get_aux(config, item)
                     config.metrics['aux'].append(aux)
-                    config.metrics['area_intersection_rel_box'].append(area_intersection_rel_box)
 
             elif config.experiment.method == Method.z_test_linreg:
 
@@ -340,14 +413,7 @@ class TableRunStrategy(RunStrategy):
                 box_b = config.experiment.method_params['box_b']
                 box_t = config.experiment.method_params['box_t']
 
-                xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
-                variance_processing(xs, bs, config.metrics, 'box_b')
-                variance_processing(xs, ms, config.metrics, 'box_m')
-                variance_processing(xs, ts, config.metrics, 'box_t')
-
-                R2 = np.min([config.metrics['box_b_best_R2'][-1], config.metrics['box_t_best_R2'][-1]])
-
-                config.metrics['best_R2'].append(R2)
+                process_variance(targets, data, semi_window, box_b, box_t, config.metrics)
 
                 config.metrics['item'].append(item)
                 aux = self.get_strategy.get_aux(config, item)
@@ -473,15 +539,16 @@ class PlotRunStrategy(RunStrategy):
                 add = config.experiment.method_params['add']
                 fit = config.experiment.method_params['fit']
                 semi_window = config.experiment.method_params['semi_window']
-                box_b = config.experiment.method_params['box_b']
-                box_t = config.experiment.method_params['box_t']
 
                 plot_data = []
-
+                num_points = []
                 for config_child in configs_child:
+
+                    curr_plot_data = []
 
                     # Plot data
                     targets = self.get_strategy.get_target(config_child)
+                    num_points.append(len(targets))
                     data = self.get_strategy.get_single_base(config_child, [item])[0]
 
                     # Colors setup
@@ -494,7 +561,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=targets,
                         y=data,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -505,7 +572,7 @@ class PlotRunStrategy(RunStrategy):
                             )
                         ),
                     )
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
                     # Linear regression
                     x = sm.add_constant(targets)
@@ -535,32 +602,33 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding polygon area
                     if add == 'polygon':
                         pr = PolygonRoutines(
                             x=targets,
-                            y=[],
                             params={
-                                'intercept': intercept,
-                                'slope': slope,
-                                'intercept_std': intercept_std,
-                                'slope_std': slope_std
+                                'intercept': [intercept],
+                                'slope': [slope],
+                                'intercept_std': [intercept_std],
+                                'slope_std': [slope_std]
                             },
                             method=config_child.experiment.method
                         )
                         scatter = pr.get_scatter(color_transparent)
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding box curve
                     if fit == 'no' and semi_window != 'none':
+                        box_b = config.experiment.method_params['box_b']
+                        box_t = config.experiment.method_params['box_t']
                         xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
 
                         scatter = go.Scatter(
                             x=xs,
                             y=bs,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -568,12 +636,12 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
                             y=ms,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=6,
@@ -581,12 +649,12 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
                             y=ts,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -594,106 +662,27 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                     # Adding best curve
                     if fit == 'yes' and semi_window != 'none':
 
-                        residuals = data
+                        box_b = config.experiment.method_params['box_b']
+                        box_t = config.experiment.method_params['box_t']
 
-                        characteristics_dict = {}
+                        metrics_dict = {}
+                        init_variance_metrics_dict(metrics_dict, 'box_b')
+                        init_variance_metrics_dict(metrics_dict, 'box_m')
+                        init_variance_metrics_dict(metrics_dict, 'box_t')
 
-                        init_variance_characteristics_dict(characteristics_dict, 'box_b')
-                        init_variance_characteristics_dict(characteristics_dict, 'box_m')
-                        init_variance_characteristics_dict(characteristics_dict, 'box_t')
+                        xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict)
 
-                        xs_box, bs_box, ms_box, ts_box = process_box(targets, residuals, semi_window, box_b, box_t)
-                        variance_processing(xs_box, bs_box, characteristics_dict, 'box_b')
-                        variance_processing(xs_box, ms_box, characteristics_dict, 'box_m')
-                        variance_processing(xs_box, ts_box, characteristics_dict, 'box_t')
-
-                        R2 = np.min([characteristics_dict['box_b_best_R2'][-1],
-                                     characteristics_dict['box_t_best_R2'][-1]])
-
-                        characteristics_dict['best_R2'].append(R2)
-
-                        if characteristics_dict['box_t_best_type'] == [0]:  # lin-lin axes
-
-                            ys_t = np.zeros(2, dtype=float)
-                            ys_b = np.zeros(2, dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_lin_lin_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_lin_lin_slope'][0]
-
-                            intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                            slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-
-                            ys_t[0] = slope_box_t * xs_box[0] + intercept_box_t
-                            ys_b[0] = slope_box_b * xs_box[0] + intercept_box_b
-
-                            ys_t[1] = slope_box_t * xs_box[-1] + intercept_box_t
-                            ys_b[1] = slope_box_b * xs_box[-1] + intercept_box_b
-
-                            xs = [xs_box[0], xs_box[-1]]
-
-                        elif characteristics_dict['box_t_best_type'] == [1]:  # lin-log axes
-
-                            ys_t = np.zeros(len(ts_box), dtype=float)
-                            ys_b = np.zeros(len(bs_box), dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_lin_log_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_lin_log_slope'][0]
-
-                            if characteristics_dict['box_b_lin_log_intercept'][0] != 'NA' and \
-                                    characteristics_dict['box_b_lin_log_slope'][0] != 'NA':
-                                intercept_box_b = characteristics_dict['box_b_lin_log_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_log_slope'][0]
-                                is_lin_log = True
-                            else:
-                                intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-                                is_lin_log = False
-
-                            for box_id in range(0, len(xs_box)):
-                                ys_t[box_id] = np.exp(slope_box_t * xs_box[box_id] + intercept_box_t)
-                                if is_lin_log:
-                                    ys_b[box_id] = np.exp(slope_box_b * xs_box[box_id] + intercept_box_b)
-                                else:
-                                    ys_b[box_id] = slope_box_b * xs_box[box_id] + intercept_box_b
-
-                            xs = xs_box
-
-                        elif characteristics_dict['box_t_best_type'] == [2]:  # log-log axes
-
-                            ys_t = np.zeros(len(ts_box), dtype=float)
-                            ys_b = np.zeros(len(bs_box), dtype=float)
-
-                            intercept_box_t = characteristics_dict['box_t_log_log_intercept'][0]
-                            slope_box_t = characteristics_dict['box_t_log_log_slope'][0]
-
-                            if characteristics_dict['box_b_log_log_intercept'][0] != 'NA' and \
-                                    characteristics_dict['box_b_log_log_slope'][0] != 'NA':
-                                intercept_box_b = characteristics_dict['box_b_log_log_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_log_log_slope'][0]
-                                is_log_log = True
-                            else:
-                                intercept_box_b = characteristics_dict['box_b_lin_lin_intercept'][0]
-                                slope_box_b = characteristics_dict['box_b_lin_lin_slope'][0]
-                                is_log_log = False
-
-                            for box_id in range(0, len(xs_box)):
-                                ys_t[box_id] = np.exp(slope_box_t * np.log(xs_box[box_id]) + intercept_box_t)
-                                if is_log_log:
-                                    ys_b[box_id] = np.exp(slope_box_b * np.log(xs_box[box_id]) + intercept_box_b)
-                                else:
-                                    ys_b[box_id] = slope_box_b * xs_box[box_id] + intercept_box_b
-
-                            xs = xs_box
+                        ys_b, ys_t = fit_variance(xs, metrics_dict)
 
                         scatter = go.Scatter(
                             x=xs,
                             y=ys_t,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -701,12 +690,12 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
                         scatter = go.Scatter(
                             x=xs,
                             y=ys_b,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             mode='lines',
                             line=dict(
                                 width=4,
@@ -714,9 +703,15 @@ class PlotRunStrategy(RunStrategy):
                             ),
                             showlegend=False
                         )
-                        plot_data.append(scatter)
+                        curr_plot_data.append(scatter)
 
-                config.experiment_data['data'] = plot_data
+                    plot_data.append(curr_plot_data)
+
+                # Sorting by total number of points
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = []
+                for index in order:
+                    config.experiment_data['data'] += plot_data[index]
 
             elif config.experiment.method == Method.variance_histogram:
 
@@ -777,7 +772,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=xs,
                         y=ys,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='lines+markers',
                         marker=dict(
                             size=10,
@@ -797,12 +792,16 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method == Method.scatter:
 
                 plot_data = []
+                num_points = []
 
                 y_type = config.experiment.method_params['y_type']
 
                 for config_child in configs_child:
 
+                    curr_plot_data = []
+
                     indexes = config_child.attributes_indexes
+                    num_points.append(len(indexes))
 
                     x = self.get_strategy.get_target(config_child)
                     y = np.zeros(len(indexes), dtype=int)
@@ -820,7 +819,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=x,
                         y=y,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -831,7 +830,7 @@ class PlotRunStrategy(RunStrategy):
                             )
                         ),
                     )
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
                     # Adding regression line
 
@@ -868,9 +867,14 @@ class PlotRunStrategy(RunStrategy):
                         showlegend=False
                     )
 
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
-                config.experiment_data['data'] = plot_data
+                    plot_data.append(curr_plot_data)
+
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = []
+                for index in order:
+                    config.experiment_data['data'] += plot_data[index]
 
             elif config.experiment.method == Method.range:
 
@@ -933,7 +937,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=x,
                         y=y,
-                        name=get_names(config_child),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,
@@ -983,11 +987,13 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method == Method.histogram:
 
                 plot_data = []
+                num_points = []
                 for config_child in configs_child:
 
                     curr_plot_data = []
 
                     targets = self.get_strategy.get_target(config_child)
+                    num_points.append(len(targets))
                     is_number_list = [is_float(t) for t in targets]
                     if False in is_number_list:
                         xbins = {}
@@ -1004,7 +1010,7 @@ class PlotRunStrategy(RunStrategy):
                     if config_child.experiment.method == Method.histogram:
                         histogram = go.Histogram(
                             x=targets,
-                            name=get_names(config_child),
+                            name=get_names(config_child, config.experiment.method_params),
                             xbins=xbins,
                             marker=dict(
                                 opacity=config.experiment.method_params['opacity'],
@@ -1020,4 +1026,18 @@ class PlotRunStrategy(RunStrategy):
 
                     plot_data += curr_plot_data
 
-                config.experiment_data['data'] = plot_data
+                # Sorting by total number of points
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = [plot_data[index] for index in order]
+
+
+class CreateRunStrategy(RunStrategy):
+
+    def single(self, item, config_child, configs_child):
+        pass
+
+    def iterate(self, config, configs_child):
+        pass
+
+    def run(self, config, configs_child):
+        pass

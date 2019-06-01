@@ -80,3 +80,9 @@ class PlotSetUpStrategy(SetupStrategy):
             'data': [],
             'fig': []
         }
+
+
+class CreateSetUpStrategy(SetupStrategy):
+
+    def setup(self, config, configs_child):
+        pass
