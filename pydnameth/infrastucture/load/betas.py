@@ -13,11 +13,11 @@ def get_line_list(line):
 
 
 def load_betas(config):
-    fn_dict = get_data_base_path(config) + '/' + 'betas_dict.pkl'
-
     suffix = ''
     if bool(config.experiment.data_params):
         suffix += '_' + str(config.experiment.get_data_params_str())
+
+    fn_dict = get_data_base_path(config) + '/' + 'betas_dict' + suffix + '.pkl'
 
     fn_data = get_data_base_path(config) + '/' + 'betas' + suffix
     fn_txt = fn_data + '.txt'
