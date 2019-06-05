@@ -128,6 +128,7 @@ def get_method_metrics_keys(config):
                     'aux',
                     'number_of_clusters',
                     'number_of_noise_points',
+                    'percent_of_noise_points',
                 ]
 
             elif config.experiment.method == Method.polygon:

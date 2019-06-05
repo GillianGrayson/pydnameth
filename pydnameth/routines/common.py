@@ -24,7 +24,10 @@ def dict_slice(origin_dict, id):
 
 
 def normalize_to_0_1(values):
-    values_normed = [(float(val) - min(values)) / (float(max(values)) - float(min(values))) for val in values]
+    max_val = max(values)
+    min_val = min(values)
+    shift_val = (max_val - min_val)
+    values_normed = (np.asarray(values) - min_val) / shift_val
     return values_normed
 
 

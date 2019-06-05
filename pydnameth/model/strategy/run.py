@@ -110,11 +110,13 @@ class TableRunStrategy(RunStrategy):
                 labels = db.labels_
                 number_of_clusters = len(set(labels)) - (1 if -1 in labels else 0)
                 number_of_noise_points = list(labels).count(-1)
+                percent_of_noise_points = float(number_of_noise_points) / float(len(x)) * 100.0
 
                 config.metrics['item'].append(item)
                 config.metrics['aux'].append(self.get_strategy.get_aux(config, item))
                 config.metrics['number_of_clusters'].append(number_of_clusters)
                 config.metrics['number_of_noise_points'].append(number_of_noise_points)
+                config.metrics['percent_of_noise_points'].append(percent_of_noise_points)
 
             elif config.experiment.method == Method.polygon:
 
