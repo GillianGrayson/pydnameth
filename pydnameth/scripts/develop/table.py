@@ -204,9 +204,12 @@ def table_aggregator_variance(
         )
         Node(name=str(config_lvl_2), config=config_lvl_2, parent=node_lvl_1)
 
+    cluster_types = copy.deepcopy(observables_list[0])
+    cluster_types.pop('gender', None)
+    cluster_types.pop('sex', None)
     observables_cluster = Observables(
         name=copy.deepcopy(attributes.observables.name),
-        types={'gender': 'any'}
+        types=cluster_types
     )
 
     cells_cluster = Cells(
