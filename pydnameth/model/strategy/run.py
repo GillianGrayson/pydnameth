@@ -222,8 +222,12 @@ class TableRunStrategy(RunStrategy):
                     polygons_region_box_common = []
                     polygons_region_box_special = []
 
-                    increasing_box_common = []
-                    increasing_box_special = []
+                    increasing_box_1_common = []
+                    increasing_box_1_special = []
+                    increasing_box_2_common = []
+                    increasing_box_2_special = []
+                    increasing_box_3_common = []
+                    increasing_box_3_special = []
 
                     xs_all = []
                     ys_b_all = []
@@ -267,11 +271,16 @@ class TableRunStrategy(RunStrategy):
 
                         diff_begin = abs(ys_t_all[child_id][0] - ys_b_all[child_id][0])
                         diff_end = abs(ys_t_all[child_id][-1] - ys_b_all[child_id][-1])
+
                         if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
                             increasing = diff_end / diff_begin
-                            increasing_box_special.append(max(increasing, 1.0 / increasing))
+                            increasing_box_1_special.append(max(increasing, 1.0 / increasing))
+                            increasing_box_2_special.append(max(diff_begin, diff_end))
+                            increasing_box_3_special.append(abs(diff_begin - diff_end))
                         else:
-                            increasing_box_special.append(0.0)
+                            increasing_box_1_special.append(0.0)
+                            increasing_box_2_special.append(0.0)
+                            increasing_box_3_special.append(0.0)
 
                     all_polygons_is_valid = True
                     for polygon in polygons_region_box_special:
@@ -286,13 +295,19 @@ class TableRunStrategy(RunStrategy):
                             intersection_box = intersection_box.intersection(polygon)
                             union_box = union_box.union(polygon)
                         area_intersection_rel_box = intersection_box.area / union_box.area
-                        increasing_box_special_val = max(increasing_box_special) / min(increasing_box_special)
+                        increasing_box_1_special_val = max(increasing_box_1_special) / min(increasing_box_1_special)
+                        increasing_box_2_special_val = max(increasing_box_2_special) / min(increasing_box_2_special)
+                        increasing_box_3_special_val = max(increasing_box_3_special) / min(increasing_box_3_special)
                     else:
                         area_intersection_rel_box = 1.0
-                        increasing_box_special_val = 0.0
+                        increasing_box_1_special_val = 0.0
+                        increasing_box_2_special_val = 0.0
+                        increasing_box_3_special_val = 0.0
 
                     config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
-                    config.metrics['increasing_box_special'].append(increasing_box_special_val)
+                    config.metrics['increasing_1_box_special'].append(increasing_box_1_special_val)
+                    config.metrics['increasing_2_box_special'].append(increasing_box_2_special_val)
+                    config.metrics['increasing_3_box_special'].append(increasing_box_3_special_val)
 
                     for child_id in range(0, len(xs_all)):
 
@@ -318,9 +333,13 @@ class TableRunStrategy(RunStrategy):
 
                         if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
                             increasing = diff_end / diff_begin
-                            increasing_box_common.append(max(increasing, 1.0 / increasing))
+                            increasing_box_1_common.append(max(increasing, 1.0 / increasing))
+                            increasing_box_2_common.append(max(diff_begin, diff_end))
+                            increasing_box_3_common.append(abs(diff_begin - diff_end))
                         else:
-                            increasing_box_common.append(0.0)
+                            increasing_box_1_common.append(0.0)
+                            increasing_box_2_common.append(0.0)
+                            increasing_box_3_common.append(0.0)
 
                     all_polygons_is_valid = True
                     for polygon in polygons_region_box_common:
@@ -335,13 +354,19 @@ class TableRunStrategy(RunStrategy):
                             intersection_box = intersection_box.intersection(polygon)
                             union_box = union_box.union(polygon)
                         area_intersection_rel_box = intersection_box.area / union_box.area
-                        increasing_box_common_value = max(increasing_box_common) / min(increasing_box_common)
+                        increasing_box_1_common_val = max(increasing_box_1_common) / min(increasing_box_1_common)
+                        increasing_box_2_common_val = max(increasing_box_2_common) / min(increasing_box_2_common)
+                        increasing_box_3_common_val = max(increasing_box_3_common) / min(increasing_box_3_common)
                     else:
                         area_intersection_rel_box = 1.0
-                        increasing_box_common_value = 0.0
+                        increasing_box_1_common_val = 0.0
+                        increasing_box_2_common_val = 0.0
+                        increasing_box_3_common_val = 0.0
 
                     config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
-                    config.metrics['increasing_box_common'].append(increasing_box_common_value)
+                    config.metrics['increasing_1_box_common'].append(increasing_box_1_common_val)
+                    config.metrics['increasing_2_box_common'].append(increasing_box_2_common_val)
+                    config.metrics['increasing_3_box_common'].append(increasing_box_3_common_val)
 
                     config.metrics['item'].append(item)
                     aux = self.get_strategy.get_aux(config, item)
