@@ -230,7 +230,7 @@ def table_aggregator_variance(
             task=Task.table,
             method=Method.cluster,
             method_params={
-                'eps': 0.2,
+                'eps': 0.15,
                 'min_samples_percentage': 1
             }
         ),
