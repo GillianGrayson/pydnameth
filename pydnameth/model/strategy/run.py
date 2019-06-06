@@ -110,11 +110,13 @@ class TableRunStrategy(RunStrategy):
                 labels = db.labels_
                 number_of_clusters = len(set(labels)) - (1 if -1 in labels else 0)
                 number_of_noise_points = list(labels).count(-1)
+                percent_of_noise_points = float(number_of_noise_points) / float(len(x)) * 100.0
 
                 config.metrics['item'].append(item)
                 config.metrics['aux'].append(self.get_strategy.get_aux(config, item))
                 config.metrics['number_of_clusters'].append(number_of_clusters)
                 config.metrics['number_of_noise_points'].append(number_of_noise_points)
+                config.metrics['percent_of_noise_points'].append(percent_of_noise_points)
 
             elif config.experiment.method == Method.polygon:
 
@@ -922,9 +924,12 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method == Method.scatter:
 
                 plot_data = []
+                num_points = []
 
                 for config_child in configs_child:
+                    curr_plot_data = []
                     indexes = config_child.attributes_indexes
+                    num_points.append(len(indexes))
 
                     x = self.get_strategy.get_target(config_child)
                     y = self.get_strategy.get_single_base(config_child, indexes)
@@ -948,7 +953,7 @@ class PlotRunStrategy(RunStrategy):
                             )
                         ),
                     )
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
                     # Adding regression line
 
@@ -978,9 +983,14 @@ class PlotRunStrategy(RunStrategy):
                         showlegend=False
                     )
 
-                    plot_data.append(scatter)
+                    curr_plot_data.append(scatter)
 
-                config.experiment_data['data'] = plot_data
+                    plot_data.append(curr_plot_data)
+
+                order = np.argsort(num_points)[::-1]
+                config.experiment_data['data'] = []
+                for index in order:
+                    config.experiment_data['data'] += plot_data[index]
 
         elif config.experiment.data == DataType.observables:
 
