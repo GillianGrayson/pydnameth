@@ -68,6 +68,7 @@ def betas_table_aggregator_linreg(
     annotations,
     attributes,
     observables_list,
+    data_params=None,
     method_params=None
 ):
     """
@@ -121,7 +122,8 @@ def betas_table_aggregator_linreg(
         annotations,
         attributes,
         observables_list,
-        method_params
+        data_params,
+        method_params,
     )
 
 
