@@ -22,7 +22,8 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
     betas_table_linreg,\
-    betas_table_cluster
+    betas_table_cluster, \
+    betas_table_variance
 from pydnameth.scripts.develop.betas.clock import \
     betas_clock_linreg,\
     betas_clock_special

@@ -442,6 +442,15 @@ class TableRunStrategy(RunStrategy):
 
                 process_variance(targets, data, semi_window, box_b, box_t, config.metrics)
 
+                xs = get_box_xs(targets)
+                ys_b, ys_t = fit_variance(xs, config.metrics)
+
+                diff_begin = abs(ys_t[0] - ys_b[0])
+                diff_end = abs(ys_t[-1] - ys_b[-1])
+
+                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
+                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
+
                 config.metrics['item'].append(item)
                 aux = self.get_strategy.get_aux(config, item)
                 config.metrics['aux'].append(aux)

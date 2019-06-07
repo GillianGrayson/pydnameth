@@ -48,6 +48,9 @@ def get_method_metrics_keys(config):
 
                     'best_R2',
 
+                    'increasing_div',
+                    'increasing_sub',
+
                     'box_b_best_type',
                     'box_b_best_R2',
                     'box_b_lin_lin_R2',
