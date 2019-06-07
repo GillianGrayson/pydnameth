@@ -34,6 +34,9 @@ from pydnameth.scripts.develop.betas.plot import \
 from pydnameth.scripts.develop.betas_horvath_calculator.create import \
     betas_horvath_calculator_create_regular
 
+from pydnameth.scripts.develop.betas_spec.create import \
+    betas_spec_create_regular
+
 from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
 from pydnameth.scripts.develop.epimutations.plot import \

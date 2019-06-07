@@ -50,6 +50,15 @@ class BetasHorvathCalculatorGetStrategy(GetStrategy):
         pass
 
 
+class BetasSpecGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        pass
+
+    def get_aux(self, config, item):
+        pass
+
+
 class ResidualsCommonGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
