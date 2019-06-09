@@ -22,7 +22,8 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
     betas_table_linreg,\
-    betas_table_cluster
+    betas_table_cluster, \
+    betas_table_variance
 from pydnameth.scripts.develop.betas.clock import \
     betas_clock_linreg,\
     betas_clock_special
@@ -33,6 +34,9 @@ from pydnameth.scripts.develop.betas.plot import \
 
 from pydnameth.scripts.develop.betas_horvath_calculator.create import \
     betas_horvath_calculator_create_regular
+
+from pydnameth.scripts.develop.betas_spec.create import \
+    betas_spec_create_regular
 
 from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load

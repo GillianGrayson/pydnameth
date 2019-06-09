@@ -37,6 +37,7 @@ class DataType(Enum):
     betas = 'betas'
     betas_adj = 'betas_adj'
     betas_horvath_calculator = 'betas_horvath_calculator'
+    betas_spec = 'betas_spec'
     residuals_common = 'residuals_common'
     residuals_special = 'residuals_special'
     epimutations = 'epimutations'

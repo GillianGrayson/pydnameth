@@ -48,6 +48,9 @@ def get_method_metrics_keys(config):
 
                     'best_R2',
 
+                    'increasing_div',
+                    'increasing_sub',
+
                     'box_b_best_type',
                     'box_b_best_R2',
                     'box_b_lin_lin_R2',
@@ -151,8 +154,12 @@ def get_method_metrics_keys(config):
                         'aux',
                         'area_intersection_rel_box_common',
                         'area_intersection_rel_box_special',
-                        'increasing_box_common',
-                        'increasing_box_special'
+                        'increasing_1_box_common',
+                        'increasing_1_box_special',
+                        'increasing_2_box_common',
+                        'increasing_2_box_special',
+                        'increasing_3_box_common',
+                        'increasing_3_box_special',
                     ]
 
             elif config.experiment.method == Method.special:

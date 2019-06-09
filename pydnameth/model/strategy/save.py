@@ -4,6 +4,7 @@ from pydnameth.infrastucture.save.table import save_table_dict
 from pydnameth.infrastucture.path import get_save_path
 from pydnameth.infrastucture.file_name import get_file_name
 import glob
+from pathlib import Path
 
 
 class SaveStrategy(metaclass=abc.ABCMeta):
@@ -57,8 +58,8 @@ class PlotSaveStrategy(SaveStrategy):
 
     def is_result_exist(self, config, configs_child):
         fn = get_save_path(config) + '/' + \
-            get_file_name(config) + '.*'
-        if glob.glob(fn):
+            get_file_name(config) + '.pdf'
+        if Path(fn).is_file():
             return True
         else:
             return False
