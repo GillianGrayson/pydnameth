@@ -20,6 +20,8 @@ def plot_scatter(
 ):
     for cpg in cpg_list:
 
+        print(cpg)
+
         config_root = Config(
             data=copy.deepcopy(data),
             experiment=Experiment(

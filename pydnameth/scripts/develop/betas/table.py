@@ -47,6 +47,23 @@ def betas_table_linreg(
     )
 
 
+def betas_table_variance(
+    data,
+    annotations,
+    attributes,
+    method_params=None
+):
+
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.variance,
+        method_params=method_params,
+    )
+
+
 def betas_table_cluster(
     data,
     annotations,

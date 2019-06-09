@@ -3,6 +3,7 @@ from pydnameth.config.experiment.types import Task
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
 from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
+from pydnameth.infrastucture.load.betas_spec import load_betas_spec
 from pydnameth.infrastucture.load.residuals_common import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
@@ -70,6 +71,12 @@ class BetasHorvathCalculatorLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         load_betas_horvath_calculator(config)
+
+
+class BetasSpecLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        load_betas_spec(config)
 
 
 class ResidualsCommonLoadStrategy(LoadStrategy):

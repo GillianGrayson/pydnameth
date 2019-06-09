@@ -183,39 +183,39 @@ def fit_variance(xs, metrics_dict):
     ys_t = np.zeros(len(xs), dtype=float)
     ys_b = np.zeros(len(xs), dtype=float)
 
-    if metrics_dict['box_b_best_type'] == [0]:  # lin-lin axes
-        intercept_box_b = metrics_dict['box_b_lin_lin_intercept'][0]
-        slope_box_b = metrics_dict['box_b_lin_lin_slope'][0]
+    if metrics_dict['box_b_best_type'][-1] == 0:  # lin-lin axes
+        intercept_box_b = metrics_dict['box_b_lin_lin_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_lin_lin_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_b[x_id] = slope_box_b * xs[x_id] + intercept_box_b
 
-    elif metrics_dict['box_b_best_type'] == [1]:  # lin-log axes
-        intercept_box_b = metrics_dict['box_b_lin_log_intercept'][0]
-        slope_box_b = metrics_dict['box_b_lin_log_slope'][0]
+    elif metrics_dict['box_b_best_type'][-1] == 1:  # lin-log axes
+        intercept_box_b = metrics_dict['box_b_lin_log_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_lin_log_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_b[x_id] = np.exp(slope_box_b * xs[x_id] + intercept_box_b)
 
-    elif metrics_dict['box_b_best_type'] == [2]:  # log-log axes
-        intercept_box_b = metrics_dict['box_b_log_log_intercept'][0]
-        slope_box_b = metrics_dict['box_b_log_log_slope'][0]
+    elif metrics_dict['box_b_best_type'][-1] == 2:  # log-log axes
+        intercept_box_b = metrics_dict['box_b_log_log_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_log_log_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_b[x_id] = np.exp(slope_box_b * np.log(xs[x_id]) + intercept_box_b)
 
-    if metrics_dict['box_t_best_type'] == [0]:  # lin-lin axes
-        intercept_box_t = metrics_dict['box_t_lin_lin_intercept'][0]
-        slope_box_t = metrics_dict['box_t_lin_lin_slope'][0]
+    if metrics_dict['box_t_best_type'][-1] == 0:  # lin-lin axes
+        intercept_box_t = metrics_dict['box_t_lin_lin_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_lin_lin_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_t[x_id] = slope_box_t * xs[x_id] + intercept_box_t
 
-    elif metrics_dict['box_t_best_type'] == [1]:  # lin-log axes
-        intercept_box_t = metrics_dict['box_t_lin_log_intercept'][0]
-        slope_box_t = metrics_dict['box_t_lin_log_slope'][0]
+    elif metrics_dict['box_t_best_type'][-1] == 1:  # lin-log axes
+        intercept_box_t = metrics_dict['box_t_lin_log_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_lin_log_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_t[x_id] = np.exp(slope_box_t * xs[x_id] + intercept_box_t)
 
-    elif metrics_dict['box_t_best_type'] == [2]:  # log-log axes
-        intercept_box_t = metrics_dict['box_t_log_log_intercept'][0]
-        slope_box_t = metrics_dict['box_t_log_log_slope'][0]
+    elif metrics_dict['box_t_best_type'][-1] == 2:  # log-log axes
+        intercept_box_t = metrics_dict['box_t_log_log_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_log_log_slope'][-1]
         for x_id in range(0, len(xs)):
             ys_t[x_id] = np.exp(slope_box_t * np.log(xs[x_id]) + intercept_box_t)
 
