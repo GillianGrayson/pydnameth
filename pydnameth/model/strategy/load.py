@@ -114,6 +114,11 @@ class EpimutationsLoadStrategy(LoadStrategy):
 
         self.inherit_childs(config, configs_child)
 
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
 
 class EntropyLoadStrategy(LoadStrategy):
 
@@ -125,8 +130,19 @@ class EntropyLoadStrategy(LoadStrategy):
 
         self.inherit_childs(config, configs_child)
 
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
 
 class ObservablesLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        pass
+
+
+class CellsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         pass

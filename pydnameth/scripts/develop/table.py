@@ -128,6 +128,70 @@ def table_aggregator_linreg(
     calc_tree(root)
 
 
+def table_z_test_linreg(
+    data_type,
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params=None,
+    task_params=None,
+    method_params=None
+):
+
+    config_z_test_linreg = Config(
+        data=copy.deepcopy(data),
+        experiment=Experiment(
+            data=data_type,
+            task=Task.table,
+            method=Method.z_test_linreg,
+            data_params=copy.deepcopy(data_params),
+            method_params=method_params,
+            task_params=task_params
+        ),
+        annotations=copy.deepcopy(annotations),
+        attributes=copy.deepcopy(attributes),
+        is_run=True,
+        is_root=False
+    )
+    root = Node(name=str(config_z_test_linreg), config=config_z_test_linreg)
+
+    for d in observables_list:
+        observables_linreg = Observables(
+            name=copy.deepcopy(attributes.observables.name),
+            types=d
+        )
+
+        cells_linreg = Cells(
+            name=copy.deepcopy(attributes.cells.name),
+            types=copy.deepcopy(attributes.cells.types)
+        )
+
+        attributes_linreg = Attributes(
+            target=copy.deepcopy(attributes.target),
+            observables=observables_linreg,
+            cells=cells_linreg,
+        )
+
+        config_linreg = Config(
+            data=copy.deepcopy(data),
+            experiment=Experiment(
+                data=data_type,
+                task=Task.table,
+                method=Method.linreg,
+                data_params=copy.deepcopy(data_params),
+            ),
+            annotations=copy.deepcopy(annotations),
+            attributes=attributes_linreg,
+            is_run=True,
+            is_root=False
+        )
+        Node(name=str(config_linreg), config=config_linreg, parent=root)
+
+    build_tree(root)
+    calc_tree(root)
+
+
 def table_aggregator_variance(
     data_type,
     data,

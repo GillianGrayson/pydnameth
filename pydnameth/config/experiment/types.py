@@ -44,6 +44,7 @@ class DataType(Enum):
     epimutations = 'epimutations'
     entropy = 'entropy'
     observables = 'observables'
+    cells = 'cells'
     suppl = 'suppl'
     cache = 'cache'
 

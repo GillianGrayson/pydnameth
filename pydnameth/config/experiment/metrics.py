@@ -4,7 +4,12 @@ from pydnameth import DataType, Task, Method
 def get_method_metrics_keys(config):
     metrics = []
 
-    if config.experiment.data in [DataType.betas, DataType.residuals_common, DataType.residuals_special]:
+    if config.experiment.data in [DataType.betas,
+                                  DataType.betas_adj,
+                                  DataType.epimutations,
+                                  DataType.entropy,
+                                  DataType.residuals_common,
+                                  DataType.residuals_special]:
 
         if config.experiment.task == Task.table:
 

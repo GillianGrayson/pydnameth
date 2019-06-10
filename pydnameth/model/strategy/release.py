@@ -40,7 +40,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
             DataType.betas,
             DataType.betas_adj,
             DataType.residuals_common,
-            DataType.residuals_special, DataType.entropy
+            DataType.residuals_special,
         ]:
             if config.experiment.method == Method.scatter:
 
@@ -96,6 +96,27 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 layout = plot_routines.get_layout(config)
 
                 config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+        elif config.experiment.data in [
+            DataType.entropy,
+            DataType.cells,
+        ]:
+            if config.experiment.method == Method.scatter:
+
+                layout = plot_routines.get_layout(config)
+
+                if 'x_range' in config.experiment.method_params:
+                    x_range = config.experiment.method_params['x_range']
+                    if x_range != 'auto' or 'auto' not in x_range:
+                        layout.xaxis.range = x_range
+
+                if 'y_range' in config.experiment.method_params:
+                    y_range = config.experiment.method_params['y_range']
+                    if y_range != 'auto' or 'auto' not in y_range:
+                        layout.yaxis.range = y_range
+
+                fig = go.Figure(data=config.experiment_data['data'], layout=layout)
+                config.experiment_data['fig'] = fig
 
         elif config.experiment.data == DataType.epimutations:
 

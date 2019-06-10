@@ -97,7 +97,6 @@ def process_line_fit(exog, endog, characteristics_dict, key_prefix):
         characteristics_dict[key_prefix + '_lin_log_intercept_p_value'].append(lin_log_results.pvalues[0])
         characteristics_dict[key_prefix + '_lin_log_slope_p_value'].append(lin_log_results.pvalues[1])
         R2s.append(lin_log_results.rsquared)
-
     else:
         characteristics_dict[key_prefix + '_lin_log_R2'].append('NA')
         characteristics_dict[key_prefix + '_lin_log_intercept'].append('NA')
@@ -120,7 +119,6 @@ def process_line_fit(exog, endog, characteristics_dict, key_prefix):
         characteristics_dict[key_prefix + '_log_log_intercept_p_value'].append(log_log_results.pvalues[0])
         characteristics_dict[key_prefix + '_log_log_slope_p_value'].append(log_log_results.pvalues[1])
         R2s.append(log_log_results.rsquared)
-
     else:
         characteristics_dict[key_prefix + '_log_log_R2'].append('NA')
         characteristics_dict[key_prefix + '_log_log_intercept'].append('NA')
