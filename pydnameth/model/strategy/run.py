@@ -557,20 +557,15 @@ class ClockRunStrategy(RunStrategy):
 
 class PlotRunStrategy(RunStrategy):
 
-    def single(self, item, config_child, configs_child):
-        pass
+    def single(self, item, config, configs_child):
 
-    def iterate(self, config, configs_child):
-        pass
-
-    def run(self, config, configs_child):
-
-        if config.experiment.data in [DataType.betas, DataType.betas_adj, DataType.residuals_common,
+        if config.experiment.data in [DataType.betas,
+                                      DataType.betas_adj,
+                                      DataType.residuals_common,
                                       DataType.residuals_special]:
 
             if config.experiment.method == Method.scatter:
 
-                item = config.experiment.method_params['item']
                 line = config.experiment.method_params['line']
                 add = config.experiment.method_params['add']
                 fit = config.experiment.method_params['fit']
@@ -702,7 +697,6 @@ class PlotRunStrategy(RunStrategy):
 
                     # Adding best curve
                     if fit == 'yes' and semi_window != 'none':
-
                         box_b = config.experiment.method_params['box_b']
                         box_t = config.experiment.method_params['box_t']
 
@@ -745,13 +739,12 @@ class PlotRunStrategy(RunStrategy):
 
                 # Sorting by total number of points
                 order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
+                curr_data = []
                 for index in order:
-                    config.experiment_data['data'] += plot_data[index]
+                    curr_data += plot_data[index]
+                config.experiment_data['data'].append(curr_data)
 
             elif config.experiment.method == Method.variance_histogram:
-
-                item = config.experiment.method_params['item']
 
                 plot_data = {
                     'hist_data': [],
@@ -775,7 +768,25 @@ class PlotRunStrategy(RunStrategy):
 
                         plot_data['hist_data'].append(results.resid)
 
-                config.experiment_data['data'] = plot_data
+                config.experiment_data['data'].append(plot_data)
+
+    def iterate(self, config, configs_child):
+        items = config.experiment.method_params['items']
+        for item in items:
+            if item in config.base_dict:
+                print(item)
+                config.experiment_data['item'].append(item)
+                self.single(item, config, configs_child)
+
+    def run(self, config, configs_child):
+
+        if config.experiment.data in [DataType.betas,
+                                      DataType.betas_adj,
+                                      DataType.residuals_common,
+                                      DataType.residuals_special]:
+
+            if config.experiment.method in [Method.scatter, Method.variance_histogram]:
+                self.iterate(config, configs_child)
 
             elif config.experiment.method == Method.curve:
 

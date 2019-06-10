@@ -44,34 +44,52 @@ class PlotReleaseStrategy(ReleaseStrategy):
         ]:
             if config.experiment.method == Method.scatter:
 
-                layout = plot_routines.get_layout(config)
+                for item_id, item in enumerate(config.experiment_data['item']):
 
-                if 'x_range' in config.experiment.method_params:
-                    if config.experiment.method_params['x_range'] != 'auto':
-                        layout.xaxis.range = config.experiment.method_params['x_range']
+                    if item in config.cpg_gene_dict:
+                        aux = config.cpg_gene_dict[item]
+                        if isinstance(aux, list):
+                            aux_str = ';'.join(aux)
+                        else:
+                            aux_str = str(aux)
+                    else:
+                        aux_str = 'non-genic'
 
-                if 'y_range' in config.experiment.method_params:
-                    if config.experiment.method_params['y_range'] != 'auto':
-                        layout.yaxis.range = config.experiment.method_params['y_range']
+                    layout = plot_routines.get_layout(config, item + '(' + aux_str + ')')
 
-                config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+                    raw_item_id = config.experiment.method_params['items'].index(item)
+
+                    if 'x_ranges' in config.experiment.method_params:
+                        x_range = config.experiment.method_params['x_ranges'][raw_item_id]
+                        if x_range != 'auto' or 'auto' not in x_range:
+                            layout.xaxis.range = x_range
+
+                    if 'y_ranges' in config.experiment.method_params:
+                        y_range = config.experiment.method_params['y_ranges'][raw_item_id]
+                        if y_range != 'auto' or 'auto' not in y_range:
+                            layout.yaxis.range = y_range
+
+                    fig = go.Figure(data=config.experiment_data['data'][item_id], layout=layout)
+                    config.experiment_data['fig'].append(fig)
 
             elif config.experiment.method == Method.variance_histogram:
 
-                layout = plot_routines.get_layout(config)
-                layout.xaxis.title = '$\\Delta$'
-                layout.yaxis.title = '$PDF$'
+                for data in config.experiment_data['data']:
 
-                fig = ff.create_distplot(
-                    config.experiment_data['data']['hist_data'],
-                    config.experiment_data['data']['group_labels'],
-                    show_hist=False,
-                    show_rug=False,
-                    colors=config.experiment_data['data']['colors']
-                )
-                fig['layout'] = layout
+                    layout = plot_routines.get_layout(config)
+                    layout.xaxis.title = '$\\Delta$'
+                    layout.yaxis.title = '$PDF$'
 
-                config.experiment_data['fig'] = fig
+                    fig = ff.create_distplot(
+                        data['hist_data'],
+                        data['group_labels'],
+                        show_hist=False,
+                        show_rug=False,
+                        colors=data['colors']
+                    )
+                    fig['layout'] = layout
+
+                    config.experiment_data['fig'].append(fig)
 
             elif config.experiment.method == Method.curve:
 

@@ -19,6 +19,7 @@ class Method(Enum):
     cluster = 'cluster'
     histogram = 'histogram'
     scatter = 'scatter'
+    scatter_comparison = 'scatter_comparison'
     curve = 'curve'
     polygon = 'polygon'
     special = 'special'

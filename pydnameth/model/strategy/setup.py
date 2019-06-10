@@ -77,6 +77,7 @@ class PlotSetUpStrategy(SetupStrategy):
         self.setup_method_metrics(config)
 
         config.experiment_data = {
+            'item': [],
             'data': [],
             'fig': []
         }

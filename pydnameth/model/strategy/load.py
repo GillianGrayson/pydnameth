@@ -34,6 +34,9 @@ class LoadStrategy(metaclass=abc.ABCMeta):
                 config_child.advanced_dict[item] = row_id
                 row_id += 1
 
+        elif config_child.experiment.task in [Task.plot]:
+            config_child.advanced_data = config_child.experiment_data
+
 
 class BetasLoadStrategy(LoadStrategy):
 
