@@ -145,4 +145,13 @@ class ObservablesLoadStrategy(LoadStrategy):
 class CellsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        pass
+        config.base_list = None
+        config.base_dict = None
+        config.base_data = None
+
+        self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)

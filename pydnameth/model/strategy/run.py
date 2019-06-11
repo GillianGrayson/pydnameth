@@ -485,6 +485,57 @@ class TableRunStrategy(RunStrategy):
                 config.metrics['item'].append(item)
                 config.metrics['aux'].append('')
 
+        elif config.experiment.data == DataType.cells:
+
+            if config.experiment.method == Method.linreg:
+
+                indexes = config.attributes_indexes
+
+                targets = self.get_strategy.get_target(config)
+                x = sm.add_constant(targets)
+
+                cells = config.attributes.cells
+                cells_types = cells.types
+                if isinstance(cells_types, list):
+                    y = np.zeros(len(x))
+                    num_cell_types = 0
+                    for cell_type in cells_types:
+                        if cell_type in config.cells_dict:
+                            y += np.asarray(config.cells_dict[cell_type])
+                            num_cell_types += 1
+                    y /= num_cell_types
+                else:
+                    y = config.cells_dict[cells_types]
+
+                process_linreg(x, y, config.metrics)
+
+                config.metrics['item'].append(str(cells_types))
+                config.metrics['aux'].append('')
+
+            elif config.experiment.method == Method.z_test_linreg:
+
+                slopes = []
+                slopes_std = []
+                num_subs = []
+
+                metrics_keys = get_method_metrics_keys(config)
+
+                cells = config.attributes.cells
+                cells_types = cells.types
+                item = str(cells_types)
+                for config_child in configs_child:
+                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
+
+                    item_id = config_child.advanced_dict[item]
+                    slopes.append(config_child.advanced_data['slope'][item_id])
+                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
+                    num_subs.append(len(config_child.attributes_dict['age']))
+
+                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
+
+                config.metrics['item'].append(item)
+                config.metrics['aux'].append('')
+
 
 class ClockRunStrategy(RunStrategy):
 
@@ -1141,7 +1192,7 @@ class PlotRunStrategy(RunStrategy):
                     scatter = go.Scatter(
                         x=x,
                         y=y,
-                        name=get_names(config_child, config.experiment.method_params) + '_' + str(cells),
+                        name=get_names(config_child, config.experiment.method_params),
                         mode='markers',
                         marker=dict(
                             size=4,

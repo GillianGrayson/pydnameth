@@ -9,7 +9,8 @@ def get_method_metrics_keys(config):
                                   DataType.epimutations,
                                   DataType.entropy,
                                   DataType.residuals_common,
-                                  DataType.residuals_special]:
+                                  DataType.residuals_special,
+                                  DataType.cells]:
 
         if config.experiment.task == Task.table:
 
