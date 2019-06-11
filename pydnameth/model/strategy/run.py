@@ -489,8 +489,6 @@ class TableRunStrategy(RunStrategy):
 
             if config.experiment.method == Method.linreg:
 
-                indexes = config.attributes_indexes
-
                 targets = self.get_strategy.get_target(config)
                 x = sm.add_constant(targets)
 
