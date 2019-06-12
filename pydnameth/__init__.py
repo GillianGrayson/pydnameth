@@ -41,7 +41,8 @@ from pydnameth.scripts.develop.betas_spec.create import \
 from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
 from pydnameth.scripts.develop.epimutations.table import \
-    epimutations_table_z_test_linreg
+    epimutations_table_z_test_linreg, \
+    epimutations_table_ancova
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
     epimutations_plot_range

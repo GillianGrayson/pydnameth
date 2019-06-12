@@ -13,8 +13,7 @@ class Task(Enum):
 
 class Method(Enum):
     linreg = 'linreg'
-    heteroscedasticity = 'heteroscedasticity'
-    variance_linreg = 'variance_linreg'
+    ancova = 'ancova'
     variance = 'variance'
     cluster = 'cluster'
     histogram = 'histogram'

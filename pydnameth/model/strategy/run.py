@@ -17,6 +17,9 @@ from pydnameth.routines.variance.functions import \
 from pydnameth.routines.common import find_nearest_id, dict_slice, update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import z_test_slope_proc
+import string
+import pandas as pd
+from statsmodels.formula.api import ols
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -354,6 +357,32 @@ class TableRunStrategy(RunStrategy):
             aux = self.get_strategy.get_aux(config, item)
             config.metrics['aux'].append(aux)
 
+        elif config.experiment.method == Method.ancova:
+
+            x_all = []
+            y_all = []
+            category_all = []
+
+            for config_child in configs_child:
+                x = self.get_strategy.get_target(config_child)
+                y = self.get_strategy.get_single_base(config_child, [item])[0]
+                x_all += x
+                y_all += list(y)
+                category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
+
+            data = {'x': x_all, 'y': y_all, 'category': category_all}
+            df = pd.DataFrame(data)
+            formula = 'y ~ x * category'
+            lm = ols(formula, df)
+            results = lm.fit()
+            p_value = results.pvalues[3]
+
+            config.metrics['p_value'].append(p_value)
+
+            config.metrics['item'].append(item)
+            aux = self.get_strategy.get_aux(config, item)
+            config.metrics['aux'].append(aux)
+
         elif config.experiment.method == Method.aggregator:
 
             metrics_keys = get_method_metrics_keys(config)
@@ -423,6 +452,37 @@ class TableRunStrategy(RunStrategy):
 
                 process_linreg(x, y, config.metrics)
 
+                config.metrics['item'].append('epimutations')
+                config.metrics['aux'].append('')
+
+            if config.experiment.method == Method.ancova:
+
+                x_all = []
+                y_all = []
+                category_all = []
+
+                for config_child in configs_child:
+                    x = self.get_strategy.get_target(config_child)
+                    indexes = config_child.attributes_indexes
+                    y = np.zeros(len(indexes), dtype=int)
+                    for subj_id in range(0, len(indexes)):
+                        col_id = indexes[subj_id]
+                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
+                        y[subj_id] = np.sum(subj_col)
+                    y = np.log(y)
+
+                    x_all += x
+                    y_all += list(y)
+                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
+
+                data = {'x': x_all, 'y': y_all, 'category': category_all}
+                df = pd.DataFrame(data)
+                formula = 'y ~ x * category'
+                lm = ols(formula, df)
+                results = lm.fit()
+                p_value = results.pvalues[3]
+
+                config.metrics['p_value'].append(p_value)
                 config.metrics['item'].append('epimutations')
                 config.metrics['aux'].append('')
 
