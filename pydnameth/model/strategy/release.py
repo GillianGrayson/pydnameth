@@ -23,7 +23,7 @@ class TableReleaseStrategy(ReleaseStrategy):
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
                                                                             0.05,
                                                                             method='fdr_bh')
-                config.metrics['p_value'] = pvals_corr
+                config.metrics['p_value_fdr'] = pvals_corr
 
 
 class ClockReleaseStrategy(ReleaseStrategy):
