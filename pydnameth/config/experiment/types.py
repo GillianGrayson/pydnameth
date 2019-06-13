@@ -13,12 +13,12 @@ class Task(Enum):
 
 class Method(Enum):
     linreg = 'linreg'
-    heteroscedasticity = 'heteroscedasticity'
-    variance_linreg = 'variance_linreg'
+    ancova = 'ancova'
     variance = 'variance'
     cluster = 'cluster'
     histogram = 'histogram'
     scatter = 'scatter'
+    scatter_comparison = 'scatter_comparison'
     curve = 'curve'
     polygon = 'polygon'
     special = 'special'
@@ -43,6 +43,7 @@ class DataType(Enum):
     epimutations = 'epimutations'
     entropy = 'entropy'
     observables = 'observables'
+    cells = 'cells'
     suppl = 'suppl'
     cache = 'cache'
 

@@ -12,7 +12,6 @@ def betas_plot_scatter(
     data,
     annotations,
     attributes,
-    cpg_list,
     observables_list,
     child_method=Method.linreg,
     method_params=None
@@ -28,7 +27,6 @@ def betas_plot_scatter(
     :param data: pdm.Data instance, which specifies information about dataset.
     :param annotations: pdm.Annotations instance, which specifies subset of CpGs.
     :param attributes: pdm.Attributes instance, which specifies information about subjects.
-    :param cpg_list: List of CpGs for plotting
     :param observables_list: list of subjects subsets. Each element in list is dict,
      where ``key`` is observable name and ``value`` is possible values for this observable.
     :param method_params: parameters of experiment.
@@ -39,7 +37,6 @@ def betas_plot_scatter(
         data=data,
         annotations=annotations,
         attributes=attributes,
-        cpg_list=cpg_list,
         observables_list=observables_list,
         child_method=child_method,
         method_params=method_params

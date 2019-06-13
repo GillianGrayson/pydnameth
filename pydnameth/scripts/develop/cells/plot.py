@@ -2,22 +2,21 @@ from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.plot import plot_scatter
 
 
-def residuals_common_plot_scatter(
+def cells_plot_scatter(
     data,
     annotations,
     attributes,
     observables_list,
     child_method=Method.linreg,
-    data_params=None,
     method_params=None
 ):
+
     plot_scatter(
-        DataType.residuals_common,
-        data,
-        annotations,
-        attributes,
-        observables_list,
-        child_method,
-        data_params,
-        method_params
+        data_type=DataType.cells,
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        observables_list=observables_list,
+        child_method=child_method,
+        method_params=method_params
     )

@@ -46,33 +46,6 @@ class PolygonRoutines:
 
             return points
 
-        elif self.method == Method.variance_linreg:
-
-            intercept = self.params['intercept'][0]
-            slope = self.params['slope'][0]
-            intercept_var = self.params['intercept_var'][0]
-            slope_var = self.params['slope_var'][0]
-
-            x_min = np.min(self.x)
-            x_max = np.max(self.x)
-            y_min = slope * x_min + intercept
-            y_max = slope * x_max + intercept
-            y_min_var = slope_var * x_min + intercept_var
-            if y_min_var < 0:
-                y_min_var = -y_min_var
-            y_max_var = slope_var * x_max + intercept_var
-            if y_max_var < 0:
-                y_max_var = -y_max_var
-
-            points = [
-                geometry.Point(x_min, y_min - y_min_var),
-                geometry.Point(x_max, y_max - y_max_var),
-                geometry.Point(x_max, y_max + y_max_var),
-                geometry.Point(x_min, y_min + y_min_var),
-            ]
-
-            return points
-
         else:
 
             raise ValueError('Method for Polygon must be only linreg or variance_linreg.')
