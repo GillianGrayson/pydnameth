@@ -48,7 +48,7 @@ def table_aggregator_linreg(
     task_params=None,
     method_params=None
 ):
-    child_methods_lvl_1 = [Method.polygon, Method.z_test_linreg]
+    child_methods_lvl_1 = [Method.polygon, Method.ancova]
     child_methods_lvl_2 = [Method.linreg]
 
     config_root = Config(
@@ -72,8 +72,10 @@ def table_aggregator_linreg(
 
         if child_method_lvl_1 == Method.polygon:
             method_params = {'method': Method.linreg}
+            is_load_child = True
         else:
             method_params = {}
+            is_load_child = False
 
         config_lvl_1 = Config(
             data=copy.deepcopy(data),
@@ -87,7 +89,8 @@ def table_aggregator_linreg(
             annotations=copy.deepcopy(annotations),
             attributes=copy.deepcopy(attributes),
             is_run=True,
-            is_root=False
+            is_root=False,
+            is_load_child=is_load_child
         )
         node_lvl_1 = Node(name=str(config_lvl_1), config=config_lvl_1, parent=root)
 
@@ -120,9 +123,139 @@ def table_aggregator_linreg(
                     annotations=copy.deepcopy(annotations),
                     attributes=attributes_lvl_2,
                     is_run=True,
-                    is_root=False
+                    is_root=False,
+                    is_load_child=is_load_child
                 )
                 Node(name=str(config_lvl_2), config=config_lvl_2, parent=node_lvl_1)
+
+    build_tree(root)
+    calc_tree(root)
+
+
+def table_z_test_linreg(
+    data_type,
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params=None,
+    task_params=None,
+    method_params=None
+):
+
+    config_z_test_linreg = Config(
+        data=copy.deepcopy(data),
+        experiment=Experiment(
+            data=data_type,
+            task=Task.table,
+            method=Method.z_test_linreg,
+            data_params=copy.deepcopy(data_params),
+            method_params=method_params,
+            task_params=task_params
+        ),
+        annotations=copy.deepcopy(annotations),
+        attributes=copy.deepcopy(attributes),
+        is_run=True,
+        is_root=False
+    )
+    root = Node(name=str(config_z_test_linreg), config=config_z_test_linreg)
+
+    for d in observables_list:
+        observables_linreg = Observables(
+            name=copy.deepcopy(attributes.observables.name),
+            types=d
+        )
+
+        cells_linreg = Cells(
+            name=copy.deepcopy(attributes.cells.name),
+            types=copy.deepcopy(attributes.cells.types)
+        )
+
+        attributes_linreg = Attributes(
+            target=copy.deepcopy(attributes.target),
+            observables=observables_linreg,
+            cells=cells_linreg,
+        )
+
+        config_linreg = Config(
+            data=copy.deepcopy(data),
+            experiment=Experiment(
+                data=data_type,
+                task=Task.table,
+                method=Method.linreg,
+                data_params=copy.deepcopy(data_params),
+            ),
+            annotations=copy.deepcopy(annotations),
+            attributes=attributes_linreg,
+            is_run=True,
+            is_root=False
+        )
+        Node(name=str(config_linreg), config=config_linreg, parent=root)
+
+    build_tree(root)
+    calc_tree(root)
+
+
+def table_ancova(
+    data_type,
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params=None,
+    task_params=None,
+    method_params=None
+):
+
+    config_ancova = Config(
+        data=copy.deepcopy(data),
+        experiment=Experiment(
+            data=data_type,
+            task=Task.table,
+            method=Method.ancova,
+            data_params=copy.deepcopy(data_params),
+            method_params=method_params,
+            task_params=task_params
+        ),
+        annotations=copy.deepcopy(annotations),
+        attributes=copy.deepcopy(attributes),
+        is_run=True,
+        is_root=True,
+        is_load_child=False,
+    )
+    root = Node(name=str(config_ancova), config=config_ancova)
+
+    for d in observables_list:
+        observables_linreg = Observables(
+            name=copy.deepcopy(attributes.observables.name),
+            types=d
+        )
+
+        cells_linreg = Cells(
+            name=copy.deepcopy(attributes.cells.name),
+            types=copy.deepcopy(attributes.cells.types)
+        )
+
+        attributes_linreg = Attributes(
+            target=copy.deepcopy(attributes.target),
+            observables=observables_linreg,
+            cells=cells_linreg,
+        )
+
+        config_linreg = Config(
+            data=copy.deepcopy(data),
+            experiment=Experiment(
+                data=data_type,
+                task=Task.table,
+                method=Method.linreg,
+                data_params=copy.deepcopy(data_params),
+            ),
+            annotations=copy.deepcopy(annotations),
+            attributes=attributes_linreg,
+            is_run=False,
+            is_root=False
+        )
+        Node(name=str(config_linreg), config=config_linreg, parent=root)
 
     build_tree(root)
     calc_tree(root)

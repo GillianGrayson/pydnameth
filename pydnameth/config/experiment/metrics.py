@@ -4,7 +4,13 @@ from pydnameth import DataType, Task, Method
 def get_method_metrics_keys(config):
     metrics = []
 
-    if config.experiment.data in [DataType.betas, DataType.residuals_common, DataType.residuals_special]:
+    if config.experiment.data in [DataType.betas,
+                                  DataType.betas_adj,
+                                  DataType.epimutations,
+                                  DataType.entropy,
+                                  DataType.residuals_common,
+                                  DataType.residuals_special,
+                                  DataType.cells]:
 
         if config.experiment.task == Task.table:
 
@@ -38,6 +44,14 @@ def get_method_metrics_keys(config):
                     'normality_p_value_ks_wo_params',
                     'normality_p_value_ks_with_params',
                     'normality_p_value_dagostino'
+                ]
+
+            if config.experiment.method == Method.ancova:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'p_value',
                 ]
 
             elif config.experiment.method == Method.variance:

@@ -40,16 +40,16 @@ def get_default_method_params(config):
 
             if config.experiment.method == Method.scatter:
                 params = {
-                    'item': 'cg01620164',
-                    'x_range': 'auto',
-                    'y_range': 'auto',
+                    'items': ['cg01620164'],
+                    'x_ranges': ['auto'],
+                    'y_ranges': ['auto'],
                     'line': 'yes',
                     'add': 'none',
                     'semi_window': 'none'
                 }
             elif config.experiment.method == Method.variance_histogram:
                 params = {
-                    'item': 'cg01620164',
+                    'items': ['cg01620164'],
                 }
             elif config.experiment.method == Method.curve:
                 params = {

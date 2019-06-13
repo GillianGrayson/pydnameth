@@ -123,3 +123,12 @@ class ObservablesGetStrategy(GetStrategy):
 
     def get_aux(self, config, item):
         pass
+
+
+class CellsGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        pass
+
+    def get_aux(self, config, item):
+        pass

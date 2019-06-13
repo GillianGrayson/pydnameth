@@ -3,6 +3,7 @@ from pydnameth.model.strategy.load import BetasAdjLoadStrategy
 from pydnameth.model.strategy.load import BetasHorvathCalculatorLoadStrategy
 from pydnameth.model.strategy.load import BetasSpecLoadStrategy
 from pydnameth.model.strategy.load import ObservablesLoadStrategy
+from pydnameth.model.strategy.load import CellsLoadStrategy
 from pydnameth.model.strategy.load import ResidualsCommonLoadStrategy
 from pydnameth.model.strategy.load import ResidualsSpecialLoadStrategy
 from pydnameth.model.strategy.load import EpimutationsLoadStrategy
@@ -11,6 +12,7 @@ from pydnameth.model.strategy.get import BetasGetStrategy
 from pydnameth.model.strategy.get import BetasAdjGetStrategy
 from pydnameth.model.strategy.get import BetasHorvathCalculatorGetStrategy
 from pydnameth.model.strategy.get import BetasSpecGetStrategy
+from pydnameth.model.strategy.get import CellsGetStrategy
 from pydnameth.model.strategy.get import ObservablesGetStrategy
 from pydnameth.model.strategy.get import ResidualsCommonGetStrategy
 from pydnameth.model.strategy.get import ResidualsSpecialGetStrategy
@@ -58,6 +60,8 @@ class Context:
             self.load_strategy = EpimutationsLoadStrategy()
         elif config.experiment.data == DataType.entropy:
             self.load_strategy = EntropyLoadStrategy()
+        elif config.experiment.data == DataType.cells:
+            self.load_strategy = CellsLoadStrategy()
 
         if config.experiment.data == DataType.betas:
             self.get_strategy = BetasGetStrategy()
@@ -77,6 +81,8 @@ class Context:
             self.get_strategy = EpimutationsGetStrategy()
         elif config.experiment.data == DataType.entropy:
             self.get_strategy = EntropyGetStrategy()
+        elif config.experiment.data == DataType.cells:
+            self.get_strategy = CellsGetStrategy()
 
         if config.experiment.task == Task.table:
             self.setup_strategy = TableSetUpStrategy(self.get_strategy)
