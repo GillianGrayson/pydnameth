@@ -19,7 +19,7 @@ class TableReleaseStrategy(ReleaseStrategy):
 
         if config.experiment.data in [DataType.betas, DataType.betas_adj, DataType.residuals_common, DataType.residuals_special]:
 
-            if config.experiment.method == Method.z_test_linreg:
+            if config.experiment.method in [Method.z_test_linreg, Method.ancova]:
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
                                                                             0.05,
                                                                             method='fdr_bh')
