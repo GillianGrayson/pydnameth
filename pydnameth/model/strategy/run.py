@@ -523,6 +523,34 @@ class TableRunStrategy(RunStrategy):
                 config.metrics['item'].append('entropy')
                 config.metrics['aux'].append('')
 
+            if config.experiment.method == Method.ancova:
+
+                x_all = []
+                y_all = []
+                category_all = []
+
+                for config_child in configs_child:
+
+                    indexes = config_child.attributes_indexes
+
+                    x = self.get_strategy.get_target(config_child)
+                    y = self.get_strategy.get_single_base(config_child, indexes)
+
+                    x_all += x
+                    y_all += list(y)
+                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
+
+                data = {'x': x_all, 'y': y_all, 'category': category_all}
+                df = pd.DataFrame(data)
+                formula = 'y ~ x * category'
+                lm = ols(formula, df)
+                results = lm.fit()
+                p_value = results.pvalues[3]
+
+                config.metrics['p_value'].append(p_value)
+                config.metrics['item'].append('entropy')
+                config.metrics['aux'].append('')
+
             elif config.experiment.method == Method.z_test_linreg:
 
                 slopes = []
