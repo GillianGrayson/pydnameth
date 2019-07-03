@@ -48,7 +48,7 @@ def table_aggregator_linreg(
     task_params=None,
     method_params=None
 ):
-    child_methods_lvl_1 = [Method.polygon, Method.ancova]
+    child_methods_lvl_1 = [Method.polygon, Method.z_test_linreg]
     child_methods_lvl_2 = [Method.linreg]
 
     config_root = Config(
