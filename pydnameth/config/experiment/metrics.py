@@ -52,6 +52,7 @@ def get_method_metrics_keys(config):
                     'item',
                     'aux',
                     'p_value',
+                    'p_value_fdr'
                 ]
 
             elif config.experiment.method == Method.variance:

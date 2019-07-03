@@ -50,7 +50,8 @@ from pydnameth.scripts.develop.epimutations.plot import \
 from pydnameth.scripts.develop.entropy.plot import \
     entropy_plot_scatter
 from pydnameth.scripts.develop.entropy.table import \
-    entropy_table_z_test_linreg
+    entropy_table_z_test_linreg, \
+    entropy_table_ancova
 
 from pydnameth.scripts.develop.observables.plot import \
     observables_plot_histogram
@@ -58,7 +59,8 @@ from pydnameth.scripts.develop.observables.plot import \
 from pydnameth.scripts.develop.cells.plot import \
     cells_plot_scatter
 from pydnameth.scripts.develop.cells.table import \
-    cells_table_z_test_linreg
+    cells_table_z_test_linreg, \
+    cells_table_ancova
 
 from pydnameth.scripts.develop.residuals_common.plot import \
     residuals_common_plot_scatter

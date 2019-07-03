@@ -523,6 +523,34 @@ class TableRunStrategy(RunStrategy):
                 config.metrics['item'].append('entropy')
                 config.metrics['aux'].append('')
 
+            if config.experiment.method == Method.ancova:
+
+                x_all = []
+                y_all = []
+                category_all = []
+
+                for config_child in configs_child:
+
+                    indexes = config_child.attributes_indexes
+
+                    x = self.get_strategy.get_target(config_child)
+                    y = self.get_strategy.get_single_base(config_child, indexes)
+
+                    x_all += x
+                    y_all += list(y)
+                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
+
+                data = {'x': x_all, 'y': y_all, 'category': category_all}
+                df = pd.DataFrame(data)
+                formula = 'y ~ x * category'
+                lm = ols(formula, df)
+                results = lm.fit()
+                p_value = results.pvalues[3]
+
+                config.metrics['p_value'].append(p_value)
+                config.metrics['item'].append('entropy')
+                config.metrics['aux'].append('')
+
             elif config.experiment.method == Method.z_test_linreg:
 
                 slopes = []
@@ -568,6 +596,47 @@ class TableRunStrategy(RunStrategy):
                 process_linreg(x, y, config.metrics)
 
                 config.metrics['item'].append(str(cells_types))
+                config.metrics['aux'].append('')
+
+            if config.experiment.method == Method.ancova:
+
+                x_all = []
+                y_all = []
+                category_all = []
+
+                for config_child in configs_child:
+                    x = self.get_strategy.get_target(config_child)
+
+                    cells = config_child.attributes.cells
+                    cells_types = cells.types
+                    if isinstance(cells_types, list):
+                        y = np.zeros(len(x))
+                        num_cell_types = 0
+                        for cell_type in cells_types:
+                            if cell_type in config_child.cells_dict:
+                                y += np.asarray(config_child.cells_dict[cell_type])
+                                num_cell_types += 1
+                        y /= num_cell_types
+                    else:
+                        y = config_child.cells_dict[cells_types]
+
+                    x_all += x
+                    y_all += list(y)
+                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
+
+                data = {'x': x_all, 'y': y_all, 'category': category_all}
+                df = pd.DataFrame(data)
+                formula = 'y ~ x * category'
+                lm = ols(formula, df)
+                results = lm.fit()
+                p_value = results.pvalues[3]
+
+                cells = config.attributes.cells
+                cells_types = cells.types
+                item = str(cells_types)
+
+                config.metrics['p_value'].append(p_value)
+                config.metrics['item'].append(item)
                 config.metrics['aux'].append('')
 
             elif config.experiment.method == Method.z_test_linreg:
