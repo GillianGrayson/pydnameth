@@ -76,7 +76,7 @@ Name of the directory, where the necessary files are located and where the files
 
 Example::
 
-    base = 'GSE40279'
+    base = 'GSE87571'
 
 +++++++
 Example

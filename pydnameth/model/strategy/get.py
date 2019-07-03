@@ -41,6 +41,24 @@ class BetasAdjGetStrategy(GetStrategy):
         return BetasGetStrategy.get_aux(self, config, item)
 
 
+class BetasHorvathCalculatorGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        pass
+
+    def get_aux(self, config, item):
+        pass
+
+
+class BetasSpecGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        pass
+
+    def get_aux(self, config, item):
+        pass
+
+
 class ResidualsCommonGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
@@ -99,6 +117,15 @@ class EntropyGetStrategy(GetStrategy):
 
 
 class ObservablesGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        pass
+
+    def get_aux(self, config, item):
+        pass
+
+
+class CellsGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
         pass

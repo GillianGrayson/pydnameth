@@ -6,7 +6,6 @@ def residuals_special_plot_scatter(
     data,
     annotations,
     attributes,
-    cpg_list,
     observables_list,
     child_method=Method.linreg,
     params=None
@@ -16,7 +15,6 @@ def residuals_special_plot_scatter(
         data,
         annotations,
         attributes,
-        cpg_list,
         observables_list,
         child_method,
         params

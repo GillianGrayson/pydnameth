@@ -2,6 +2,14 @@ import numpy as np
 import statsmodels.api as sm
 
 
+def get_box_xs(targets):
+    targets = np.squeeze(np.asarray(targets))
+    min_target = int(np.floor(min(targets)))
+    max_target = int(np.ceil(max(targets)))
+    xs = list(range(min_target, max_target + 1))
+    return xs
+
+
 def process_box(targets, values, semi_window=2, box_b='left', box_t='right'):
     targets = np.squeeze(np.asarray(targets))
     values = np.squeeze(np.asarray(values))
@@ -53,17 +61,17 @@ def process_box(targets, values, semi_window=2, box_b='left', box_t='right'):
     return xs, bs, ms, ts
 
 
-def variance_processing(exog, endog, characteristics_dict, key_prefix):
+def process_line_fit(exog, endog, characteristics_dict, key_prefix):
     is_same_elements = all(x == endog[0] for x in endog)
     if is_same_elements:
-        characteristics_dict[key_prefix + '_lin_lin_R2'].append(1.0)
-        characteristics_dict[key_prefix + '_lin_lin_intercept'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_slope'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_intercept_std'].append(0.0)
-        characteristics_dict[key_prefix + '_lin_lin_slope_std'].append(0.0)
+        characteristics_dict[key_prefix + '_lin_lin_R2'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_intercept'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_slope'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_intercept_std'].append('NA')
+        characteristics_dict[key_prefix + '_lin_lin_slope_std'].append('NA')
         characteristics_dict[key_prefix + '_lin_lin_intercept_p_value'].append('NA')
         characteristics_dict[key_prefix + '_lin_lin_slope_p_value'].append('NA')
-        R2s = [1.0]
+        R2s = [-1]
     else:
         lin_lin_exog = sm.add_constant(exog)
         lin_lin_endog = endog
@@ -89,7 +97,6 @@ def variance_processing(exog, endog, characteristics_dict, key_prefix):
         characteristics_dict[key_prefix + '_lin_log_intercept_p_value'].append(lin_log_results.pvalues[0])
         characteristics_dict[key_prefix + '_lin_log_slope_p_value'].append(lin_log_results.pvalues[1])
         R2s.append(lin_log_results.rsquared)
-
     else:
         characteristics_dict[key_prefix + '_lin_log_R2'].append('NA')
         characteristics_dict[key_prefix + '_lin_log_intercept'].append('NA')
@@ -112,7 +119,6 @@ def variance_processing(exog, endog, characteristics_dict, key_prefix):
         characteristics_dict[key_prefix + '_log_log_intercept_p_value'].append(log_log_results.pvalues[0])
         characteristics_dict[key_prefix + '_log_log_slope_p_value'].append(log_log_results.pvalues[1])
         R2s.append(log_log_results.rsquared)
-
     else:
         characteristics_dict[key_prefix + '_log_log_R2'].append('NA')
         characteristics_dict[key_prefix + '_log_log_intercept'].append('NA')
@@ -130,7 +136,7 @@ def variance_processing(exog, endog, characteristics_dict, key_prefix):
     characteristics_dict[key_prefix + '_best_R2'].append(best_R2)
 
 
-def init_variance_characteristics_dict(characteristics_dict, key_prefix):
+def init_variance_metrics_dict(characteristics_dict, key_prefix):
     characteristics_dict[key_prefix + '_lin_lin_R2'] = []
     characteristics_dict[key_prefix + '_lin_lin_intercept'] = []
     characteristics_dict[key_prefix + '_lin_lin_slope'] = []
@@ -159,3 +165,56 @@ def init_variance_characteristics_dict(characteristics_dict, key_prefix):
         characteristics_dict['best_type'] = []
     if 'best_R2' not in characteristics_dict:
         characteristics_dict['best_R2'] = []
+
+
+def process_variance(x, y, semi_window, box_b, box_t, metrics_dict):
+    xs, bs, ms, ts = process_box(x, y, semi_window, box_b, box_t)
+    process_line_fit(xs, bs, metrics_dict, 'box_b')
+    process_line_fit(xs, ms, metrics_dict, 'box_m')
+    process_line_fit(xs, ts, metrics_dict, 'box_t')
+    R2 = np.min([metrics_dict['box_b_best_R2'][-1], metrics_dict['box_t_best_R2'][-1]])
+    metrics_dict['best_R2'].append(R2)
+    return xs, bs, ms, ts
+
+
+def fit_variance(xs, metrics_dict):
+    ys_t = np.zeros(len(xs), dtype=float)
+    ys_b = np.zeros(len(xs), dtype=float)
+
+    if metrics_dict['box_b_best_type'][-1] == 0:  # lin-lin axes
+        intercept_box_b = metrics_dict['box_b_lin_lin_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_lin_lin_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_b[x_id] = slope_box_b * xs[x_id] + intercept_box_b
+
+    elif metrics_dict['box_b_best_type'][-1] == 1:  # lin-log axes
+        intercept_box_b = metrics_dict['box_b_lin_log_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_lin_log_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_b[x_id] = np.exp(slope_box_b * xs[x_id] + intercept_box_b)
+
+    elif metrics_dict['box_b_best_type'][-1] == 2:  # log-log axes
+        intercept_box_b = metrics_dict['box_b_log_log_intercept'][-1]
+        slope_box_b = metrics_dict['box_b_log_log_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_b[x_id] = np.exp(slope_box_b * np.log(xs[x_id]) + intercept_box_b)
+
+    if metrics_dict['box_t_best_type'][-1] == 0:  # lin-lin axes
+        intercept_box_t = metrics_dict['box_t_lin_lin_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_lin_lin_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_t[x_id] = slope_box_t * xs[x_id] + intercept_box_t
+
+    elif metrics_dict['box_t_best_type'][-1] == 1:  # lin-log axes
+        intercept_box_t = metrics_dict['box_t_lin_log_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_lin_log_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_t[x_id] = np.exp(slope_box_t * xs[x_id] + intercept_box_t)
+
+    elif metrics_dict['box_t_best_type'][-1] == 2:  # log-log axes
+        intercept_box_t = metrics_dict['box_t_log_log_intercept'][-1]
+        slope_box_t = metrics_dict['box_t_log_log_slope'][-1]
+        for x_id in range(0, len(xs)):
+            ys_t[x_id] = np.exp(slope_box_t * np.log(xs[x_id]) + intercept_box_t)
+
+    return ys_b, ys_t

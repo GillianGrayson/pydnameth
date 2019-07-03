@@ -4,7 +4,13 @@ from pydnameth import DataType, Task, Method
 def get_method_metrics_keys(config):
     metrics = []
 
-    if config.experiment.data in [DataType.betas, DataType.residuals_common, DataType.residuals_special]:
+    if config.experiment.data in [DataType.betas,
+                                  DataType.betas_adj,
+                                  DataType.epimutations,
+                                  DataType.entropy,
+                                  DataType.residuals_common,
+                                  DataType.residuals_special,
+                                  DataType.cells]:
 
         if config.experiment.task == Task.table:
 
@@ -40,6 +46,15 @@ def get_method_metrics_keys(config):
                     'normality_p_value_dagostino'
                 ]
 
+            if config.experiment.method == Method.ancova:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'p_value',
+                    'p_value_fdr'
+                ]
+
             elif config.experiment.method == Method.variance:
 
                 metrics = [
@@ -47,6 +62,9 @@ def get_method_metrics_keys(config):
                     'aux',
 
                     'best_R2',
+
+                    'increasing_div',
+                    'increasing_sub',
 
                     'box_b_best_type',
                     'box_b_best_R2',
@@ -128,6 +146,7 @@ def get_method_metrics_keys(config):
                     'aux',
                     'number_of_clusters',
                     'number_of_noise_points',
+                    'percent_of_noise_points',
                 ]
 
             elif config.experiment.method == Method.polygon:
@@ -148,7 +167,14 @@ def get_method_metrics_keys(config):
                     metrics = [
                         'item',
                         'aux',
-                        'area_intersection_rel_box'
+                        'area_intersection_rel_box_common',
+                        'area_intersection_rel_box_special',
+                        'increasing_1_box_common',
+                        'increasing_1_box_special',
+                        'increasing_2_box_common',
+                        'increasing_2_box_special',
+                        'increasing_3_box_common',
+                        'increasing_3_box_special',
                     ]
 
             elif config.experiment.method == Method.special:

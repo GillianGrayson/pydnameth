@@ -47,7 +47,8 @@ def entropy_plot(
         annotations=copy.deepcopy(annotations),
         attributes=copy.deepcopy(attributes),
         is_run=True,
-        is_root=True
+        is_root=True,
+        is_load_child=False
     )
 
     root = Node(name=str(config_root), config=config_root)
@@ -80,7 +81,8 @@ def entropy_plot(
             annotations=copy.deepcopy(annotations),
             attributes=attributes_child,
             is_run=False,
-            is_root=False
+            is_root=False,
+            is_load_child=False
         )
         Node(name=str(config_child), config=config_child, parent=root)
 

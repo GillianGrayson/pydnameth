@@ -3,22 +3,12 @@ from pydnameth.config.experiment.types import DataType, Method
 from pydnameth.routines.common import get_axis, get_legend, get_margin
 
 
-def get_layout(config):
+def get_layout(config, title_text=''):
     layout = None
 
     if config.experiment.data in [DataType.betas, DataType.residuals_common, DataType.residuals_special]:
 
         if config.experiment.method in [Method.scatter, Method.variance_histogram]:
-
-            item = config.experiment.method_params['item']
-            if item in config.cpg_gene_dict:
-                aux = config.cpg_gene_dict[item]
-                if isinstance(aux, list):
-                    aux_str = ';'.join(aux)
-                else:
-                    aux_str = str(aux)
-            else:
-                aux_str = 'non-genic'
 
             y_title = 'Methylation level'
             if config.experiment.data in [DataType.residuals_common, DataType.residuals_special]:
@@ -26,7 +16,7 @@ def get_layout(config):
 
             layout = go.Layout(
                 title=dict(
-                    text=item + '(' + aux_str + ')',
+                    text=title_text,
                     font=dict(
                         family='Arial',
                         size=33,
@@ -185,6 +175,40 @@ def get_layout(config):
 
         if config.experiment.method == Method.scatter:
             y_title = 'Entropy'
+
+            layout = go.Layout(
+                title=dict(
+                    font=dict(
+                        family='Arial',
+                        size=33,
+                    )
+                ),
+                autosize=True,
+                margin=go.layout.Margin(
+                    l=120,
+                    r=10,
+                    b=80,
+                    t=50,
+                    pad=0
+                ),
+                barmode='overlay',
+                legend=dict(
+                    font=dict(
+                        family='Arial',
+                        size=16,
+                    ),
+                    orientation="h",
+                    x=0.33,
+                    y=1.11,
+                ),
+                xaxis=get_axis(config.attributes.target.capitalize()),
+                yaxis=get_axis(y_title),
+            )
+
+    elif config.experiment.data == DataType.cells:
+
+        if config.experiment.method == Method.scatter:
+            y_title = str(config.attributes.cells)
 
             layout = go.Layout(
                 title=dict(

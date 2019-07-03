@@ -22,7 +22,8 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
     betas_table_linreg,\
-    betas_table_cluster
+    betas_table_cluster, \
+    betas_table_variance
 from pydnameth.scripts.develop.betas.clock import \
     betas_clock_linreg,\
     betas_clock_special
@@ -31,17 +32,35 @@ from pydnameth.scripts.develop.betas.plot import \
     betas_plot_curve_clock,\
     betas_plot_variance_histogram_dev
 
+from pydnameth.scripts.develop.betas_horvath_calculator.create import \
+    betas_horvath_calculator_create_regular
+
+from pydnameth.scripts.develop.betas_spec.create import \
+    betas_spec_create_regular
+
 from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
+from pydnameth.scripts.develop.epimutations.table import \
+    epimutations_table_z_test_linreg, \
+    epimutations_table_ancova
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
     epimutations_plot_range
 
 from pydnameth.scripts.develop.entropy.plot import \
     entropy_plot_scatter
+from pydnameth.scripts.develop.entropy.table import \
+    entropy_table_z_test_linreg, \
+    entropy_table_ancova
 
 from pydnameth.scripts.develop.observables.plot import \
     observables_plot_histogram
+
+from pydnameth.scripts.develop.cells.plot import \
+    cells_plot_scatter
+from pydnameth.scripts.develop.cells.table import \
+    cells_table_z_test_linreg, \
+    cells_table_ancova
 
 from pydnameth.scripts.develop.residuals_common.plot import \
     residuals_common_plot_scatter

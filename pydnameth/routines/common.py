@@ -1,4 +1,5 @@
 import plotly.graph_objs as go
+import numpy as np
 
 
 def is_float(value):
@@ -9,8 +10,24 @@ def is_float(value):
         return False
 
 
+def find_nearest_id(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
+def dict_slice(origin_dict, id):
+    new_dict = {}
+    for key, value in origin_dict.items():
+        new_dict[key] = [value[id]]
+    return new_dict
+
+
 def normalize_to_0_1(values):
-    values_normed = [(float(val) - min(values)) / (float(max(values)) - float(min(values))) for val in values]
+    max_val = max(values)
+    min_val = min(values)
+    shift_val = (max_val - min_val)
+    values_normed = (np.asarray(values) - min_val) / shift_val
     return values_normed
 
 
@@ -62,8 +79,35 @@ def get_margin():
     return margin
 
 
-def get_names(config):
+def process_names(config):
     name = str(config.attributes.observables)
     if 'gender' in name:
         name = name.replace('gender', 'sex')
     return name
+
+
+def get_names(config, plot_params):
+    if 'legend_size' in plot_params:
+        legend_size = plot_params['legend_size']
+        parts = process_names(config).split(')_')
+        if len(parts) > 1:
+            name = ')_'.join(parts[0:legend_size]) + ')'
+        elif legend_size > len(parts):
+            name = process_names(config)
+        else:
+            name = process_names(config)
+    else:
+        name = process_names(config)
+    return name
+
+
+def update_parent_dict_with_children(parent_metrics_keys, item, config_parent, config_child):
+    item_id = config_child.advanced_dict[item]
+    for key in config_child.advanced_data:
+        if key not in parent_metrics_keys:
+            advanced_data = config_child.advanced_data[key][item_id]
+            suffix = str(config_child.attributes.observables)
+            if suffix != '' and suffix not in key:
+                key += '_' + suffix
+            config_parent.metrics[key].append(advanced_data)
+            parent_metrics_keys.append(key)

@@ -47,6 +47,23 @@ def betas_table_linreg(
     )
 
 
+def betas_table_variance(
+    data,
+    annotations,
+    attributes,
+    method_params=None
+):
+
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.variance,
+        method_params=method_params,
+    )
+
+
 def betas_table_cluster(
     data,
     annotations,
@@ -68,6 +85,7 @@ def betas_table_aggregator_linreg(
     annotations,
     attributes,
     observables_list,
+    data_params=None,
     method_params=None
 ):
     """
@@ -121,7 +139,8 @@ def betas_table_aggregator_linreg(
         annotations,
         attributes,
         observables_list,
-        method_params
+        data_params,
+        method_params,
     )
 
 

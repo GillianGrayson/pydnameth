@@ -1,6 +1,9 @@
 import abc
 from pydnameth.config.experiment.types import Task
 from pydnameth.infrastucture.load.betas import load_betas
+from pydnameth.infrastucture.load.betas_adj import load_betas_adj
+from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
+from pydnameth.infrastucture.load.betas_spec import load_betas_spec
 from pydnameth.infrastucture.load.residuals_common import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
@@ -31,6 +34,9 @@ class LoadStrategy(metaclass=abc.ABCMeta):
                 config_child.advanced_dict[item] = row_id
                 row_id += 1
 
+        elif config_child.experiment.task in [Task.plot]:
+            config_child.advanced_data = config_child.experiment_data
+
 
 class BetasLoadStrategy(LoadStrategy):
 
@@ -51,7 +57,7 @@ class BetasLoadStrategy(LoadStrategy):
 class BetasAdjLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas(config)
+        load_betas_adj(config)
         config.base_list = config.cpg_list
         config.base_dict = config.betas_adj_dict
         config.base_data = config.betas_adj_data
@@ -62,6 +68,18 @@ class BetasAdjLoadStrategy(LoadStrategy):
 
             for config_child in configs_child:
                 self.load_child(config_child)
+
+
+class BetasHorvathCalculatorLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        load_betas_horvath_calculator(config)
+
+
+class BetasSpecLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        load_betas_spec(config)
 
 
 class ResidualsCommonLoadStrategy(LoadStrategy):
@@ -96,6 +114,11 @@ class EpimutationsLoadStrategy(LoadStrategy):
 
         self.inherit_childs(config, configs_child)
 
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
 
 class EntropyLoadStrategy(LoadStrategy):
 
@@ -107,8 +130,28 @@ class EntropyLoadStrategy(LoadStrategy):
 
         self.inherit_childs(config, configs_child)
 
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
 
 class ObservablesLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         pass
+
+
+class CellsLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        config.base_list = None
+        config.base_dict = None
+        config.base_data = None
+
+        self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)

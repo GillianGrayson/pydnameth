@@ -36,15 +36,17 @@ class TableSetUpStrategy(SetupStrategy):
 
         metrics_keys = get_method_metrics_keys(config)
 
-        for config_child in configs_child:
+        if config.is_load_child:
 
-            for key in config_child.advanced_data:
-                if key not in metrics_keys:
-                    suffix = str(config_child.attributes.observables)
-                    if suffix != '' and suffix not in key:
-                        key += '_' + suffix
-                    config.metrics[key] = []
-                    metrics_keys.append(key)
+            for config_child in configs_child:
+
+                for key in config_child.advanced_data:
+                    if key not in metrics_keys:
+                        suffix = str(config_child.attributes.observables)
+                        if suffix != '' and suffix not in key:
+                            key += '_' + suffix
+                        config.metrics[key] = []
+                        metrics_keys.append(key)
 
 
 class ClockSetUpStrategy(SetupStrategy):
@@ -77,6 +79,13 @@ class PlotSetUpStrategy(SetupStrategy):
         self.setup_method_metrics(config)
 
         config.experiment_data = {
+            'item': [],
             'data': [],
             'fig': []
         }
+
+
+class CreateSetUpStrategy(SetupStrategy):
+
+    def setup(self, config, configs_child):
+        pass
