@@ -17,6 +17,7 @@ from pydnameth.routines.variance.functions import \
 from pydnameth.routines.common import find_nearest_id, dict_slice, update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import z_test_slope_proc
+from pydnameth.routines.polygon.functions import process_variance_polygon
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
@@ -181,154 +182,62 @@ class TableRunStrategy(RunStrategy):
 
             elif config.experiment.method_params['method'] == Method.variance:
 
-                polygons_region_box_common = []
-                polygons_region_box_special = []
-
-                increasing_box_1_common = []
-                increasing_box_1_special = []
-                increasing_box_2_common = []
-                increasing_box_2_special = []
-                increasing_box_3_common = []
-                increasing_box_3_special = []
-
                 xs_all = []
-                ys_b_all = []
-                ys_t_all = []
+                ys_b_real_all = []
+                ys_t_real_all = []
+                ys_b_fit_all = []
+                ys_t_fit_all = []
+
                 left_x = float('-inf')
                 right_x = float('inf')
 
                 for config_child in configs_child:
 
                     targets = np.squeeze(np.asarray(self.get_strategy.get_target(config_child)))
-                    item_id = config_child.advanced_dict[item]
+                    data = np.squeeze(np.asarray(self.get_strategy.get_single_base(config_child, [item])))
 
-                    metrics_dict = dict_slice(config_child.advanced_data, item_id)
+                    semi_window = config_child.experiment.method_params['semi_window']
+                    box_b = config_child.experiment.method_params['box_b']
+                    box_t = config_child.experiment.method_params['box_t']
+
+                    _, bs, _, ts = process_box(targets, data, semi_window, box_b, box_t)
+                    ys_b_real_all.append(bs)
+                    ys_t_real_all.append(ts)
 
                     xs = get_box_xs(targets)
-                    ys_b, ys_t = fit_variance(xs, metrics_dict)
-
                     xs_all.append(xs)
+
+                    item_id = config_child.advanced_dict[item]
+                    metrics_dict = dict_slice(config_child.advanced_data, item_id)
+
+                    ys_b, ys_t = fit_variance(xs, metrics_dict)
+                    ys_b_fit_all.append(ys_b)
+                    ys_t_fit_all.append(ys_t)
+
                     if (xs[0] > left_x):
                         left_x = xs[0]
                     if (xs[-1] < right_x):
                         right_x = xs[-1]
-                    ys_b_all.append(ys_b)
-                    ys_t_all.append(ys_t)
 
+                x_range = right_x - left_x
+                begin_ids = []
+                end_ids = []
                 for child_id in range(0, len(xs_all)):
+                    begin_ids.append(find_nearest_id(xs_all[child_id], left_x))
+                    end_ids.append(find_nearest_id(xs_all[child_id], right_x))
 
-                    points_box = []
-                    for p_id in range(0, len(xs_all[child_id])):
-                        points_box.append(geometry.Point(
-                            xs_all[child_id][p_id],
-                            ys_t_all[child_id][p_id]
-                        ))
-                    for p_id in range(len(xs_all[child_id]) - 1, -1, -1):
-                        points_box.append(geometry.Point(
-                            xs_all[child_id][p_id],
-                            ys_b_all[child_id][p_id]
-                        ))
-                    polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
-                    polygons_region_box_special.append(polygon)
-
-                    diff_begin = abs(ys_t_all[child_id][0] - ys_b_all[child_id][0])
-                    diff_end = abs(ys_t_all[child_id][-1] - ys_b_all[child_id][-1])
-
-                    if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
-                        increasing = diff_end / diff_begin
-                        increasing_box_1_special.append(max(increasing, 1.0 / increasing))
-                        increasing_box_2_special.append(max(diff_begin, diff_end))
-                        increasing_box_3_special.append(abs(diff_begin - diff_end))
-                    else:
-                        increasing_box_1_special.append(0.0)
-                        increasing_box_2_special.append(0.0)
-                        increasing_box_3_special.append(0.0)
-
-                all_polygons_is_valid = True
-                for polygon in polygons_region_box_special:
-                    if polygon.is_valid is False:
-                        all_polygons_is_valid = False
-                        break
-
-                if all_polygons_is_valid:
-                    intersection_box = polygons_region_box_special[0]
-                    union_box = polygons_region_box_special[0]
-                    for polygon in polygons_region_box_special[1::]:
-                        intersection_box = intersection_box.intersection(polygon)
-                        union_box = union_box.union(polygon)
-                    area_intersection_rel_box = intersection_box.area / union_box.area
-                    increasing_box_1_special_val = max(increasing_box_1_special) / min(increasing_box_1_special)
-                    increasing_box_2_special_val = max(increasing_box_2_special) / min(increasing_box_2_special)
-                    increasing_box_3_special_val = max(increasing_box_3_special) / min(increasing_box_3_special)
-                else:
-                    area_intersection_rel_box = 1.0
-                    increasing_box_1_special_val = 0.0
-                    increasing_box_2_special_val = 0.0
-                    increasing_box_3_special_val = 0.0
-
-                config.metrics['area_intersection_rel_box_special'].append(area_intersection_rel_box)
-                config.metrics['increasing_1_box_special'].append(increasing_box_1_special_val)
-                config.metrics['increasing_2_box_special'].append(increasing_box_2_special_val)
-                config.metrics['increasing_3_box_special'].append(increasing_box_3_special_val)
-
-                for child_id in range(0, len(xs_all)):
-
-                    begin_id = find_nearest_id(xs_all[child_id], left_x)
-                    end_id = find_nearest_id(xs_all[child_id], right_x)
-
-                    points_box = []
-                    for p_id in range(begin_id, end_id + 1):
-                        points_box.append(geometry.Point(
-                            xs_all[child_id][p_id],
-                            ys_t_all[child_id][p_id]
-                        ))
-                    for p_id in range(end_id, begin_id - 1, -1):
-                        points_box.append(geometry.Point(
-                            xs_all[child_id][p_id],
-                            ys_b_all[child_id][p_id]
-                        ))
-                    polygon = geometry.Polygon([[point.x, point.y] for point in points_box])
-                    polygons_region_box_common.append(polygon)
-
-                    diff_begin = abs(ys_t_all[child_id][begin_id] - ys_b_all[child_id][begin_id])
-                    diff_end = abs(ys_t_all[child_id][end_id] - ys_b_all[child_id][end_id])
-
-                    if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
-                        increasing = diff_end / diff_begin
-                        increasing_box_1_common.append(max(increasing, 1.0 / increasing))
-                        increasing_box_2_common.append(max(diff_begin, diff_end))
-                        increasing_box_3_common.append(abs(diff_begin - diff_end))
-                    else:
-                        increasing_box_1_common.append(0.0)
-                        increasing_box_2_common.append(0.0)
-                        increasing_box_3_common.append(0.0)
-
-                all_polygons_is_valid = True
-                for polygon in polygons_region_box_common:
-                    if polygon.is_valid is False:
-                        all_polygons_is_valid = False
-                        break
-
-                if all_polygons_is_valid:
-                    intersection_box = polygons_region_box_common[0]
-                    union_box = polygons_region_box_common[0]
-                    for polygon in polygons_region_box_common[1::]:
-                        intersection_box = intersection_box.intersection(polygon)
-                        union_box = union_box.union(polygon)
-                    area_intersection_rel_box = intersection_box.area / union_box.area
-                    increasing_box_1_common_val = max(increasing_box_1_common) / min(increasing_box_1_common)
-                    increasing_box_2_common_val = max(increasing_box_2_common) / min(increasing_box_2_common)
-                    increasing_box_3_common_val = max(increasing_box_3_common) / min(increasing_box_3_common)
-                else:
-                    area_intersection_rel_box = 1.0
-                    increasing_box_1_common_val = 0.0
-                    increasing_box_2_common_val = 0.0
-                    increasing_box_3_common_val = 0.0
-
-                config.metrics['area_intersection_rel_box_common'].append(area_intersection_rel_box)
-                config.metrics['increasing_1_box_common'].append(increasing_box_1_common_val)
-                config.metrics['increasing_2_box_common'].append(increasing_box_2_common_val)
-                config.metrics['increasing_3_box_common'].append(increasing_box_3_common_val)
+                process_variance_polygon(
+                    begin_ids,
+                    end_ids,
+                    x_range,
+                    xs_all,
+                    ys_b_real_all,
+                    ys_t_real_all,
+                    ys_b_fit_all,
+                    ys_t_fit_all,
+                    '',
+                    config.metrics
+                )
 
                 config.metrics['item'].append(item)
                 aux = self.get_strategy.get_aux(config, item)
