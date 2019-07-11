@@ -74,6 +74,7 @@ class PlotSaveStrategy(SaveStrategy):
                 if config.experiment.method == Method.scatter_comparison:
                     config.experiment.method_params.pop('items', None)
                     config.experiment.method_params.pop('aux', None)
+                    config.experiment.method_params.pop('data_bases', None)
                     config.experiment.method_params.pop('x_ranges', None)
                     config.experiment.method_params.pop('y_ranges', None)
 

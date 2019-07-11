@@ -64,7 +64,8 @@ from pydnameth.scripts.develop.cells.table import \
     cells_table_ancova
 
 from pydnameth.scripts.develop.residuals_common.plot import \
-    residuals_common_plot_scatter
+    residuals_common_plot_scatter, \
+    residuals_common_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals_common.table import \
     residuals_common_table_aggregator_linreg,\
     residuals_common_table_aggregator_variance

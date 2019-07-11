@@ -99,6 +99,7 @@ def plot_scatter_comparison(
     task_params = {'type': 'run'}
 
     method_params['items'] = items
+    method_params['data_bases'] = data_bases
     if 'aux' in rows_dict:
         method_params['aux'] = rows_dict['aux']
     method_params['x_ranges'] = []

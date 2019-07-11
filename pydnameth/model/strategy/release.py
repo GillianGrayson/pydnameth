@@ -86,17 +86,17 @@ class PlotReleaseStrategy(ReleaseStrategy):
                     x_begin = 0.075
                     x_end = 1
                     x_shift = (x_end - x_begin) / x_num
-                    x_size = x_shift - 0.02
+                    x_size = x_shift - 0.01
                     x_domains = []
                     for x_id in range(0, x_num):
                         x = x_begin + x_shift * x_id
                         x_domains.append([x, x + x_size])
 
                     y_num = len(configs_child[0].experiment_data['item'])
-                    y_begin = 0.05
+                    y_begin = 0.06
                     y_end = 1
                     y_shift = (y_end - y_begin) / y_num
-                    y_size = y_shift - 0.025
+                    y_size = y_shift - 0.02
                     y_domains = []
                     for y_id in range(0, y_num):
                         y = y_begin + y_shift * y_id
@@ -179,6 +179,10 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             size=10,
                             color='black'
                         )
+
+                        db = config.experiment.method_params['data_bases'][x_id]
+                        x_title = db
+                        layout['xaxis' + x_string_add]['title'] = x_title
 
                         x_range = config.experiment.method_params['x_ranges'][x_id]
                         if x_range != 'auto' or 'auto' not in x_range:
