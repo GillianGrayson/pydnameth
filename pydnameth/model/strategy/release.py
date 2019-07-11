@@ -42,154 +42,305 @@ class PlotReleaseStrategy(ReleaseStrategy):
 
     def release(self, config, configs_child):
 
-        if config.experiment.data in [
-            DataType.betas,
-            DataType.betas_adj,
-            DataType.residuals_common,
-            DataType.residuals_special,
-        ]:
-            if config.experiment.method == Method.scatter:
+        if config.experiment.task_params is None or config.experiment.task_params['type'] == 'run':
 
-                for item_id, item in enumerate(config.experiment_data['item']):
+            if config.experiment.data in [
+                DataType.betas,
+                DataType.betas_adj,
+                DataType.residuals_common,
+                DataType.residuals_special,
+            ]:
+                if config.experiment.method == Method.scatter:
 
-                    if item in config.cpg_gene_dict:
-                        aux = config.cpg_gene_dict[item]
-                        if isinstance(aux, list):
-                            aux_str = ';'.join(aux)
+                    for item_id, items in enumerate(config.experiment_data['item']):
+
+                        if items in config.cpg_gene_dict:
+                            aux = config.cpg_gene_dict[items]
+                            if isinstance(aux, list):
+                                aux_str = ';'.join(aux)
+                            else:
+                                aux_str = str(aux)
                         else:
-                            aux_str = str(aux)
-                    else:
-                        aux_str = 'non-genic'
+                            aux_str = 'non-genic'
 
-                    layout = plot_routines.get_layout(config, item + '(' + aux_str + ')')
+                        layout = plot_routines.get_layout(config, items + '(' + aux_str + ')')
 
-                    raw_item_id = config.experiment.method_params['items'].index(item)
+                        raw_item_id = config.experiment.method_params['items'].index(items)
 
-                    if 'x_ranges' in config.experiment.method_params:
-                        x_range = config.experiment.method_params['x_ranges'][raw_item_id]
+                        if 'x_ranges' in config.experiment.method_params:
+                            x_range = config.experiment.method_params['x_ranges'][raw_item_id]
+                            if x_range != 'auto' or 'auto' not in x_range:
+                                layout.xaxis.range = x_range
+
+                        if 'y_ranges' in config.experiment.method_params:
+                            y_range = config.experiment.method_params['y_ranges'][raw_item_id]
+                            if y_range != 'auto' or 'auto' not in y_range:
+                                layout.yaxis.range = y_range
+
+                        fig = go.Figure(data=config.experiment_data['data'][item_id], layout=layout)
+                        config.experiment_data['fig'].append(fig)
+
+                elif config.experiment.method == Method.scatter_comparison:
+
+                    x_num = len(configs_child)
+                    x_begin = 0.075
+                    x_end = 1
+                    x_shift = (x_end - x_begin) / x_num
+                    x_size = x_shift - 0.02
+                    x_domains = []
+                    for x_id in range(0, x_num):
+                        x = x_begin + x_shift * x_id
+                        x_domains.append([x, x + x_size])
+
+                    y_num = len(configs_child[0].experiment_data['item'])
+                    y_begin = 0.05
+                    y_end = 1
+                    y_shift = (y_end - y_begin) / y_num
+                    y_size = y_shift - 0.025
+                    y_domains = []
+                    for y_id in range(0, y_num):
+                        y = y_begin + y_shift * y_id
+                        y_domains.append([y, y + y_size])
+
+                    for configs_child_id, config_child in enumerate(configs_child):
+                        for item_id, items in enumerate(config_child.experiment_data['data']):
+
+                            if configs_child_id == 0:
+                                x_string = 'x'
+                            else:
+                                x_string = f'x{configs_child_id + 1}'
+
+                            if item_id == 0:
+                                y_string = 'y'
+                            else:
+                                y_string = f'y{item_id + 1}'
+
+                            if isinstance(items, list):
+                                for item in items:
+                                    item.xaxis = x_string
+                                    item.yaxis = y_string
+
+                                    if item.mode == 'markers':
+                                        item.marker.size = 1
+                                        item.marker.line.width = 0.2
+                                    if item.mode == 'lines':
+                                        item.line.width = 1
+
+                                    config.experiment_data['data'].append(item)
+                            else:
+                                items.xaxis = x_string
+                                items.yaxis = y_string
+
+                                if item.mode == 'markers':
+                                    item.marker.size = 1
+                                    item.marker.line.width = 0.2
+                                if item.mode == 'lines':
+                                    item.line.width = 1
+
+                                config.experiment_data['data'].append(items)
+
+                    layout = {}
+                    layout['showlegend'] = False
+                    layout['margin'] = {
+                        'l': 0,
+                        'r': 0,
+                        'b': 0,
+                        't': 0,
+                    }
+                    height_per_row = 125
+                    width_per_col = 200
+                    layout['height'] = height_per_row * y_num
+                    layout['width'] = width_per_col * x_num
+
+                    for x_id in range(0, x_num):
+
+                        if x_id == 0:
+                            x_string_add = ''
+                        else:
+                            x_string_add = str(x_id + 1)
+
+                        layout['xaxis' + x_string_add] = {}
+                        layout['xaxis' + x_string_add]['domain'] = x_domains[x_id]
+                        layout['xaxis' + x_string_add]['anchor'] = 'x' + x_string_add
+
+                        layout['xaxis' + x_string_add]['zeroline'] = False
+                        layout['xaxis' + x_string_add]['showgrid'] = True
+                        layout['xaxis' + x_string_add]['showline'] = True
+                        layout['xaxis' + x_string_add]['mirror'] = 'allticks'
+
+                        layout['xaxis' + x_string_add]['titlefont'] = dict(
+                            family='Arial',
+                            size=13,
+                            color='black'
+                        )
+
+                        layout['xaxis' + x_string_add]['tickfont'] = dict(
+                            family='Arial',
+                            size=10,
+                            color='black'
+                        )
+
+                        x_range = config.experiment.method_params['x_ranges'][x_id]
+                        if x_range != 'auto' or 'auto' not in x_range:
+                            layout['xaxis' + x_string_add]['range'] = x_range
+
+                    for y_id in range(0, y_num):
+
+                        if y_id == 0:
+                            y_string_add = ''
+                        else:
+                            y_string_add = str(y_id + 1)
+
+                        layout['yaxis' + y_string_add] = {}
+                        layout['yaxis' + y_string_add]['domain'] = y_domains[y_id]
+                        layout['yaxis' + y_string_add]['anchor'] = 'y' + y_string_add
+
+                        layout['yaxis' + y_string_add]['zeroline'] = False
+                        layout['yaxis' + y_string_add]['showgrid'] = True
+                        layout['yaxis' + y_string_add]['showline'] = True
+                        layout['yaxis' + y_string_add]['mirror'] = 'allticks'
+
+                        layout['yaxis' + y_string_add]['titlefont'] = dict(
+                            family='Arial',
+                            size=13,
+                            color='black'
+                        )
+
+                        layout['yaxis' + y_string_add]['tickfont'] = dict(
+                            family='Arial',
+                            size=10,
+                            color='black'
+                        )
+
+                        y_title = config.experiment.method_params['items'][y_id]
+                        if 'aux' in config.experiment.method_params:
+                            aux = config.experiment.method_params['aux'][y_id]
+                            if aux == '':
+                                aux = 'Non-genic'
+                            y_title = y_title + '<br>' + aux
+                        layout['yaxis' + y_string_add]['title'] = y_title
+
+                        y_range = config.experiment.method_params['y_ranges'][y_id]
+                        if y_range != 'auto' or 'auto' not in y_range:
+                            layout['yaxis' + y_string_add]['range'] = y_range
+
+                    fig = go.Figure(data=config.experiment_data['data'], layout=layout)
+                    config.experiment_data['fig'] = fig
+
+                elif config.experiment.method == Method.variance_histogram:
+
+                    for data in config.experiment_data['data']:
+                        layout = plot_routines.get_layout(config)
+                        layout.xaxis.title = '$\\Delta$'
+                        layout.yaxis.title = '$PDF$'
+
+                        fig = ff.create_distplot(
+                            data['hist_data'],
+                            data['group_labels'],
+                            show_hist=False,
+                            show_rug=False,
+                            colors=data['colors']
+                        )
+                        fig['layout'] = layout
+
+                        config.experiment_data['fig'] = fig
+
+                elif config.experiment.method == Method.curve:
+
+                    layout = plot_routines.get_layout(config)
+
+                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+            elif config.experiment.data in [
+                DataType.entropy,
+                DataType.cells,
+            ]:
+                if config.experiment.method == Method.scatter:
+
+                    layout = plot_routines.get_layout(config)
+
+                    if 'x_range' in config.experiment.method_params:
+                        x_range = config.experiment.method_params['x_range']
                         if x_range != 'auto' or 'auto' not in x_range:
                             layout.xaxis.range = x_range
 
-                    if 'y_ranges' in config.experiment.method_params:
-                        y_range = config.experiment.method_params['y_ranges'][raw_item_id]
+                    if 'y_range' in config.experiment.method_params:
+                        y_range = config.experiment.method_params['y_range']
                         if y_range != 'auto' or 'auto' not in y_range:
                             layout.yaxis.range = y_range
 
-                    fig = go.Figure(data=config.experiment_data['data'][item_id], layout=layout)
-                    config.experiment_data['fig'].append(fig)
+                    fig = go.Figure(data=config.experiment_data['data'], layout=layout)
+                    config.experiment_data['fig'] = fig
 
-            elif config.experiment.method == Method.variance_histogram:
+            elif config.experiment.data == DataType.epimutations:
 
-                for data in config.experiment_data['data']:
+                if config.experiment.method == Method.scatter:
 
                     layout = plot_routines.get_layout(config)
-                    layout.xaxis.title = '$\\Delta$'
-                    layout.yaxis.title = '$PDF$'
 
-                    fig = ff.create_distplot(
-                        data['hist_data'],
-                        data['group_labels'],
-                        show_hist=False,
-                        show_rug=False,
-                        colors=data['colors']
-                    )
-                    fig['layout'] = layout
-
-                    config.experiment_data['fig'].append(fig)
-
-            elif config.experiment.method == Method.curve:
-
-                layout = plot_routines.get_layout(config)
-
-                config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
-
-        elif config.experiment.data in [
-            DataType.entropy,
-            DataType.cells,
-        ]:
-            if config.experiment.method == Method.scatter:
-
-                layout = plot_routines.get_layout(config)
-
-                if 'x_range' in config.experiment.method_params:
-                    x_range = config.experiment.method_params['x_range']
-                    if x_range != 'auto' or 'auto' not in x_range:
-                        layout.xaxis.range = x_range
-
-                if 'y_range' in config.experiment.method_params:
-                    y_range = config.experiment.method_params['y_range']
-                    if y_range != 'auto' or 'auto' not in y_range:
-                        layout.yaxis.range = y_range
-
-                fig = go.Figure(data=config.experiment_data['data'], layout=layout)
-                config.experiment_data['fig'] = fig
-
-        elif config.experiment.data == DataType.epimutations:
-
-            if config.experiment.method == Method.scatter:
-
-                layout = plot_routines.get_layout(config)
-
-                if config.experiment.method_params['x_range'] != 'auto':
-                    layout.xaxis.range = config.experiment.method_params['x_range']
-
-                if config.experiment.method_params['y_range'] != 'auto':
-                    layout.yaxis.range = config.experiment.method_params['y_range']
-
-                layout.yaxis.type = config.experiment.method_params['y_type']
-                if layout.yaxis.type == 'log':
-                    layout.yaxis.tickvals = [1, 2, 5,
-                                             10, 20, 50,
-                                             100, 200, 500,
-                                             1000, 2000, 5000,
-                                             10000, 20000, 50000,
-                                             100000, 200000, 500000]
-
-                config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
-
-            if config.experiment.method == Method.range:
-
-                layout = plot_routines.get_layout(config)
-
-                if config.experiment.method_params['x_range'] != 'auto':
-                    layout.xaxis.range = config.experiment.method_params['x_range']
-
-                borders = config.experiment.method_params['borders']
-
-                labels = []
-                tickvals = []
-                for seg_id in range(0, len(borders) - 1):
-                    x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
-                    tickvals.append(x_center)
-                    labels.append(f'{borders[seg_id]} to {borders[seg_id + 1] - 1}')
-                layout.xaxis.tickvals = tickvals
-                layout.xaxis.ticktext = labels
-
-                if config.experiment.method_params['y_range'] != 'auto':
-                    layout.yaxis.range = config.experiment.method_params['y_range']
-
-                layout.yaxis.type = config.experiment.method_params['y_type']
-                if layout.yaxis.type == 'log':
-                    layout.yaxis.tickvals = [1, 2, 5,
-                                             10, 20, 50,
-                                             100, 200, 500,
-                                             1000, 2000, 5000,
-                                             10000, 20000, 50000,
-                                             100000, 200000, 500000]
-
-                config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
-
-        elif config.experiment.data == DataType.observables:
-
-            if config.experiment.method == Method.histogram:
-
-                layout = plot_routines.get_layout(config)
-
-                if 'x_range' in config.experiment.method_params:
                     if config.experiment.method_params['x_range'] != 'auto':
                         layout.xaxis.range = config.experiment.method_params['x_range']
 
-                config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+                    if config.experiment.method_params['y_range'] != 'auto':
+                        layout.yaxis.range = config.experiment.method_params['y_range']
+
+                    layout.yaxis.type = config.experiment.method_params['y_type']
+                    if layout.yaxis.type == 'log':
+                        layout.yaxis.tickvals = [1, 2, 5,
+                                                 10, 20, 50,
+                                                 100, 200, 500,
+                                                 1000, 2000, 5000,
+                                                 10000, 20000, 50000,
+                                                 100000, 200000, 500000]
+
+                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+                if config.experiment.method == Method.range:
+
+                    layout = plot_routines.get_layout(config)
+
+                    if config.experiment.method_params['x_range'] != 'auto':
+                        layout.xaxis.range = config.experiment.method_params['x_range']
+
+                    borders = config.experiment.method_params['borders']
+
+                    labels = []
+                    tickvals = []
+                    for seg_id in range(0, len(borders) - 1):
+                        x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
+                        tickvals.append(x_center)
+                        labels.append(f'{borders[seg_id]} to {borders[seg_id + 1] - 1}')
+                    layout.xaxis.tickvals = tickvals
+                    layout.xaxis.ticktext = labels
+
+                    if config.experiment.method_params['y_range'] != 'auto':
+                        layout.yaxis.range = config.experiment.method_params['y_range']
+
+                    layout.yaxis.type = config.experiment.method_params['y_type']
+                    if layout.yaxis.type == 'log':
+                        layout.yaxis.tickvals = [1, 2, 5,
+                                                 10, 20, 50,
+                                                 100, 200, 500,
+                                                 1000, 2000, 5000,
+                                                 10000, 20000, 50000,
+                                                 100000, 200000, 500000]
+
+                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+            elif config.experiment.data == DataType.observables:
+
+                if config.experiment.method == Method.histogram:
+
+                    layout = plot_routines.get_layout(config)
+
+                    if 'x_range' in config.experiment.method_params:
+                        if config.experiment.method_params['x_range'] != 'auto':
+                            layout.xaxis.range = config.experiment.method_params['x_range']
+
+                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+
+        elif config.experiment.task_params['type'] == 'prepare':
+            pass
 
 
 class CreateReleaseStrategy(ReleaseStrategy):

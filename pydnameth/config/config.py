@@ -26,7 +26,9 @@ class Config:
                  attributes,
                  is_run=True,
                  is_root=True,
-                 is_load_child=True
+                 is_load_child=True,
+                 is_init=True,
+                 is_init_child=True
                  ):
 
         self.data = data
@@ -36,6 +38,8 @@ class Config:
         self.is_run = is_run
         self.is_root = is_root
         self.is_load_child = is_load_child
+        self.is_init = is_init
+        self.is_init_child = is_init_child
 
         self.cpg_gene_dict = {}
         self.cpg_bop_dict = {}
@@ -90,13 +94,14 @@ class Config:
 
     def initialize(self):
 
-        self.excluded = load_excluded(self)
+        if self.is_init:
+            self.excluded = load_excluded(self)
 
-        self.annotations_dict = load_annotations_dict(self)
-        subset_annotations(self)
+            self.annotations_dict = load_annotations_dict(self)
+            subset_annotations(self)
 
-        self.attributes_dict = load_observables_dict(self)
-        self.attributes_indexes = get_indexes(self)
-        subset_attributes(self)
-        self.cells_dict = load_cells_dict(self)
-        subset_cells(self)
+            self.attributes_dict = load_observables_dict(self)
+            self.attributes_indexes = get_indexes(self)
+            subset_attributes(self)
+            self.cells_dict = load_cells_dict(self)
+            subset_cells(self)

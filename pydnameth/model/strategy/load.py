@@ -41,12 +41,13 @@ class LoadStrategy(metaclass=abc.ABCMeta):
 class BetasLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.betas_dict
-        config.base_data = config.betas_data
+        if config.is_init:
+            load_betas(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.betas_dict
+            config.base_data = config.betas_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 

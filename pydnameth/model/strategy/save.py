@@ -54,22 +54,34 @@ class PlotSaveStrategy(SaveStrategy):
 
     def save(self, config, configs_child):
 
-        if isinstance(config.experiment_data['fig'], list):
+        if config.experiment.task_params is None or config.experiment.task_params['type'] == 'run':
 
-            for fig_id, fig in enumerate(config.experiment_data['fig']):
+            if isinstance(config.experiment_data['fig'], list):
 
-                if config.experiment.method == Method.scatter:
-                    item = config.experiment_data['item'][fig_id]
+                for fig_id, fig in enumerate(config.experiment_data['fig']):
+
+                    if config.experiment.method == Method.scatter:
+                        item = config.experiment_data['item'][fig_id]
+                        config.experiment.method_params.pop('items', None)
+                        config.experiment.method_params.pop('x_ranges', None)
+                        config.experiment.method_params.pop('y_ranges', None)
+                        config.experiment.method_params['item'] = item
+
+                    fn = get_save_path(config) + '/' + get_file_name(config)
+                    save_figure(fn, fig)
+            else:
+
+                if config.experiment.method == Method.scatter_comparison:
                     config.experiment.method_params.pop('items', None)
+                    config.experiment.method_params.pop('aux', None)
                     config.experiment.method_params.pop('x_ranges', None)
                     config.experiment.method_params.pop('y_ranges', None)
-                    config.experiment.method_params['item'] = item
 
                 fn = get_save_path(config) + '/' + get_file_name(config)
-                save_figure(fn, fig)
-        else:
-            fn = get_save_path(config) + '/' + get_file_name(config)
-            save_figure(fn, config.experiment_data['fig'])
+                save_figure(fn, config.experiment_data['fig'])
+
+        elif config.experiment.task_params['type'] == 'prepare':
+            pass
 
     def is_result_exist(self, config, configs_child):
         fn = get_save_path(config) + '/' + \

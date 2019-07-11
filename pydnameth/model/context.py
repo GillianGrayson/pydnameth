@@ -127,8 +127,10 @@ class Context:
             if not self.save_strategy.is_result_exist(config, configs_child):
 
                 config.initialize()
-                for config_child in configs_child:
-                    config_child.initialize()
+
+                if config.is_init_child:
+                    for config_child in configs_child:
+                        config_child.initialize()
 
                 self.load_strategy.load(config, configs_child)
                 self.setup_strategy.setup(config, configs_child)
