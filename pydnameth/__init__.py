@@ -30,7 +30,8 @@ from pydnameth.scripts.develop.betas.clock import \
 from pydnameth.scripts.develop.betas.plot import \
     betas_plot_scatter,\
     betas_plot_curve_clock,\
-    betas_plot_variance_histogram_dev
+    betas_plot_variance_histogram, \
+    betas_plot_scatter_comparison
 
 from pydnameth.scripts.develop.betas_horvath_calculator.create import \
     betas_horvath_calculator_create_regular
@@ -63,7 +64,8 @@ from pydnameth.scripts.develop.cells.table import \
     cells_table_ancova
 
 from pydnameth.scripts.develop.residuals_common.plot import \
-    residuals_common_plot_scatter
+    residuals_common_plot_scatter, \
+    residuals_common_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals_common.table import \
     residuals_common_table_aggregator_linreg,\
     residuals_common_table_aggregator_variance

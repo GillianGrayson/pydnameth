@@ -41,12 +41,13 @@ class LoadStrategy(metaclass=abc.ABCMeta):
 class BetasLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.betas_dict
-        config.base_data = config.betas_data
+        if config.is_init:
+            load_betas(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.betas_dict
+            config.base_data = config.betas_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -57,12 +58,13 @@ class BetasLoadStrategy(LoadStrategy):
 class BetasAdjLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas_adj(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.betas_adj_dict
-        config.base_data = config.betas_adj_data
+        if config.is_init:
+            load_betas_adj(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.betas_adj_dict
+            config.base_data = config.betas_adj_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -85,12 +87,13 @@ class BetasSpecLoadStrategy(LoadStrategy):
 class ResidualsCommonLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_residuals_common(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.residuals_dict
-        config.base_data = config.residuals_data
+        if config.is_init:
+            load_residuals_common(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.residuals_dict
+            config.base_data = config.residuals_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -107,12 +110,13 @@ class ResidualsSpecialLoadStrategy(LoadStrategy):
 class EpimutationsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_epimutations(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.epimutations_dict
-        config.base_data = config.epimutations_data
+        if config.is_init:
+            load_epimutations(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.epimutations_dict
+            config.base_data = config.epimutations_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -123,12 +127,13 @@ class EpimutationsLoadStrategy(LoadStrategy):
 class EntropyLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_entropy(config)
-        config.base_list = None
-        config.base_dict = None
-        config.base_data = config.entropy_data
+        if config.is_init:
+            load_entropy(config)
+            config.base_list = None
+            config.base_dict = None
+            config.base_data = config.entropy_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -145,11 +150,12 @@ class ObservablesLoadStrategy(LoadStrategy):
 class CellsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        config.base_list = None
-        config.base_dict = None
-        config.base_data = None
+        if config.is_init:
+            config.base_list = None
+            config.base_dict = None
+            config.base_data = None
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 

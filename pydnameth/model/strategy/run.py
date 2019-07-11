@@ -897,6 +897,9 @@ class PlotRunStrategy(RunStrategy):
             if config.experiment.method in [Method.scatter, Method.variance_histogram]:
                 self.iterate(config, configs_child)
 
+            elif config.experiment.method == Method.scatter_comparison:
+                pass
+
             elif config.experiment.method == Method.curve:
 
                 x_target = config.experiment.method_params['x']
