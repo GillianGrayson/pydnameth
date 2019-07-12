@@ -43,7 +43,9 @@ from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
 from pydnameth.scripts.develop.epimutations.table import \
     epimutations_table_z_test_linreg, \
-    epimutations_table_ancova
+    epimutations_table_ancova, \
+    epimutations_table_aggregator_linreg, \
+    epimutations_table_aggregator_variance
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
     epimutations_plot_range
@@ -52,7 +54,9 @@ from pydnameth.scripts.develop.entropy.plot import \
     entropy_plot_scatter
 from pydnameth.scripts.develop.entropy.table import \
     entropy_table_z_test_linreg, \
-    entropy_table_ancova
+    entropy_table_ancova, \
+    entropy_table_aggregator_linreg, \
+    entropy_table_aggregator_variance
 
 from pydnameth.scripts.develop.observables.plot import \
     observables_plot_histogram
@@ -61,7 +65,9 @@ from pydnameth.scripts.develop.cells.plot import \
     cells_plot_scatter
 from pydnameth.scripts.develop.cells.table import \
     cells_table_z_test_linreg, \
-    cells_table_ancova
+    cells_table_ancova, \
+    cells_table_aggregator_linreg, \
+    cells_table_aggregator_variance
 
 from pydnameth.scripts.develop.residuals_common.plot import \
     residuals_common_plot_scatter, \
