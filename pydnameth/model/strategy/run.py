@@ -186,6 +186,33 @@ class TableRunStrategy(RunStrategy):
 
                 process_linreg(x, y, config.metrics)
 
+            elif config.experiment.method == Method.variance:
+
+                x = self.get_strategy.get_target(config)
+
+                indexes = config.attributes_indexes
+                y = np.zeros(len(indexes), dtype=int)
+                for subj_id in range(0, len(indexes)):
+                    col_id = indexes[subj_id]
+                    subj_col = self.get_strategy.get_single_base(config, [col_id])
+                    y[subj_id] = np.sum(subj_col)
+                y = np.log(y)
+
+                semi_window = config.experiment.method_params['semi_window']
+                box_b = config.experiment.method_params['box_b']
+                box_t = config.experiment.method_params['box_t']
+
+                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
+
+                xs = get_box_xs(x)
+                ys_b, ys_t = fit_variance(xs, config.metrics)
+
+                diff_begin = abs(ys_t[0] - ys_b[0])
+                diff_end = abs(ys_t[-1] - ys_b[-1])
+
+                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
+                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
+
             elif config.experiment.method == Method.cluster:
 
                 targets = self.get_strategy.get_target(config)
@@ -297,6 +324,28 @@ class TableRunStrategy(RunStrategy):
 
                 process_linreg(x, y, config.metrics)
 
+            elif config.experiment.method == Method.variance:
+
+                x = self.get_strategy.get_target(config)
+
+                indexes = config.attributes_indexes
+                y = self.get_strategy.get_single_base(config, indexes)
+
+                semi_window = config.experiment.method_params['semi_window']
+                box_b = config.experiment.method_params['box_b']
+                box_t = config.experiment.method_params['box_t']
+
+                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
+
+                xs = get_box_xs(x)
+                ys_b, ys_t = fit_variance(xs, config.metrics)
+
+                diff_begin = abs(ys_t[0] - ys_b[0])
+                diff_end = abs(ys_t[-1] - ys_b[-1])
+
+                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
+                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
+
             elif config.experiment.method == Method.cluster:
 
                 indexes = config.attributes_indexes
@@ -399,6 +448,36 @@ class TableRunStrategy(RunStrategy):
                     y = config.cells_dict[cells_types]
 
                 process_linreg(x, y, config.metrics)
+
+            elif config.experiment.method == Method.variance:
+
+                x = self.get_strategy.get_target(config)
+
+                if isinstance(cells_types, list):
+                    y = np.zeros(len(x))
+                    num_cell_types = 0
+                    for cell_type in cells_types:
+                        if cell_type in config.cells_dict:
+                            y += np.asarray(config.cells_dict[cell_type])
+                            num_cell_types += 1
+                    y /= num_cell_types
+                else:
+                    y = config.cells_dict[cells_types]
+
+                semi_window = config.experiment.method_params['semi_window']
+                box_b = config.experiment.method_params['box_b']
+                box_t = config.experiment.method_params['box_t']
+
+                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
+
+                xs = get_box_xs(x)
+                ys_b, ys_t = fit_variance(xs, config.metrics)
+
+                diff_begin = abs(ys_t[0] - ys_b[0])
+                diff_end = abs(ys_t[-1] - ys_b[-1])
+
+                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
+                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
 
             elif config.experiment.method == Method.cluster:
 

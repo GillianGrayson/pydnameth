@@ -88,9 +88,9 @@ def process_variance_polygon(
         xs_all.append(xs_curr)
 
         item_id = config_child.advanced_dict[item]
-        metrics_dict = dict_slice(config_child.advanced_data, item_id)
+        metrics_dict_curr = dict_slice(config_child.advanced_data, item_id)
 
-        ys_b, ys_t = fit_variance(xs_curr, metrics_dict)
+        ys_b, ys_t = fit_variance(xs_curr, metrics_dict_curr)
         ys_b_all.append(ys_b)
         ys_t_all.append(ys_t)
 

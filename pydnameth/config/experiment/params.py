@@ -4,7 +4,10 @@ from pydnameth.config.experiment.types import DataType, Method, Task
 def get_default_method_params(config):
     params = {}
 
-    if config.experiment.data in [DataType.betas, DataType.betas_adj, DataType.residuals_common, DataType.residuals_special]:
+    if config.experiment.data in [DataType.betas,
+                                  DataType.betas_adj,
+                                  DataType.residuals_common,
+                                  DataType.residuals_special]:
 
         if config.experiment.task == Task.table:
 
