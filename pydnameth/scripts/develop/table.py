@@ -73,6 +73,9 @@ def table_aggregator_linreg(
         if child_method_lvl_1 == Method.polygon:
             method_params = {'method': Method.linreg}
             is_load_child = True
+        elif child_method_lvl_1 == Method.z_test_linreg:
+            method_params = {}
+            is_load_child = True
         else:
             method_params = {}
             is_load_child = False

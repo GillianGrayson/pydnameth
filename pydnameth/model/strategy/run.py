@@ -3,21 +3,20 @@ from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.config.experiment.metrics import get_method_metrics_keys
 import statsmodels.api as sm
 import numpy as np
-from sklearn.cluster import DBSCAN
 from pydnameth.routines.clock.types import ClockExogType, Clock
 from pydnameth.routines.clock.linreg.processing import build_clock_linreg
 import plotly.graph_objs as go
 import colorlover as cl
-from shapely import geometry
-from pydnameth.routines.common import is_float, get_names, normalize_to_0_1
+from pydnameth.routines.common import is_float, get_names
 from pydnameth.routines.polygon.types import PolygonRoutines
 from tqdm import tqdm
 from pydnameth.routines.variance.functions import \
     process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
-from pydnameth.routines.common import find_nearest_id, dict_slice, update_parent_dict_with_children
+from pydnameth.routines.common import update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
-from pydnameth.routines.z_test_slope.functions import z_test_slope_proc
+from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
+from pydnameth.routines.cluster.functions import process_cluster
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
@@ -56,24 +55,9 @@ class TableRunStrategy(RunStrategy):
         elif config.experiment.method == Method.cluster:
 
             x = self.get_strategy.get_target(config)
-            x_normed = normalize_to_0_1(x)
             y = self.get_strategy.get_single_base(config, [item])[0]
-            y_normed = normalize_to_0_1(y)
 
-            min_samples = max(1, int(config.experiment.method_params['min_samples_percentage'] * len(x) / 100.0))
-
-            X = np.array([x_normed, y_normed]).T
-            db = DBSCAN(eps=config.experiment.method_params['eps'], min_samples=min_samples).fit(X)
-            core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-            core_samples_mask[db.core_sample_indices_] = True
-            labels = db.labels_
-            number_of_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-            number_of_noise_points = list(labels).count(-1)
-            percent_of_noise_points = float(number_of_noise_points) / float(len(x)) * 100.0
-
-            config.metrics['number_of_clusters'].append(number_of_clusters)
-            config.metrics['number_of_noise_points'].append(number_of_noise_points)
-            config.metrics['percent_of_noise_points'].append(percent_of_noise_points)
+            process_cluster(x, y, config.experiment.method_params, config.metrics)
 
         elif config.experiment.method == Method.polygon:
 
@@ -110,7 +94,7 @@ class TableRunStrategy(RunStrategy):
                 slopes_std.append(config_child.advanced_data['slope_std'][item_id])
                 num_subs.append(len(config_child.attributes_dict['age']))
 
-            z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
+            process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 
         elif config.experiment.method == Method.ancova:
 
@@ -202,6 +186,21 @@ class TableRunStrategy(RunStrategy):
 
                 process_linreg(x, y, config.metrics)
 
+            elif config.experiment.method == Method.cluster:
+
+                targets = self.get_strategy.get_target(config)
+                x = targets
+
+                indexes = config.attributes_indexes
+                y = np.zeros(len(indexes), dtype=int)
+                for subj_id in range(0, len(indexes)):
+                    col_id = indexes[subj_id]
+                    subj_col = self.get_strategy.get_single_base(config, [col_id])
+                    y[subj_id] = np.sum(subj_col)
+                y = np.log(y)
+
+                process_cluster(x, y, config.experiment.method_params, config.metrics)
+
             elif config.experiment.method == Method.ancova:
 
                 x_all = []
@@ -246,7 +245,7 @@ class TableRunStrategy(RunStrategy):
                     slopes_std.append(config_child.advanced_data['slope_std'][item_id])
                     num_subs.append(len(config_child.attributes_dict['age']))
 
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
+                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 
             elif config.experiment.method == Method.polygon:
 
@@ -292,12 +291,20 @@ class TableRunStrategy(RunStrategy):
             if config.experiment.method == Method.linreg:
 
                 indexes = config.attributes_indexes
-
                 targets = self.get_strategy.get_target(config)
                 x = sm.add_constant(targets)
                 y = self.get_strategy.get_single_base(config, indexes)
 
                 process_linreg(x, y, config.metrics)
+
+            elif config.experiment.method == Method.cluster:
+
+                indexes = config.attributes_indexes
+                targets = self.get_strategy.get_target(config)
+                x = sm.add_constant(targets)
+                y = self.get_strategy.get_single_base(config, indexes)
+
+                process_cluster(x, y, config.experiment.method_params, config.metrics)
 
             elif config.experiment.method == Method.ancova:
 
@@ -338,7 +345,7 @@ class TableRunStrategy(RunStrategy):
                     slopes_std.append(config_child.advanced_data['slope_std'][item_id])
                     num_subs.append(len(config_child.attributes_dict['age']))
 
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
+                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 
             elif config.experiment.method == Method.polygon:
 
@@ -393,6 +400,24 @@ class TableRunStrategy(RunStrategy):
 
                 process_linreg(x, y, config.metrics)
 
+            elif config.experiment.method == Method.cluster:
+
+                targets = self.get_strategy.get_target(config)
+                x = sm.add_constant(targets)
+
+                if isinstance(cells_types, list):
+                    y = np.zeros(len(x))
+                    num_cell_types = 0
+                    for cell_type in cells_types:
+                        if cell_type in config.cells_dict:
+                            y += np.asarray(config.cells_dict[cell_type])
+                            num_cell_types += 1
+                    y /= num_cell_types
+                else:
+                    y = config.cells_dict[cells_types]
+
+                process_cluster(x, y, config.experiment.method_params, config.metrics)
+
             elif config.experiment.method == Method.ancova:
 
                 x_all = []
@@ -444,7 +469,7 @@ class TableRunStrategy(RunStrategy):
                     slopes_std.append(config_child.advanced_data['slope_std'][item_id])
                     num_subs.append(len(config_child.attributes_dict['age']))
 
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
+                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 
             elif config.experiment.method == Method.polygon:
 
