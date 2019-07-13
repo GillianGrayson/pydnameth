@@ -215,8 +215,7 @@ class TableRunStrategy(RunStrategy):
 
             elif config.experiment.method == Method.cluster:
 
-                targets = self.get_strategy.get_target(config)
-                x = targets
+                x = self.get_strategy.get_target(config)
 
                 indexes = config.attributes_indexes
                 y = np.zeros(len(indexes), dtype=int)
@@ -348,10 +347,8 @@ class TableRunStrategy(RunStrategy):
 
             elif config.experiment.method == Method.cluster:
 
-                indexes = config.attributes_indexes
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
-                y = self.get_strategy.get_single_base(config, indexes)
+                x = self.get_strategy.get_target(config)
+                y = self.get_strategy.get_single_base(config, config.attributes_indexes)
 
                 process_cluster(x, y, config.experiment.method_params, config.metrics)
 
@@ -481,8 +478,7 @@ class TableRunStrategy(RunStrategy):
 
             elif config.experiment.method == Method.cluster:
 
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
+                x = self.get_strategy.get_target(config)
 
                 if isinstance(cells_types, list):
                     y = np.zeros(len(x))

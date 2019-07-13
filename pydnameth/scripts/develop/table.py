@@ -365,6 +365,7 @@ def table_aggregator_variance(
             data=data_type,
             task=Task.table,
             method=Method.cluster,
+            data_params=copy.deepcopy(data_params),
             method_params={
                 'eps': 0.2,
                 'min_samples_percentage': 1

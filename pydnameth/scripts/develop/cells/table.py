@@ -62,7 +62,7 @@ def cells_table_aggregator_variance(
     annotations,
     attributes,
     observables_list,
-    data_params,
+    data_params=None,
 ):
     table_aggregator_variance(
         DataType.cells,
