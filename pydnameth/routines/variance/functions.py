@@ -184,8 +184,9 @@ def fit_variance(xs, metrics_dict):
     if metrics_dict['box_b_best_type'][-1] == 0:  # lin-lin axes
         intercept_box_b = metrics_dict['box_b_lin_lin_intercept'][-1]
         slope_box_b = metrics_dict['box_b_lin_lin_slope'][-1]
-        for x_id in range(0, len(xs)):
-            ys_b[x_id] = slope_box_b * xs[x_id] + intercept_box_b
+        if intercept_box_b != 'NA' and slope_box_b != 'NA':
+            for x_id in range(0, len(xs)):
+                ys_b[x_id] = slope_box_b * xs[x_id] + intercept_box_b
 
     elif metrics_dict['box_b_best_type'][-1] == 1:  # lin-log axes
         intercept_box_b = metrics_dict['box_b_lin_log_intercept'][-1]
