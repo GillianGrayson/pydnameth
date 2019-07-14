@@ -29,8 +29,7 @@ def process_linreg_polygon(configs_child, item, xs, metrics_dict):
 
         pr = PolygonRoutines(
             x=targets,
-            params=local_dict,
-            method=config_child.experiment.method
+            params=local_dict
         )
         points_region = pr.get_border_points()
 

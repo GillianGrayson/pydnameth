@@ -8,15 +8,16 @@ from pydnameth.routines.clock.linreg.processing import build_clock_linreg
 import plotly.graph_objs as go
 import colorlover as cl
 from pydnameth.routines.common import is_float, get_names
-from pydnameth.routines.polygon.types import PolygonRoutines
 from tqdm import tqdm
-from pydnameth.routines.variance.functions import \
-    process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
+from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
 from pydnameth.routines.common import update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
 from pydnameth.routines.cluster.functions import process_cluster
+from pydnameth.routines.plot.functions.scatter import process_scatter
+from pydnameth.routines.plot.functions.range import process_range
+from pydnameth.routines.plot.functions.variance_histogram import process_variance_histogram
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
@@ -688,211 +689,20 @@ class PlotRunStrategy(RunStrategy):
                                       DataType.residuals_common,
                                       DataType.residuals_special]:
 
+            xs = []
+            ys = []
+            names = []
+
+            for config_child in configs_child:
+                xs.append(self.get_strategy.get_target(config_child))
+                ys.append(self.get_strategy.get_single_base(config_child, [item])[0])
+                names.append(get_names(config_child, config.experiment.method_params))
+
             if config.experiment.method == Method.scatter:
-
-                line = config.experiment.method_params['line']
-                add = config.experiment.method_params['add']
-                fit = config.experiment.method_params['fit']
-                semi_window = config.experiment.method_params['semi_window']
-
-                plot_data = []
-                num_points = []
-                for config_child in configs_child:
-
-                    curr_plot_data = []
-
-                    # Plot data
-                    targets = self.get_strategy.get_target(config_child)
-                    num_points.append(len(targets))
-                    data = self.get_strategy.get_single_base(config_child, [item])[0]
-
-                    # Colors setup
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    # Adding scatter
-                    scatter = go.Scatter(
-                        x=targets,
-                        y=data,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_border,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Linear regression
-                    x = sm.add_constant(targets)
-                    y = data
-                    results = sm.OLS(y, x).fit()
-                    intercept = results.params[0]
-                    slope = results.params[1]
-                    intercept_std = results.bse[0]
-                    slope_std = results.bse[1]
-
-                    # Adding regression line
-                    if line == 'yes':
-                        x_min = np.min(targets)
-                        x_max = np.max(targets)
-                        y_min = slope * x_min + intercept
-                        y_max = slope * x_max + intercept
-                        scatter = go.Scatter(
-                            x=[x_min, x_max],
-                            y=[y_min, y_max],
-                            mode='lines',
-                            marker=dict(
-                                color=color
-                            ),
-                            line=dict(
-                                width=6,
-                                color=color
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    # Adding polygon area
-                    if add == 'polygon':
-                        pr = PolygonRoutines(
-                            x=targets,
-                            params={
-                                'intercept': [intercept],
-                                'slope': [slope],
-                                'intercept_std': [intercept_std],
-                                'slope_std': [slope_std]
-                            },
-                            method=config_child.experiment.method
-                        )
-                        scatter = pr.get_scatter(color_transparent)
-                        curr_plot_data.append(scatter)
-
-                    # Adding box curve
-                    if fit == 'no' and semi_window != 'none':
-                        box_b = config.experiment.method_params['box_b']
-                        box_t = config.experiment.method_params['box_t']
-                        xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=bs,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ms,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=6,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ts,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    # Adding best curve
-                    if fit == 'yes' and semi_window != 'none':
-                        box_b = config.experiment.method_params['box_b']
-                        box_t = config.experiment.method_params['box_t']
-
-                        metrics_dict = {}
-                        init_variance_metrics_dict(metrics_dict, 'box_b')
-                        init_variance_metrics_dict(metrics_dict, 'box_m')
-                        init_variance_metrics_dict(metrics_dict, 'box_t')
-
-                        xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict)
-
-                        ys_b, ys_t = fit_variance(xs, metrics_dict)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ys_t,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ys_b,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                # Sorting by total number of points
-                order = np.argsort(num_points)[::-1]
-                curr_data = []
-                for index in order:
-                    curr_data += plot_data[index]
-                config.experiment_data['data'].append(curr_data)
+                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
             elif config.experiment.method == Method.variance_histogram:
-
-                plot_data = {
-                    'hist_data': [],
-                    'group_labels': [],
-                    'colors': []
-                }
-
-                for config_child in configs_child:
-
-                    plot_data['group_labels'].append(str(config_child.attributes.observables))
-                    plot_data['colors'].append(cl.scales['8']['qual']['Set1'][configs_child.index(config_child)])
-
-                    targets = self.get_strategy.get_target(config_child)
-                    data = self.get_strategy.get_single_base(config_child, [item])[0]
-
-                    if config_child.experiment.method == Method.linreg:
-                        x = sm.add_constant(targets)
-                        y = data
-
-                        results = sm.OLS(y, x).fit()
-
-                        plot_data['hist_data'].append(results.resid)
-
-                config.experiment_data['data'].append(plot_data)
+                process_variance_histogram(config.experiment_data['data'], xs, ys, names)
 
     def iterate(self, config, configs_child):
         items = config.experiment.method_params['items']
@@ -911,9 +721,6 @@ class PlotRunStrategy(RunStrategy):
 
             if config.experiment.method in [Method.scatter, Method.variance_histogram]:
                 self.iterate(config, configs_child)
-
-            elif config.experiment.method == Method.scatter_comparison:
-                pass
 
             elif config.experiment.method == Method.curve:
 
@@ -963,206 +770,48 @@ class PlotRunStrategy(RunStrategy):
 
         elif config.experiment.data == DataType.epimutations:
 
+            xs = []
+            ys = []
+            names = []
+            for config_child in configs_child:
+
+                x = self.get_strategy.get_target(config_child)
+                xs.append(x)
+
+                indexes = config_child.attributes_indexes
+                y = np.zeros(len(indexes), dtype=int)
+                for subj_id in range(0, len(indexes)):
+                    col_id = indexes[subj_id]
+                    subj_col = self.get_strategy.get_single_base(config_child, [col_id])
+                    y[subj_id] = np.sum(subj_col)
+                y = np.log(y)
+                ys.append(y)
+
+                names.append(get_names(config_child, config.experiment.method_params))
+
             if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                y_type = config.experiment.method_params['y_type']
-
-                for config_child in configs_child:
-
-                    curr_plot_data = []
-
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = np.zeros(len(indexes), dtype=int)
-
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    if y_type == 'log':
-                        y_linreg = np.log(y)
-                    else:
-                        y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    if y_type == 'log':
-                        y_min = np.exp(slope * x_min + intercept)
-                        y_max = np.exp(slope * x_max + intercept)
-                    else:
-                        y_min = slope * x_min + intercept
-                        y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
+                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
             elif config.experiment.method == Method.range:
-
-                plot_data = []
-
-                borders = config.experiment.method_params['borders']
-
-                for config_child in configs_child:
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.5) + ')'
-
-                    indexes = config_child.attributes_indexes
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = np.zeros(len(indexes), dtype=int)
-
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-
-                    for seg_id in range(0, len(borders) - 1):
-                        x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
-                        curr_box = []
-                        for subj_id in range(0, len(indexes)):
-                            if borders[seg_id] <= x[subj_id] < borders[seg_id + 1]:
-                                curr_box.append(y[subj_id])
-
-                        trace = go.Box(
-                            y=curr_box,
-                            x=[x_center] * len(curr_box),
-                            name=f'{borders[seg_id]} to {borders[seg_id + 1] - 1}',
-                            marker=dict(
-                                color=color_transparent
-                            )
-                        )
-                        plot_data.append(trace)
-
-                config.experiment_data['data'] = plot_data
+                process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
 
         elif config.experiment.data == DataType.entropy:
 
+            xs = []
+            ys = []
+            names = []
+            for config_child in configs_child:
+                x = self.get_strategy.get_target(config_child)
+                xs.append(x)
+
+                indexes = config_child.attributes_indexes
+                y = self.get_strategy.get_single_base(config_child, indexes)
+                ys.append(y)
+
+                names.append(get_names(config_child, config.experiment.method_params))
+
             if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                for config_child in configs_child:
-                    curr_plot_data = []
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = self.get_strategy.get_single_base(config_child, indexes)
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    y_min = slope * x_min + intercept
-                    y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
+                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
         elif config.experiment.data == DataType.observables:
 
@@ -1214,87 +863,32 @@ class PlotRunStrategy(RunStrategy):
 
         elif config.experiment.data == DataType.cells:
 
+            xs = []
+            ys = []
+            names = []
+            for config_child in configs_child:
+
+                x = self.get_strategy.get_target(config_child)
+                xs.append(x)
+
+                cells = config_child.attributes.cells
+                cells_types = cells.types
+                if isinstance(cells_types, list):
+                    y = np.zeros(len(x))
+                    num_cell_types = 0
+                    for cell_type in cells_types:
+                        if cell_type in config_child.cells_dict:
+                            y += np.asarray(config_child.cells_dict[cell_type])
+                            num_cell_types += 1
+                    y /= num_cell_types
+                else:
+                    y = config_child.cells_dict[cells_types]
+                ys.append(list(y))
+
+                names.append(get_names(config_child, config.experiment.method_params))
+
             if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                for config_child in configs_child:
-                    curr_plot_data = []
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    cells = config_child.attributes.cells
-                    cells_types = cells.types
-                    if isinstance(cells_types, list):
-                        y = np.zeros(len(x))
-                        num_cell_types = 0
-                        for cell_type in cells_types:
-                            if cell_type in config_child.cells_dict:
-                                y += np.asarray(config_child.cells_dict[cell_type])
-                                num_cell_types += 1
-                        y /= num_cell_types
-                    else:
-                        y = config_child.cells_dict[cells_types]
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    y_min = slope * x_min + intercept
-                    y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
+                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
 
 class CreateRunStrategy(RunStrategy):
