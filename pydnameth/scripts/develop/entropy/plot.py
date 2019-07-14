@@ -5,7 +5,7 @@ from pydnameth.config.experiment.types import Task, Method, DataType
 from pydnameth.config.experiment.experiment import Experiment
 from pydnameth.config.attributes.attributes import Observables, Cells, Attributes
 from pydnameth.model.tree import build_tree, calc_tree
-from pydnameth.scripts.develop.plot import plot_scatter, plot_scatter_comparison
+from pydnameth.scripts.develop.plot import plot_scatter_comparison
 
 
 def entropy_plot_scatter(
