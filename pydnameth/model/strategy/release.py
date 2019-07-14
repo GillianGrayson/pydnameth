@@ -273,7 +273,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         if y_range != 'auto' or 'auto' not in y_range:
                             layout.yaxis.range = y_range
 
-                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
+                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'][0], layout=layout)
 
                 elif config.experiment.method == Method.scatter_comparison:
 
