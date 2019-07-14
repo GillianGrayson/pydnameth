@@ -5,6 +5,7 @@ from pydnameth.config.experiment.types import Task, Method, DataType
 from pydnameth.config.experiment.experiment import Experiment
 from pydnameth.config.attributes.attributes import Observables, Cells, Attributes
 from pydnameth.model.tree import build_tree, calc_tree
+from pydnameth.scripts.develop.plot import plot_scatter_comparison
 
 
 def epimutations_plot_scatter(
@@ -21,6 +22,31 @@ def epimutations_plot_scatter(
         observables_list,
         Method.scatter,
         method_params
+    )
+
+
+def epimutations_plot_scatter_comparison(
+    data_list,
+    annotations_list,
+    attributes_list,
+    observables_list,
+    data_params_list,
+    rows_dict,
+    cols_dict,
+    child_method=Method.linreg,
+    method_params=None,
+):
+    plot_scatter_comparison(
+        data_type=DataType.epimutations,
+        data_list=data_list,
+        annotations_list=annotations_list,
+        attributes_list=attributes_list,
+        observables_list=observables_list,
+        data_params_list=data_params_list,
+        rows_dict=rows_dict,
+        cols_dict=cols_dict,
+        child_method=child_method,
+        method_params=method_params,
     )
 
 

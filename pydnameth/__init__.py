@@ -48,10 +48,12 @@ from pydnameth.scripts.develop.epimutations.table import \
     epimutations_table_aggregator_variance
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
+    epimutations_plot_scatter_comparison, \
     epimutations_plot_range
 
 from pydnameth.scripts.develop.entropy.plot import \
-    entropy_plot_scatter
+    entropy_plot_scatter, \
+    entropy_plot_scatter_comparison
 from pydnameth.scripts.develop.entropy.table import \
     entropy_table_z_test_linreg, \
     entropy_table_ancova, \
@@ -62,7 +64,8 @@ from pydnameth.scripts.develop.observables.plot import \
     observables_plot_histogram
 
 from pydnameth.scripts.develop.cells.plot import \
-    cells_plot_scatter
+    cells_plot_scatter, \
+    cells_plot_scatter_comparison
 from pydnameth.scripts.develop.cells.table import \
     cells_table_z_test_linreg, \
     cells_table_ancova, \

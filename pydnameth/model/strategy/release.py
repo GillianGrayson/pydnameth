@@ -288,7 +288,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         x_domains.append([x, x + x_size])
 
                     y_num = 1
-                    y_begin = 0.06
+                    y_begin = 0.25
                     y_end = 1
                     y_shift = (y_end - y_begin) / y_num
                     y_size = y_shift - 0.02
