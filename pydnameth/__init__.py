@@ -83,3 +83,9 @@ from pydnameth.scripts.develop.residuals_special.plot import \
 from pydnameth.scripts.develop.residuals_special.table import \
     residuals_special_table_aggregator
 
+from pydnameth.scripts.develop.genes.plot import \
+    genes_plot_scatter, \
+    genes_plot_scatter_comparison
+from pydnameth.scripts.develop.genes.table import \
+    genes_table_aggregator_linreg,\
+    genes_table_aggregator_variance

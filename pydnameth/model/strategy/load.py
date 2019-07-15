@@ -9,6 +9,7 @@ from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
 from pydnameth.infrastucture.load.cells import load_cells
+from pydnameth.infrastucture.load.genes import load_genes
 
 
 class LoadStrategy(metaclass=abc.ABCMeta):
@@ -93,6 +94,23 @@ class ResidualsCommonLoadStrategy(LoadStrategy):
             config.base_list = config.cpg_list
             config.base_dict = config.residuals_dict
             config.base_data = config.residuals_data
+
+            self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
+
+class GenesLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        if config.is_init:
+            load_genes(config)
+            config.base_list = config.genes_list
+            config.base_dict = config.genes_dict
+            config.base_data = config.genes_data
 
             self.inherit_childs(config, configs_child)
 

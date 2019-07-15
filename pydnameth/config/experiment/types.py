@@ -44,6 +44,7 @@ class DataType(Enum):
     entropy = 'entropy'
     observables = 'observables'
     cells = 'cells'
+    genes = 'genes'
     suppl = 'suppl'
     cache = 'cache'
 

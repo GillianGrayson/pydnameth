@@ -11,7 +11,8 @@ def get_layout(config, title_text=''):
                                   DataType.residuals_special,
                                   DataType.epimutations,
                                   DataType.entropy,
-                                  DataType.cells]:
+                                  DataType.cells,
+                                  DataType.genes]:
 
         y_title = 'Methylation level'
         if config.experiment.data in [DataType.residuals_common, DataType.residuals_special]:

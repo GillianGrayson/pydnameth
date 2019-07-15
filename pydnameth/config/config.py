@@ -52,10 +52,6 @@ class Config:
         self.cpg_dict = {}
         self.cpg_data = []
 
-        self.gene_list = []
-        self.gene_dict = {}
-        self.gene_data = []
-
         self.bop_list = []
         self.bop_dict = {}
         self.bop_data = []

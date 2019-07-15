@@ -156,7 +156,8 @@ class TableRunStrategy(RunStrategy):
                                       DataType.residuals_special,
                                       DataType.epimutations,
                                       DataType.entropy,
-                                      DataType.cells]:
+                                      DataType.cells,
+                                      DataType.genes]:
 
             self.iterate(config, configs_child)
 
@@ -171,7 +172,9 @@ class ClockRunStrategy(RunStrategy):
 
     def run(self, config, configs_child):
 
-        if config.experiment.data in [DataType.betas, DataType.betas_adj, DataType.residuals_common,
+        if config.experiment.data in [DataType.betas,
+                                      DataType.betas_adj,
+                                      DataType.residuals_common,
                                       DataType.residuals_special]:
 
             if config.experiment.method == Method.linreg:
@@ -289,7 +292,8 @@ class PlotRunStrategy(RunStrategy):
                                       DataType.residuals_special,
                                       DataType.epimutations,
                                       DataType.entropy,
-                                      DataType.cells]:
+                                      DataType.cells,
+                                      DataType.genes]:
 
             if config.experiment.method in [Method.scatter, Method.variance_histogram]:
                 self.iterate(config, configs_child)

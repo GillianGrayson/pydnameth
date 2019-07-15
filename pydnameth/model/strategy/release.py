@@ -52,7 +52,8 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 DataType.residuals_special,
                 DataType.epimutations,
                 DataType.entropy,
-                DataType.cells
+                DataType.cells,
+                DataType.genes
             ]:
                 if config.experiment.method in [Method.scatter, Method.range]:
 
@@ -73,7 +74,8 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             else:
                                 aux_str = 'non-genic'
                             title = items + '(' + aux_str + ')'
-
+                        elif config.experiment.data == DataType.genes:
+                            title = items
                         else:
                             title = ''
 
