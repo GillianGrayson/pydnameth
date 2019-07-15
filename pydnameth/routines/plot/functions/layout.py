@@ -21,7 +21,7 @@ def get_layout(config, title_text=''):
         elif config.experiment.data == DataType.entropy:
             y_title = 'Entropy'
         elif config.experiment.data == DataType.cells:
-            y_title = str(config.attributes.cells)
+            y_title = 'Cells'
 
         if config.experiment.method in [Method.scatter, Method.variance_histogram]:
 

@@ -8,6 +8,7 @@ from pydnameth.infrastucture.load.residuals_common import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
+from pydnameth.infrastucture.load.cells import load_cells
 
 
 class LoadStrategy(metaclass=abc.ABCMeta):
@@ -112,11 +113,14 @@ class EpimutationsLoadStrategy(LoadStrategy):
     def load(self, config, configs_child):
         if config.is_init:
             load_epimutations(config)
-            config.base_list = config.cpg_list
+            config.base_list = config.epimutations_list
             config.base_dict = config.epimutations_dict
             config.base_data = config.epimutations_data
 
             self.inherit_childs(config, configs_child)
+
+            for config_child in configs_child:
+                config_child.betas_dict = config.betas_dict
 
         if config.is_load_child:
 
@@ -129,8 +133,8 @@ class EntropyLoadStrategy(LoadStrategy):
     def load(self, config, configs_child):
         if config.is_init:
             load_entropy(config)
-            config.base_list = None
-            config.base_dict = None
+            config.base_list = config.entropy_list
+            config.base_dict = config.entropy_dict
             config.base_data = config.entropy_data
 
             self.inherit_childs(config, configs_child)
@@ -151,9 +155,10 @@ class CellsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         if config.is_init:
-            config.base_list = None
-            config.base_dict = None
-            config.base_data = None
+            load_cells(config)
+            config.base_list = config.cells_list
+            config.base_dict = config.cells_dict
+            config.base_data = config.cells_dict
 
             self.inherit_childs(config, configs_child)
 

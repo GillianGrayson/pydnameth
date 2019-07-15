@@ -48,8 +48,7 @@ from pydnameth.scripts.develop.epimutations.table import \
     epimutations_table_aggregator_variance
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
-    epimutations_plot_scatter_comparison, \
-    epimutations_plot_range
+    epimutations_plot_scatter_comparison
 
 from pydnameth.scripts.develop.entropy.plot import \
     entropy_plot_scatter, \

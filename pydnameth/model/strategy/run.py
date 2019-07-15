@@ -47,30 +47,25 @@ class TableRunStrategy(RunStrategy):
 
         if config.experiment.method == Method.linreg:
 
-            targets = self.get_strategy.get_target(config)
-            x = sm.add_constant(targets)
+            x = self.get_strategy.get_target(config)
             y = self.get_strategy.get_single_base(config, [item])[0]
-
             process_linreg(x, y, config.metrics)
 
         elif config.experiment.method == Method.cluster:
 
             x = self.get_strategy.get_target(config)
             y = self.get_strategy.get_single_base(config, [item])[0]
-
             process_cluster(x, y, config.experiment.method_params, config.metrics)
 
         elif config.experiment.method == Method.polygon:
 
+            xs = []
+            ys = []
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-            xs = []
-            ys = []
-            for config_child in configs_child:
-                x = np.squeeze(np.asarray(self.get_strategy.get_target(config_child)))
-                y = np.squeeze(np.asarray(self.get_strategy.get_single_base(config_child, [item])))
+                x = self.get_strategy.get_target(config_child)
+                y = self.get_strategy.get_single_base(config_child, [item])[0]
                 xs.append(x)
                 ys.append(y)
 
@@ -85,11 +80,9 @@ class TableRunStrategy(RunStrategy):
             slopes = []
             slopes_std = []
             num_subs = []
-
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
                 item_id = config_child.advanced_dict[item]
                 slopes.append(config_child.advanced_data['slope'][item_id])
                 slopes_std.append(config_child.advanced_data['slope_std'][item_id])
@@ -105,11 +98,10 @@ class TableRunStrategy(RunStrategy):
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
                 x = self.get_strategy.get_target(config_child)
                 y = self.get_strategy.get_single_base(config_child, [item])[0]
                 x_all += x
-                y_all += list(y)
+                y_all += y
                 category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
 
             data = {'x': x_all, 'y': y_all, 'category': category_all}
@@ -129,18 +121,16 @@ class TableRunStrategy(RunStrategy):
 
         elif config.experiment.method == Method.variance:
 
-            targets = self.get_strategy.get_target(config)
-            data = self.get_strategy.get_single_base(config, [item])
-            targets = np.squeeze(np.asarray(targets))
-            data = np.squeeze(np.asarray(data))
+            x = self.get_strategy.get_target(config)
+            y = self.get_strategy.get_single_base(config, [item])[0]
 
             semi_window = config.experiment.method_params['semi_window']
             box_b = config.experiment.method_params['box_b']
             box_t = config.experiment.method_params['box_t']
 
-            process_variance(targets, data, semi_window, box_b, box_t, config.metrics)
+            process_variance(x, y, semi_window, box_b, box_t, config.metrics)
 
-            xs = get_box_xs(targets)
+            xs = get_box_xs(x)
             ys_b, ys_t = fit_variance(xs, config.metrics)
 
             diff_begin = abs(ys_t[0] - ys_b[0])
@@ -160,433 +150,16 @@ class TableRunStrategy(RunStrategy):
                 self.single(item, config, configs_child)
 
     def run(self, config, configs_child):
+
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals_common,
-                                      DataType.residuals_special]:
+                                      DataType.residuals_special,
+                                      DataType.epimutations,
+                                      DataType.entropy,
+                                      DataType.cells]:
+
             self.iterate(config, configs_child)
-
-        elif config.experiment.data == DataType.epimutations:
-
-            item = 'epimutations'
-
-            if config.experiment.method == Method.linreg:
-
-                targets = self.get_strategy.get_target(config)
-                indexes = config.attributes_indexes
-                x = sm.add_constant(targets)
-                y = np.zeros(len(indexes), dtype=int)
-
-                for subj_id in range(0, len(indexes)):
-                    col_id = indexes[subj_id]
-
-                    subj_col = self.get_strategy.get_single_base(config, [col_id])
-                    y[subj_id] = np.sum(subj_col)
-
-                y = np.log(y)
-
-                process_linreg(x, y, config.metrics)
-
-            elif config.experiment.method == Method.variance:
-
-                x = self.get_strategy.get_target(config)
-
-                indexes = config.attributes_indexes
-                y = np.zeros(len(indexes), dtype=int)
-                for subj_id in range(0, len(indexes)):
-                    col_id = indexes[subj_id]
-                    subj_col = self.get_strategy.get_single_base(config, [col_id])
-                    y[subj_id] = np.sum(subj_col)
-                y = np.log(y)
-
-                semi_window = config.experiment.method_params['semi_window']
-                box_b = config.experiment.method_params['box_b']
-                box_t = config.experiment.method_params['box_t']
-
-                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
-
-                xs = get_box_xs(x)
-                ys_b, ys_t = fit_variance(xs, config.metrics)
-
-                diff_begin = abs(ys_t[0] - ys_b[0])
-                diff_end = abs(ys_t[-1] - ys_b[-1])
-
-                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
-                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
-
-            elif config.experiment.method == Method.cluster:
-
-                x = self.get_strategy.get_target(config)
-
-                indexes = config.attributes_indexes
-                y = np.zeros(len(indexes), dtype=int)
-                for subj_id in range(0, len(indexes)):
-                    col_id = indexes[subj_id]
-                    subj_col = self.get_strategy.get_single_base(config, [col_id])
-                    y[subj_id] = np.sum(subj_col)
-                y = np.log(y)
-
-                process_cluster(x, y, config.experiment.method_params, config.metrics)
-
-            elif config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-                    x = self.get_strategy.get_target(config_child)
-                    indexes = config_child.attributes_indexes
-                    y = np.zeros(len(indexes), dtype=int)
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-                    y = np.log(y)
-
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                config.metrics['p_value'].append(p_value)
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
-
-            elif config.experiment.method == Method.polygon:
-
-                xs = []
-                ys = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    targets = self.get_strategy.get_target(config_child)
-                    x = targets
-                    indexes = config_child.attributes_indexes
-                    y = np.zeros(len(indexes), dtype=int)
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-                    y = np.log(y)
-
-                    xs.append(x)
-                    ys.append(y)
-
-                if config.experiment.method_params['method'] == Method.linreg:
-                    process_linreg_polygon(configs_child, item, xs, config.metrics)
-
-                elif config.experiment.method_params['method'] == Method.variance:
-                    process_variance_polygon(configs_child, item, xs, config.metrics)
-
-            elif config.experiment.method == Method.aggregator:
-
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-            config.metrics['item'].append(item)
-            config.metrics['aux'].append('')
-
-        elif config.experiment.data == DataType.entropy:
-
-            item = 'entropy'
-
-            if config.experiment.method == Method.linreg:
-
-                indexes = config.attributes_indexes
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
-                y = self.get_strategy.get_single_base(config, indexes)
-
-                process_linreg(x, y, config.metrics)
-
-            elif config.experiment.method == Method.variance:
-
-                x = self.get_strategy.get_target(config)
-
-                indexes = config.attributes_indexes
-                y = self.get_strategy.get_single_base(config, indexes)
-
-                semi_window = config.experiment.method_params['semi_window']
-                box_b = config.experiment.method_params['box_b']
-                box_t = config.experiment.method_params['box_t']
-
-                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
-
-                xs = get_box_xs(x)
-                ys_b, ys_t = fit_variance(xs, config.metrics)
-
-                diff_begin = abs(ys_t[0] - ys_b[0])
-                diff_end = abs(ys_t[-1] - ys_b[-1])
-
-                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
-                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
-
-            elif config.experiment.method == Method.cluster:
-
-                x = self.get_strategy.get_target(config)
-                y = self.get_strategy.get_single_base(config, config.attributes_indexes)
-
-                process_cluster(x, y, config.experiment.method_params, config.metrics)
-
-            elif config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    indexes = config_child.attributes_indexes
-                    x = self.get_strategy.get_target(config_child)
-                    y = self.get_strategy.get_single_base(config_child, indexes)
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                config.metrics['p_value'].append(p_value)
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
-
-            elif config.experiment.method == Method.polygon:
-
-                xs = []
-                ys = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    indexes = config_child.attributes_indexes
-                    x = self.get_strategy.get_target(config_child)
-                    y = self.get_strategy.get_single_base(config_child, indexes)
-                    xs.append(x)
-                    ys.append(y)
-
-                if config.experiment.method_params['method'] == Method.linreg:
-                    process_linreg_polygon(configs_child, item, xs, config.metrics)
-
-                elif config.experiment.method_params['method'] == Method.variance:
-                    process_variance_polygon(configs_child, item, xs, config.metrics)
-
-            elif config.experiment.method == Method.aggregator:
-
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-            config.metrics['item'].append(item)
-            config.metrics['aux'].append('')
-
-        elif config.experiment.data == DataType.cells:
-
-            cells = config.attributes.cells
-            cells_types = cells.types
-            item = str(cells_types)
-
-            if config.experiment.method == Method.linreg:
-
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
-
-                if isinstance(cells_types, list):
-                    y = np.zeros(len(x))
-                    num_cell_types = 0
-                    for cell_type in cells_types:
-                        if cell_type in config.cells_dict:
-                            y += np.asarray(config.cells_dict[cell_type])
-                            num_cell_types += 1
-                    y /= num_cell_types
-                else:
-                    y = config.cells_dict[cells_types]
-
-                process_linreg(x, y, config.metrics)
-
-            elif config.experiment.method == Method.variance:
-
-                x = self.get_strategy.get_target(config)
-
-                if isinstance(cells_types, list):
-                    y = np.zeros(len(x))
-                    num_cell_types = 0
-                    for cell_type in cells_types:
-                        if cell_type in config.cells_dict:
-                            y += np.asarray(config.cells_dict[cell_type])
-                            num_cell_types += 1
-                    y /= num_cell_types
-                else:
-                    y = config.cells_dict[cells_types]
-
-                semi_window = config.experiment.method_params['semi_window']
-                box_b = config.experiment.method_params['box_b']
-                box_t = config.experiment.method_params['box_t']
-
-                process_variance(x, y, semi_window, box_b, box_t, config.metrics)
-
-                xs = get_box_xs(x)
-                ys_b, ys_t = fit_variance(xs, config.metrics)
-
-                diff_begin = abs(ys_t[0] - ys_b[0])
-                diff_end = abs(ys_t[-1] - ys_b[-1])
-
-                config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
-                config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
-
-            elif config.experiment.method == Method.cluster:
-
-                x = self.get_strategy.get_target(config)
-
-                if isinstance(cells_types, list):
-                    y = np.zeros(len(x))
-                    num_cell_types = 0
-                    for cell_type in cells_types:
-                        if cell_type in config.cells_dict:
-                            y += np.asarray(config.cells_dict[cell_type])
-                            num_cell_types += 1
-                    y /= num_cell_types
-                else:
-                    y = config.cells_dict[cells_types]
-
-                process_cluster(x, y, config.experiment.method_params, config.metrics)
-
-            elif config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    x = self.get_strategy.get_target(config_child)
-
-                    cells = config_child.attributes.cells
-                    cells_types = cells.types
-                    if isinstance(cells_types, list):
-                        y = np.zeros(len(x))
-                        num_cell_types = 0
-                        for cell_type in cells_types:
-                            if cell_type in config_child.cells_dict:
-                                y += np.asarray(config_child.cells_dict[cell_type])
-                                num_cell_types += 1
-                        y /= num_cell_types
-                    else:
-                        y = config_child.cells_dict[cells_types]
-
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                config.metrics['p_value'].append(p_value)
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
-
-            elif config.experiment.method == Method.polygon:
-
-                xs = []
-                ys = []
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    x = self.get_strategy.get_target(config_child)
-
-                    cells = config_child.attributes.cells
-                    cells_types = cells.types
-                    if isinstance(cells_types, list):
-                        y = np.zeros(len(x))
-                        num_cell_types = 0
-                        for cell_type in cells_types:
-                            if cell_type in config_child.cells_dict:
-                                y += np.asarray(config_child.cells_dict[cell_type])
-                                num_cell_types += 1
-                        y /= num_cell_types
-                    else:
-                        y = config_child.cells_dict[cells_types]
-
-                    xs.append(x)
-                    ys.append(list(y))
-
-                if config.experiment.method_params['method'] == Method.linreg:
-                    process_linreg_polygon(configs_child, item, xs, config.metrics)
-
-                elif config.experiment.method_params['method'] == Method.variance:
-                    process_variance_polygon(configs_child, item, xs, config.metrics)
-
-            elif config.experiment.method == Method.aggregator:
-
-                metrics_keys = get_method_metrics_keys(config)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-            config.metrics['item'].append(item)
-            config.metrics['aux'].append('')
 
 
 class ClockRunStrategy(RunStrategy):
@@ -684,25 +257,22 @@ class PlotRunStrategy(RunStrategy):
 
     def single(self, item, config, configs_child):
 
-        if config.experiment.data in [DataType.betas,
-                                      DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special]:
+        xs = []
+        ys = []
+        names = []
+        for config_child in configs_child:
+            xs.append(self.get_strategy.get_target(config_child))
+            ys.append(self.get_strategy.get_single_base(config_child, [item])[0])
+            names.append(get_names(config_child, config.experiment.method_params))
 
-            xs = []
-            ys = []
-            names = []
+        if config.experiment.method == Method.scatter:
+            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
-            for config_child in configs_child:
-                xs.append(self.get_strategy.get_target(config_child))
-                ys.append(self.get_strategy.get_single_base(config_child, [item])[0])
-                names.append(get_names(config_child, config.experiment.method_params))
+        elif config.experiment.method == Method.range:
+            process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
 
-            if config.experiment.method == Method.scatter:
-                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
-
-            elif config.experiment.method == Method.variance_histogram:
-                process_variance_histogram(config.experiment_data['data'], xs, ys, names)
+        elif config.experiment.method == Method.variance_histogram:
+            process_variance_histogram(config.experiment_data['data'], xs, ys, names)
 
     def iterate(self, config, configs_child):
         items = config.experiment.method_params['items']
@@ -717,7 +287,10 @@ class PlotRunStrategy(RunStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals_common,
-                                      DataType.residuals_special]:
+                                      DataType.residuals_special,
+                                      DataType.epimutations,
+                                      DataType.entropy,
+                                      DataType.cells]:
 
             if config.experiment.method in [Method.scatter, Method.variance_histogram]:
                 self.iterate(config, configs_child)
@@ -768,51 +341,6 @@ class PlotRunStrategy(RunStrategy):
 
                 config.experiment_data['data'] = plot_data
 
-        elif config.experiment.data == DataType.epimutations:
-
-            xs = []
-            ys = []
-            names = []
-            for config_child in configs_child:
-
-                x = self.get_strategy.get_target(config_child)
-                xs.append(x)
-
-                indexes = config_child.attributes_indexes
-                y = np.zeros(len(indexes), dtype=int)
-                for subj_id in range(0, len(indexes)):
-                    col_id = indexes[subj_id]
-                    subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                    y[subj_id] = np.sum(subj_col)
-                y = np.log(y)
-                ys.append(y)
-
-                names.append(get_names(config_child, config.experiment.method_params))
-
-            if config.experiment.method == Method.scatter:
-                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
-
-            elif config.experiment.method == Method.range:
-                process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
-
-        elif config.experiment.data == DataType.entropy:
-
-            xs = []
-            ys = []
-            names = []
-            for config_child in configs_child:
-                x = self.get_strategy.get_target(config_child)
-                xs.append(x)
-
-                indexes = config_child.attributes_indexes
-                y = self.get_strategy.get_single_base(config_child, indexes)
-                ys.append(y)
-
-                names.append(get_names(config_child, config.experiment.method_params))
-
-            if config.experiment.method == Method.scatter:
-                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
-
         elif config.experiment.data == DataType.observables:
 
             if config.experiment.method == Method.histogram:
@@ -860,35 +388,6 @@ class PlotRunStrategy(RunStrategy):
                 # Sorting by total number of points
                 order = np.argsort(num_points)[::-1]
                 config.experiment_data['data'] = [plot_data[index] for index in order]
-
-        elif config.experiment.data == DataType.cells:
-
-            xs = []
-            ys = []
-            names = []
-            for config_child in configs_child:
-
-                x = self.get_strategy.get_target(config_child)
-                xs.append(x)
-
-                cells = config_child.attributes.cells
-                cells_types = cells.types
-                if isinstance(cells_types, list):
-                    y = np.zeros(len(x))
-                    num_cell_types = 0
-                    for cell_type in cells_types:
-                        if cell_type in config_child.cells_dict:
-                            y += np.asarray(config_child.cells_dict[cell_type])
-                            num_cell_types += 1
-                    y /= num_cell_types
-                else:
-                    y = config_child.cells_dict[cells_types]
-                ys.append(list(y))
-
-                names.append(get_names(config_child, config.experiment.method_params))
-
-            if config.experiment.method == Method.scatter:
-                process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
 
 class CreateRunStrategy(RunStrategy):
