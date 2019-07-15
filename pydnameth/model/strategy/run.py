@@ -1,7 +1,6 @@
 import abc
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.config.experiment.metrics import get_method_metrics_keys
-import statsmodels.api as sm
 import numpy as np
 from pydnameth.routines.clock.types import ClockExogType, Clock
 from pydnameth.routines.clock.linreg.processing import build_clock_linreg

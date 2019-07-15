@@ -1,10 +1,8 @@
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.path import get_data_base_path
 import numpy as np
-import pickle
 import os.path
 from tqdm import tqdm
-from pydnameth.infrastucture.save.table import save_table_dict_csv
 
 
 def load_epimutations(config):

@@ -1,4 +1,4 @@
-from pydnameth.config.experiment.types import Task, Method, DataType
+from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.plot import plot_scatter, plot_scatter_comparison
 
 
