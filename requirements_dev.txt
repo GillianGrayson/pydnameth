@@ -17,7 +17,7 @@ Shapely==1.6.4.post2
 colorlover==0.3.0
 sphinx-rtd-theme==0.4.3
 patsy==0.5.1
-geos==0.2.1
+geos==0.2.2
 xlrd==1.2.0
 XlsxWriter==1.1.8
 psutil==5.6.3
