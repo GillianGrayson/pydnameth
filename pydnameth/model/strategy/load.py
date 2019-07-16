@@ -8,6 +8,8 @@ from pydnameth.infrastucture.load.residuals_common import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
+from pydnameth.infrastucture.load.cells import load_cells
+from pydnameth.infrastucture.load.genes import load_genes
 
 
 class LoadStrategy(metaclass=abc.ABCMeta):
@@ -41,12 +43,13 @@ class LoadStrategy(metaclass=abc.ABCMeta):
 class BetasLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.betas_dict
-        config.base_data = config.betas_data
+        if config.is_init:
+            load_betas(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.betas_dict
+            config.base_data = config.betas_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -57,12 +60,13 @@ class BetasLoadStrategy(LoadStrategy):
 class BetasAdjLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_betas_adj(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.betas_adj_dict
-        config.base_data = config.betas_adj_data
+        if config.is_init:
+            load_betas_adj(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.betas_adj_dict
+            config.base_data = config.betas_adj_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -85,12 +89,30 @@ class BetasSpecLoadStrategy(LoadStrategy):
 class ResidualsCommonLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_residuals_common(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.residuals_dict
-        config.base_data = config.residuals_data
+        if config.is_init:
+            load_residuals_common(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.residuals_dict
+            config.base_data = config.residuals_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
+
+class GenesLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        if config.is_init:
+            load_genes(config)
+            config.base_list = config.genes_list
+            config.base_dict = config.genes_dict
+            config.base_data = config.genes_data
+
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -107,12 +129,16 @@ class ResidualsSpecialLoadStrategy(LoadStrategy):
 class EpimutationsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_epimutations(config)
-        config.base_list = config.cpg_list
-        config.base_dict = config.epimutations_dict
-        config.base_data = config.epimutations_data
+        if config.is_init:
+            load_epimutations(config)
+            config.base_list = config.epimutations_list
+            config.base_dict = config.epimutations_dict
+            config.base_data = config.epimutations_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
+
+            for config_child in configs_child:
+                config_child.betas_dict = config.betas_dict
 
         if config.is_load_child:
 
@@ -123,12 +149,13 @@ class EpimutationsLoadStrategy(LoadStrategy):
 class EntropyLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        load_entropy(config)
-        config.base_list = None
-        config.base_dict = None
-        config.base_data = config.entropy_data
+        if config.is_init:
+            load_entropy(config)
+            config.base_list = config.entropy_list
+            config.base_dict = config.entropy_dict
+            config.base_data = config.entropy_data
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 
@@ -145,11 +172,13 @@ class ObservablesLoadStrategy(LoadStrategy):
 class CellsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
-        config.base_list = None
-        config.base_dict = None
-        config.base_data = None
+        if config.is_init:
+            load_cells(config)
+            config.base_list = config.cells_list
+            config.base_dict = config.cells_dict
+            config.base_data = config.cells_dict
 
-        self.inherit_childs(config, configs_child)
+            self.inherit_childs(config, configs_child)
 
         if config.is_load_child:
 

@@ -10,7 +10,8 @@ def get_method_metrics_keys(config):
                                   DataType.entropy,
                                   DataType.residuals_common,
                                   DataType.residuals_special,
-                                  DataType.cells]:
+                                  DataType.cells,
+                                  DataType.genes]:
 
         if config.experiment.task == Task.table:
 
@@ -156,10 +157,9 @@ def get_method_metrics_keys(config):
                     metrics = [
                         'item',
                         'aux',
-                        'area_intersection_rel',
-                        'slope_intersection_rel',
-                        'max_abs_slope',
-                        'is_inside'
+                        'area_intersection',
+                        'slope_intersection',
+                        'max_abs_slope'
                     ]
 
                 elif config.experiment.method_params['method'] == Method.variance:
@@ -167,14 +167,9 @@ def get_method_metrics_keys(config):
                     metrics = [
                         'item',
                         'aux',
-                        'area_intersection_fit',
-                        'increasing_fit',
-                        'increasing_fit_normed',
-                        'increasing_fit_id',
-                        'area_intersection_real',
-                        'increasing_real',
-                        'increasing_real_normed',
-                        'increasing_real_id'
+                        'area_intersection',
+                        'increasing',
+                        'increasing_id'
                     ]
 
             elif config.experiment.method == Method.special:

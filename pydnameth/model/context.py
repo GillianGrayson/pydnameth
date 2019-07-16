@@ -8,6 +8,7 @@ from pydnameth.model.strategy.load import ResidualsCommonLoadStrategy
 from pydnameth.model.strategy.load import ResidualsSpecialLoadStrategy
 from pydnameth.model.strategy.load import EpimutationsLoadStrategy
 from pydnameth.model.strategy.load import EntropyLoadStrategy
+from pydnameth.model.strategy.load import GenesLoadStrategy
 from pydnameth.model.strategy.get import BetasGetStrategy
 from pydnameth.model.strategy.get import BetasAdjGetStrategy
 from pydnameth.model.strategy.get import BetasHorvathCalculatorGetStrategy
@@ -18,6 +19,7 @@ from pydnameth.model.strategy.get import ResidualsCommonGetStrategy
 from pydnameth.model.strategy.get import ResidualsSpecialGetStrategy
 from pydnameth.model.strategy.get import EpimutationsGetStrategy
 from pydnameth.model.strategy.get import EntropyGetStrategy
+from pydnameth.model.strategy.get import GenesGetStrategy
 from pydnameth.model.strategy.setup import TableSetUpStrategy
 from pydnameth.model.strategy.setup import ClockSetUpStrategy
 from pydnameth.model.strategy.setup import PlotSetUpStrategy
@@ -62,6 +64,8 @@ class Context:
             self.load_strategy = EntropyLoadStrategy()
         elif config.experiment.data == DataType.cells:
             self.load_strategy = CellsLoadStrategy()
+        elif config.experiment.data == DataType.genes:
+            self.load_strategy = GenesLoadStrategy()
 
         if config.experiment.data == DataType.betas:
             self.get_strategy = BetasGetStrategy()
@@ -83,6 +87,8 @@ class Context:
             self.get_strategy = EntropyGetStrategy()
         elif config.experiment.data == DataType.cells:
             self.get_strategy = CellsGetStrategy()
+        elif config.experiment.data == DataType.genes:
+            self.get_strategy = GenesGetStrategy()
 
         if config.experiment.task == Task.table:
             self.setup_strategy = TableSetUpStrategy(self.get_strategy)
@@ -127,8 +133,10 @@ class Context:
             if not self.save_strategy.is_result_exist(config, configs_child):
 
                 config.initialize()
-                for config_child in configs_child:
-                    config_child.initialize()
+
+                if config.is_init_child:
+                    for config_child in configs_child:
+                        config_child.initialize()
 
                 self.load_strategy.load(config, configs_child)
                 self.setup_strategy.setup(config, configs_child)

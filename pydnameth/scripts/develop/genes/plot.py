@@ -2,27 +2,28 @@ from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.plot import plot_scatter, plot_scatter_comparison
 
 
-def cells_plot_scatter(
+def genes_plot_scatter(
     data,
     annotations,
     attributes,
     observables_list,
     child_method=Method.linreg,
+    data_params=None,
     method_params=None
 ):
-
     plot_scatter(
-        data_type=DataType.cells,
-        data=data,
-        annotations=annotations,
-        attributes=attributes,
-        observables_list=observables_list,
-        child_method=child_method,
-        method_params=method_params
+        DataType.genes,
+        data,
+        annotations,
+        attributes,
+        observables_list,
+        child_method,
+        data_params,
+        method_params
     )
 
 
-def cells_plot_scatter_comparison(
+def genes_plot_scatter_comparison(
     data_list,
     annotations_list,
     attributes_list,
@@ -34,7 +35,7 @@ def cells_plot_scatter_comparison(
     method_params=None,
 ):
     plot_scatter_comparison(
-        data_type=DataType.cells,
+        data_type=DataType.genes,
         data_list=data_list,
         annotations_list=annotations_list,
         attributes_list=attributes_list,
