@@ -98,9 +98,17 @@ class ResidualsSpecialGetStrategy(GetStrategy):
 class EpimutationsGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
-        rows = [config.base_dict[item] for item in config.base_list if item in config.base_dict]
-        data = config.base_data[np.ix_(rows, items)]
-        return data
+        rows = [config.betas_dict[item] for item in config.cpg_list if item in config.betas_dict]
+        indexes = config.attributes_indexes
+        data = np.zeros(len(indexes), dtype=int)
+
+        for subj_id in range(0, len(indexes)):
+            col_id = indexes[subj_id]
+            subj_col = config.base_data[np.ix_(rows, [col_id])]
+            data[subj_id] = np.sum(subj_col)
+
+        data = np.log10(data)
+        return [data]
 
     def get_aux(self, config, item):
         pass
@@ -109,8 +117,9 @@ class EpimutationsGetStrategy(GetStrategy):
 class EntropyGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
-        data = config.base_data[items]
-        return data
+        indexes = config.attributes_indexes
+        data = config.base_data[indexes]
+        return [data]
 
     def get_aux(self, config, item):
         pass
@@ -128,7 +137,21 @@ class ObservablesGetStrategy(GetStrategy):
 class CellsGetStrategy(GetStrategy):
 
     def get_single_base(self, config, items):
-        pass
+        data = []
+        for item in items:
+            data.append(config.cells_dict[item])
+        return data
 
     def get_aux(self, config, item):
         pass
+
+
+class GenesGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, items):
+        rows = [config.base_dict[item] for item in items]
+        return config.base_data[np.ix_(rows, config.attributes_indexes)]
+
+    def get_aux(self, config, item):
+        aux = ''
+        return aux

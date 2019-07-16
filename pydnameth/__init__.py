@@ -30,7 +30,8 @@ from pydnameth.scripts.develop.betas.clock import \
 from pydnameth.scripts.develop.betas.plot import \
     betas_plot_scatter,\
     betas_plot_curve_clock,\
-    betas_plot_variance_histogram_dev
+    betas_plot_variance_histogram, \
+    betas_plot_scatter_comparison
 
 from pydnameth.scripts.develop.betas_horvath_calculator.create import \
     betas_horvath_calculator_create_regular
@@ -42,28 +43,37 @@ from pydnameth.scripts.develop.epimutations.load import \
     epimutations_load
 from pydnameth.scripts.develop.epimutations.table import \
     epimutations_table_z_test_linreg, \
-    epimutations_table_ancova
+    epimutations_table_ancova, \
+    epimutations_table_aggregator_linreg, \
+    epimutations_table_aggregator_variance
 from pydnameth.scripts.develop.epimutations.plot import \
     epimutations_plot_scatter,\
-    epimutations_plot_range
+    epimutations_plot_scatter_comparison
 
 from pydnameth.scripts.develop.entropy.plot import \
-    entropy_plot_scatter
+    entropy_plot_scatter, \
+    entropy_plot_scatter_comparison
 from pydnameth.scripts.develop.entropy.table import \
     entropy_table_z_test_linreg, \
-    entropy_table_ancova
+    entropy_table_ancova, \
+    entropy_table_aggregator_linreg, \
+    entropy_table_aggregator_variance
 
 from pydnameth.scripts.develop.observables.plot import \
     observables_plot_histogram
 
 from pydnameth.scripts.develop.cells.plot import \
-    cells_plot_scatter
+    cells_plot_scatter, \
+    cells_plot_scatter_comparison
 from pydnameth.scripts.develop.cells.table import \
     cells_table_z_test_linreg, \
-    cells_table_ancova
+    cells_table_ancova, \
+    cells_table_aggregator_linreg, \
+    cells_table_aggregator_variance
 
 from pydnameth.scripts.develop.residuals_common.plot import \
-    residuals_common_plot_scatter
+    residuals_common_plot_scatter, \
+    residuals_common_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals_common.table import \
     residuals_common_table_aggregator_linreg,\
     residuals_common_table_aggregator_variance
@@ -73,3 +83,9 @@ from pydnameth.scripts.develop.residuals_special.plot import \
 from pydnameth.scripts.develop.residuals_special.table import \
     residuals_special_table_aggregator
 
+from pydnameth.scripts.develop.genes.plot import \
+    genes_plot_scatter, \
+    genes_plot_scatter_comparison
+from pydnameth.scripts.develop.genes.table import \
+    genes_table_aggregator_linreg,\
+    genes_table_aggregator_variance

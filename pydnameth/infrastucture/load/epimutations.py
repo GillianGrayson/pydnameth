@@ -1,14 +1,11 @@
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.path import get_data_base_path
 import numpy as np
-import pickle
 import os.path
 from tqdm import tqdm
-from pydnameth.infrastucture.save.table import save_table_dict_csv
 
 
 def load_epimutations(config):
-    fn_dict = get_data_base_path(config) + '/' + 'epimutations_dict'
 
     suffix = ''
     if bool(config.experiment.data_params):
@@ -16,32 +13,18 @@ def load_epimutations(config):
 
     fn_data = get_data_base_path(config) + '/' + 'epimutations' + suffix
 
-    if os.path.isfile(fn_dict + '.pkl') and os.path.isfile(fn_data + '.npz'):
+    config.epimutations_list = ['epimutations']
+    config.epimutations_dict = {'epimutations': 0}
 
-        f = open(fn_dict + '.pkl', 'rb')
-        config.epimutations_dict = pickle.load(f)
-        f.close()
+    config.experiment.data_params = {}
+    load_betas(config)
+
+    if os.path.isfile(fn_data + '.npz'):
 
         data = np.load(fn_data + '.npz')
         config.epimutations_data = data['data']
 
     else:
-
-        config.experiment.data_params = {}
-        load_betas(config)
-
-        config.epimutations_dict = config.betas_dict
-        f = open(fn_dict + '.pkl', 'wb')
-        pickle.dump(config.epimutations_dict, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
-
-        save_table_dict_csv(
-            fn_dict,
-            {
-                'item': list(config.epimutations_dict.keys()),
-                'row': list(config.epimutations_dict.values())
-            }
-        )
 
         num_cpgs = config.betas_data.shape[0]
         num_subjects = config.betas_data.shape[1]
@@ -65,5 +48,5 @@ def load_epimutations(config):
         np.savez_compressed(fn_data + '.npz', data=config.epimutations_data)
         np.savetxt(fn_data + '.txt', config.epimutations_data, delimiter='\t', fmt='%d')
 
-        # Clear data
-        del config.betas_data
+    # Clear data
+    del config.betas_data

@@ -18,6 +18,9 @@ def load_entropy(config):
 
     fn_data = get_cache_path(config) + '/' + 'entropy' + suffix + '.npz'
 
+    config.entropy_list = ['entropy']
+    config.entropy_dict = {'entropy': 0}
+
     if os.path.isfile(fn_data):
 
         data = np.load(fn_data)

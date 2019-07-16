@@ -5,6 +5,7 @@ from statsmodels.stats.stattools import jarque_bera, omni_normtest, durbin_watso
 
 
 def process_linreg(x, y, metrics_dict):
+    x = sm.add_constant(x)
 
     results = sm.OLS(y, x).fit()
 
