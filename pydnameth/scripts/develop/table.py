@@ -1,7 +1,7 @@
 import copy
 from anytree import Node
 from pydnameth.config.config import Config
-from pydnameth.config.experiment.types import DataType, Task, Method
+from pydnameth.config.experiment.types import Task, Method
 from pydnameth.config.experiment.experiment import Experiment
 from pydnameth.config.attributes.attributes import Observables, Cells, Attributes
 from pydnameth.model.tree import build_tree, calc_tree
@@ -72,6 +72,9 @@ def table_aggregator_linreg(
 
         if child_method_lvl_1 == Method.polygon:
             method_params = {'method': Method.linreg}
+            is_load_child = True
+        elif child_method_lvl_1 == Method.z_test_linreg:
+            method_params = {}
             is_load_child = True
         else:
             method_params = {}
@@ -359,9 +362,10 @@ def table_aggregator_variance(
     config_cluster = Config(
         data=copy.deepcopy(data),
         experiment=Experiment(
-            data=DataType.betas,
+            data=data_type,
             task=Task.table,
             method=Method.cluster,
+            data_params=copy.deepcopy(data_params),
             method_params={
                 'eps': 0.2,
                 'min_samples_percentage': 1

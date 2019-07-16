@@ -3,7 +3,8 @@ from pydnameth.config.experiment.types import DataType, Method
 import plotly.graph_objs as go
 from statsmodels.stats.multitest import multipletests
 import plotly.figure_factory as ff
-import pydnameth.routines.plot.functions as plot_routines
+from pydnameth.routines.plot.functions.layout import get_layout
+from pydnameth.routines.common import get_axis
 
 
 class ReleaseStrategy(metaclass=abc.ABCMeta):
@@ -49,21 +50,42 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 DataType.betas_adj,
                 DataType.residuals_common,
                 DataType.residuals_special,
+                DataType.epimutations,
+                DataType.entropy,
+                DataType.cells,
+                DataType.genes
             ]:
-                if config.experiment.method == Method.scatter:
+                if config.experiment.method in [Method.scatter, Method.range]:
 
                     for item_id, items in enumerate(config.experiment_data['item']):
 
-                        if items in config.cpg_gene_dict:
-                            aux = config.cpg_gene_dict[items]
-                            if isinstance(aux, list):
-                                aux_str = ';'.join(aux)
+                        if config.experiment.data in [
+                            DataType.betas,
+                            DataType.betas_adj,
+                            DataType.residuals_common,
+                            DataType.residuals_special,
+                        ]:
+                            if items in config.cpg_gene_dict:
+                                aux = config.cpg_gene_dict[items]
+                                if isinstance(aux, list):
+                                    aux_str = ';'.join(aux)
+                                else:
+                                    aux_str = str(aux)
                             else:
-                                aux_str = str(aux)
+                                aux_str = 'non-genic'
+                            title = items + '(' + aux_str + ')'
+                        elif config.experiment.data == DataType.genes:
+                            title = items
                         else:
-                            aux_str = 'non-genic'
+                            title = ''
 
-                        layout = plot_routines.get_layout(config, items + '(' + aux_str + ')')
+                        if config.experiment.method == Method.range:
+                            layout = get_layout(config)
+                        else:
+                            layout = get_layout(config, title)
+
+                        if config.experiment.data == DataType.cells:
+                            layout.yaxis = get_axis(items)
 
                         raw_item_id = config.experiment.method_params['items'].index(items)
 
@@ -76,6 +98,17 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             y_range = config.experiment.method_params['y_ranges'][raw_item_id]
                             if y_range != 'auto' or 'auto' not in y_range:
                                 layout.yaxis.range = y_range
+
+                        if config.experiment.method == Method.range:
+                            borders = config.experiment.method_params['borders']
+                            labels = []
+                            tickvals = []
+                            for seg_id in range(0, len(borders) - 1):
+                                x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
+                                tickvals.append(x_center)
+                                labels.append(f'{borders[seg_id]} to {borders[seg_id + 1] - 1}')
+                            layout.xaxis.tickvals = tickvals
+                            layout.xaxis.ticktext = labels
 
                         fig = go.Figure(data=config.experiment_data['data'][item_id], layout=layout)
                         config.experiment_data['fig'].append(fig)
@@ -93,7 +126,14 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         x_domains.append([x, x + x_size])
 
                     y_num = len(configs_child[0].experiment_data['item'])
-                    y_begin = 0.06
+
+                    if y_num == 1:
+                        y_begin = 0.25
+                    elif y_num == 2:
+                        y_begin = 0.2
+                    else:
+                        y_begin = 0.06
+
                     y_end = 1
                     y_shift = (y_end - y_begin) / y_num
                     y_size = y_shift - 0.02
@@ -131,11 +171,11 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                 items.xaxis = x_string
                                 items.yaxis = y_string
 
-                                if item.mode == 'markers':
-                                    item.marker.size = 1
-                                    item.marker.line.width = 0.2
-                                if item.mode == 'lines':
-                                    item.line.width = 1
+                                if items.mode == 'markers':
+                                    items.marker.size = 1
+                                    items.marker.line.width = 0.2
+                                if items.mode == 'lines':
+                                    items.line.width = 1
 
                                 config.experiment_data['data'].append(items)
 
@@ -217,11 +257,17 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         )
 
                         y_title = config.experiment.method_params['items'][y_id]
-                        if 'aux' in config.experiment.method_params:
-                            aux = config.experiment.method_params['aux'][y_id]
-                            if aux == '':
-                                aux = 'Non-genic'
-                            y_title = y_title + '<br>' + aux
+                        if config.experiment.data in [
+                            DataType.betas,
+                            DataType.betas_adj,
+                            DataType.residuals_common,
+                            DataType.residuals_special
+                        ]:
+                            if 'aux' in config.experiment.method_params:
+                                aux = config.experiment.method_params['aux'][y_id]
+                                if aux == '':
+                                    aux = 'Non-genic'
+                                y_title = y_title + '<br>' + aux
                         layout['yaxis' + y_string_add]['title'] = y_title
 
                         y_range = config.experiment.method_params['y_ranges'][y_id]
@@ -234,7 +280,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 elif config.experiment.method == Method.variance_histogram:
 
                     for data in config.experiment_data['data']:
-                        layout = plot_routines.get_layout(config)
+                        layout = get_layout(config)
                         layout.xaxis.title = '$\\Delta$'
                         layout.yaxis.title = '$PDF$'
 
@@ -251,91 +297,14 @@ class PlotReleaseStrategy(ReleaseStrategy):
 
                 elif config.experiment.method == Method.curve:
 
-                    layout = plot_routines.get_layout(config)
-
-                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
-
-            elif config.experiment.data in [
-                DataType.entropy,
-                DataType.cells,
-            ]:
-                if config.experiment.method == Method.scatter:
-
-                    layout = plot_routines.get_layout(config)
-
-                    if 'x_range' in config.experiment.method_params:
-                        x_range = config.experiment.method_params['x_range']
-                        if x_range != 'auto' or 'auto' not in x_range:
-                            layout.xaxis.range = x_range
-
-                    if 'y_range' in config.experiment.method_params:
-                        y_range = config.experiment.method_params['y_range']
-                        if y_range != 'auto' or 'auto' not in y_range:
-                            layout.yaxis.range = y_range
-
-                    fig = go.Figure(data=config.experiment_data['data'], layout=layout)
-                    config.experiment_data['fig'] = fig
-
-            elif config.experiment.data == DataType.epimutations:
-
-                if config.experiment.method == Method.scatter:
-
-                    layout = plot_routines.get_layout(config)
-
-                    if config.experiment.method_params['x_range'] != 'auto':
-                        layout.xaxis.range = config.experiment.method_params['x_range']
-
-                    if config.experiment.method_params['y_range'] != 'auto':
-                        layout.yaxis.range = config.experiment.method_params['y_range']
-
-                    layout.yaxis.type = config.experiment.method_params['y_type']
-                    if layout.yaxis.type == 'log':
-                        layout.yaxis.tickvals = [1, 2, 5,
-                                                 10, 20, 50,
-                                                 100, 200, 500,
-                                                 1000, 2000, 5000,
-                                                 10000, 20000, 50000,
-                                                 100000, 200000, 500000]
-
-                    config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
-
-                if config.experiment.method == Method.range:
-
-                    layout = plot_routines.get_layout(config)
-
-                    if config.experiment.method_params['x_range'] != 'auto':
-                        layout.xaxis.range = config.experiment.method_params['x_range']
-
-                    borders = config.experiment.method_params['borders']
-
-                    labels = []
-                    tickvals = []
-                    for seg_id in range(0, len(borders) - 1):
-                        x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
-                        tickvals.append(x_center)
-                        labels.append(f'{borders[seg_id]} to {borders[seg_id + 1] - 1}')
-                    layout.xaxis.tickvals = tickvals
-                    layout.xaxis.ticktext = labels
-
-                    if config.experiment.method_params['y_range'] != 'auto':
-                        layout.yaxis.range = config.experiment.method_params['y_range']
-
-                    layout.yaxis.type = config.experiment.method_params['y_type']
-                    if layout.yaxis.type == 'log':
-                        layout.yaxis.tickvals = [1, 2, 5,
-                                                 10, 20, 50,
-                                                 100, 200, 500,
-                                                 1000, 2000, 5000,
-                                                 10000, 20000, 50000,
-                                                 100000, 200000, 500000]
-
+                    layout = get_layout(config)
                     config.experiment_data['fig'] = go.Figure(data=config.experiment_data['data'], layout=layout)
 
             elif config.experiment.data == DataType.observables:
 
                 if config.experiment.method == Method.histogram:
 
-                    layout = plot_routines.get_layout(config)
+                    layout = get_layout(config)
 
                     if 'x_range' in config.experiment.method_params:
                         if config.experiment.method_params['x_range'] != 'auto':

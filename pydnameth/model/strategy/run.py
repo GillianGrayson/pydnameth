@@ -1,23 +1,22 @@
 import abc
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.config.experiment.metrics import get_method_metrics_keys
-import statsmodels.api as sm
 import numpy as np
-from sklearn.cluster import DBSCAN
 from pydnameth.routines.clock.types import ClockExogType, Clock
 from pydnameth.routines.clock.linreg.processing import build_clock_linreg
 import plotly.graph_objs as go
 import colorlover as cl
-from shapely import geometry
-from pydnameth.routines.common import is_float, get_names, normalize_to_0_1
-from pydnameth.routines.polygon.types import PolygonRoutines
+from pydnameth.routines.common import is_float, get_names
 from tqdm import tqdm
-from pydnameth.routines.variance.functions import \
-    process_box, init_variance_metrics_dict, process_variance, fit_variance, get_box_xs
-from pydnameth.routines.common import find_nearest_id, dict_slice, update_parent_dict_with_children
+from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
+from pydnameth.routines.common import update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
-from pydnameth.routines.z_test_slope.functions import z_test_slope_proc
-from pydnameth.routines.polygon.functions import process_variance_polygon
+from pydnameth.routines.z_test_slope.functions import process_z_test_slope
+from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
+from pydnameth.routines.cluster.functions import process_cluster
+from pydnameth.routines.plot.functions.scatter import process_scatter
+from pydnameth.routines.plot.functions.range import process_range
+from pydnameth.routines.plot.functions.variance_histogram import process_variance_histogram
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
@@ -47,236 +46,61 @@ class TableRunStrategy(RunStrategy):
 
         if config.experiment.method == Method.linreg:
 
-            targets = self.get_strategy.get_target(config)
-            x = sm.add_constant(targets)
+            x = self.get_strategy.get_target(config)
             y = self.get_strategy.get_single_base(config, [item])[0]
-
             process_linreg(x, y, config.metrics)
-
-            config.metrics['item'].append(item)
-            aux = self.get_strategy.get_aux(config, item)
-            config.metrics['aux'].append(aux)
 
         elif config.experiment.method == Method.cluster:
 
             x = self.get_strategy.get_target(config)
-            x_normed = normalize_to_0_1(x)
             y = self.get_strategy.get_single_base(config, [item])[0]
-            y_normed = normalize_to_0_1(y)
-
-            min_samples = max(1, int(config.experiment.method_params['min_samples_percentage'] * len(x) / 100.0))
-
-            X = np.array([x_normed, y_normed]).T
-            db = DBSCAN(eps=config.experiment.method_params['eps'], min_samples=min_samples).fit(X)
-            core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-            core_samples_mask[db.core_sample_indices_] = True
-            labels = db.labels_
-            number_of_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-            number_of_noise_points = list(labels).count(-1)
-            percent_of_noise_points = float(number_of_noise_points) / float(len(x)) * 100.0
-
-            config.metrics['item'].append(item)
-            config.metrics['aux'].append(self.get_strategy.get_aux(config, item))
-            config.metrics['number_of_clusters'].append(number_of_clusters)
-            config.metrics['number_of_noise_points'].append(number_of_noise_points)
-            config.metrics['percent_of_noise_points'].append(percent_of_noise_points)
+            process_cluster(x, y, config.experiment.method_params, config.metrics)
 
         elif config.experiment.method == Method.polygon:
 
+            xs = []
+            ys = []
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
-                item_id = config_child.advanced_dict[item]
-                for key in config_child.advanced_data:
-                    if key not in metrics_keys:
-                        advanced_data = config_child.advanced_data[key][item_id]
-                        suffix = str(config_child.attributes.observables)
-                        if suffix != '' and suffix not in key:
-                            key += '_' + suffix
-                        config.metrics[key].append(advanced_data)
-                        metrics_keys.append(key)
+                update_parent_dict_with_children(metrics_keys, item, config, config_child)
+                x = self.get_strategy.get_target(config_child)
+                y = self.get_strategy.get_single_base(config_child, [item])[0]
+                xs.append(x)
+                ys.append(y)
 
             if config.experiment.method_params['method'] == Method.linreg:
-
-                polygons_region = []
-                polygons_slope = []
-                polygons_region_min = []
-                max_abs_slope = 0.0
-                is_inside = False
-
-                mins = [min(self.get_strategy.get_target(config_child)) for config_child in configs_child]
-                maxs = [max(self.get_strategy.get_target(config_child)) for config_child in configs_child]
-                border_l = max(mins)
-                border_r = min(maxs)
-                if border_l > border_r:
-                    raise ValueError('Polygons borders are not consistent')
-
-                for config_child in configs_child:
-                    targets = self.get_strategy.get_target(config_child)
-                    item_id = config_child.advanced_dict[item]
-
-                    metrics_dict = dict_slice(config_child.advanced_data, item_id)
-
-                    slope = config_child.advanced_data['slope'][item_id]
-                    slope_std = config_child.advanced_data['slope_std'][item_id]
-
-                    pr = PolygonRoutines(
-                        x=targets,
-                        params=metrics_dict,
-                        method=config_child.experiment.method
-                    )
-                    points_region = pr.get_border_points()
-
-                    points_slope = [
-                        geometry.Point(slope - 3.0 * slope_std, 0.0),
-                        geometry.Point(slope + 3.0 * slope_std, 0.0),
-                        geometry.Point(slope + 3.0 * slope_std, 1.0),
-                        geometry.Point(slope - 3.0 * slope_std, 1.0),
-                    ]
-
-                    max_abs_slope = max(max_abs_slope, abs(slope))
-
-                    pr_min = PolygonRoutines(
-                        x=[border_l, border_r],
-                        params=metrics_dict,
-                        method=config_child.experiment.method
-                    )
-                    points_region_min = pr_min.get_border_points()
-
-                    polygon = geometry.Polygon([[point.x, point.y] for point in points_region])
-                    polygons_region.append(polygon)
-
-                    polygon = geometry.Polygon([[point.x, point.y] for point in points_slope])
-                    polygons_slope.append(polygon)
-
-                    polygon = geometry.Polygon([[point.x, point.y] for point in points_region_min])
-                    polygons_region_min.append(polygon)
-
-                intersection = polygons_region[0]
-                union = polygons_region[0]
-                for polygon in polygons_region[1::]:
-                    intersection = intersection.intersection(polygon)
-                    union = union.union(polygon)
-                area_intersection_rel = intersection.area / union.area
-
-                union = polygons_region_min[0]
-                for polygon in polygons_region_min[1::]:
-                    union = union.union(polygon)
-                for polygon in polygons_region_min:
-                    if union.area == polygon.area:
-                        is_inside = True
-
-                intersection = polygons_slope[0]
-                union = polygons_slope[0]
-                for polygon in polygons_slope[1::]:
-                    intersection = intersection.intersection(polygon)
-                    union = union.union(polygon)
-                slope_intersection_rel = intersection.area / union.area
-
-                config.metrics['item'].append(item)
-                aux = self.get_strategy.get_aux(config, item)
-                config.metrics['aux'].append(aux)
-                config.metrics['area_intersection_rel'].append(area_intersection_rel)
-                config.metrics['slope_intersection_rel'].append(slope_intersection_rel)
-                config.metrics['max_abs_slope'].append(max_abs_slope)
-                config.metrics['is_inside'].append(is_inside)
+                process_linreg_polygon(configs_child, item, xs, config.metrics)
 
             elif config.experiment.method_params['method'] == Method.variance:
-
-                xs_all = []
-                ys_b_real_all = []
-                ys_t_real_all = []
-                ys_b_fit_all = []
-                ys_t_fit_all = []
-
-                left_x = float('-inf')
-                right_x = float('inf')
-
-                for config_child in configs_child:
-
-                    targets = np.squeeze(np.asarray(self.get_strategy.get_target(config_child)))
-                    data = np.squeeze(np.asarray(self.get_strategy.get_single_base(config_child, [item])))
-
-                    semi_window = config_child.experiment.method_params['semi_window']
-                    box_b = config_child.experiment.method_params['box_b']
-                    box_t = config_child.experiment.method_params['box_t']
-
-                    _, bs, _, ts = process_box(targets, data, semi_window, box_b, box_t)
-                    ys_b_real_all.append(bs)
-                    ys_t_real_all.append(ts)
-
-                    xs = get_box_xs(targets)
-                    xs_all.append(xs)
-
-                    item_id = config_child.advanced_dict[item]
-                    metrics_dict = dict_slice(config_child.advanced_data, item_id)
-
-                    ys_b, ys_t = fit_variance(xs, metrics_dict)
-                    ys_b_fit_all.append(ys_b)
-                    ys_t_fit_all.append(ys_t)
-
-                    if (xs[0] > left_x):
-                        left_x = xs[0]
-                    if (xs[-1] < right_x):
-                        right_x = xs[-1]
-
-                x_range = right_x - left_x
-                begin_ids = []
-                end_ids = []
-                for child_id in range(0, len(xs_all)):
-                    begin_ids.append(find_nearest_id(xs_all[child_id], left_x))
-                    end_ids.append(find_nearest_id(xs_all[child_id], right_x))
-
-                process_variance_polygon(
-                    begin_ids,
-                    end_ids,
-                    x_range,
-                    xs_all,
-                    ys_b_real_all,
-                    ys_t_real_all,
-                    ys_b_fit_all,
-                    ys_t_fit_all,
-                    '',
-                    config.metrics
-                )
-
-                config.metrics['item'].append(item)
-                aux = self.get_strategy.get_aux(config, item)
-                config.metrics['aux'].append(aux)
+                process_variance_polygon(configs_child, item, xs, config.metrics)
 
         elif config.experiment.method == Method.z_test_linreg:
 
             slopes = []
             slopes_std = []
             num_subs = []
-
             metrics_keys = get_method_metrics_keys(config)
-
             for config_child in configs_child:
-
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
                 item_id = config_child.advanced_dict[item]
                 slopes.append(config_child.advanced_data['slope'][item_id])
                 slopes_std.append(config_child.advanced_data['slope_std'][item_id])
                 num_subs.append(len(config_child.attributes_dict['age']))
 
-            z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
-
-            config.metrics['item'].append(item)
-            aux = self.get_strategy.get_aux(config, item)
-            config.metrics['aux'].append(aux)
+            process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 
         elif config.experiment.method == Method.ancova:
 
             x_all = []
             y_all = []
             category_all = []
-
+            metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
+                update_parent_dict_with_children(metrics_keys, item, config, config_child)
                 x = self.get_strategy.get_target(config_child)
                 y = self.get_strategy.get_single_base(config_child, [item])[0]
                 x_all += x
-                y_all += list(y)
+                y_all += y
                 category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
 
             data = {'x': x_all, 'y': y_all, 'category': category_all}
@@ -288,35 +112,24 @@ class TableRunStrategy(RunStrategy):
 
             config.metrics['p_value'].append(p_value)
 
-            config.metrics['item'].append(item)
-            aux = self.get_strategy.get_aux(config, item)
-            config.metrics['aux'].append(aux)
-
         elif config.experiment.method == Method.aggregator:
 
             metrics_keys = get_method_metrics_keys(config)
-
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
 
-            config.metrics['item'].append(item)
-            aux = self.get_strategy.get_aux(config, item)
-            config.metrics['aux'].append(aux)
-
         elif config.experiment.method == Method.variance:
 
-            targets = self.get_strategy.get_target(config)
-            data = self.get_strategy.get_single_base(config, [item])
-            targets = np.squeeze(np.asarray(targets))
-            data = np.squeeze(np.asarray(data))
+            x = self.get_strategy.get_target(config)
+            y = self.get_strategy.get_single_base(config, [item])[0]
 
             semi_window = config.experiment.method_params['semi_window']
             box_b = config.experiment.method_params['box_b']
             box_t = config.experiment.method_params['box_t']
 
-            process_variance(targets, data, semi_window, box_b, box_t, config.metrics)
+            process_variance(x, y, semi_window, box_b, box_t, config.metrics)
 
-            xs = get_box_xs(targets)
+            xs = get_box_xs(x)
             ys_b, ys_t = fit_variance(xs, config.metrics)
 
             diff_begin = abs(ys_t[0] - ys_b[0])
@@ -325,9 +138,9 @@ class TableRunStrategy(RunStrategy):
             config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
             config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
 
-            config.metrics['item'].append(item)
-            aux = self.get_strategy.get_aux(config, item)
-            config.metrics['aux'].append(aux)
+        config.metrics['item'].append(item)
+        aux = self.get_strategy.get_aux(config, item)
+        config.metrics['aux'].append(aux)
 
     def iterate(self, config, configs_child):
 
@@ -336,241 +149,17 @@ class TableRunStrategy(RunStrategy):
                 self.single(item, config, configs_child)
 
     def run(self, config, configs_child):
+
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals_common,
-                                      DataType.residuals_special]:
+                                      DataType.residuals_special,
+                                      DataType.epimutations,
+                                      DataType.entropy,
+                                      DataType.cells,
+                                      DataType.genes]:
+
             self.iterate(config, configs_child)
-
-        elif config.experiment.data == DataType.epimutations:
-
-            if config.experiment.method == Method.linreg:
-
-                targets = self.get_strategy.get_target(config)
-                indexes = config.attributes_indexes
-                x = sm.add_constant(targets)
-                y = np.zeros(len(indexes), dtype=int)
-
-                for subj_id in range(0, len(indexes)):
-                    col_id = indexes[subj_id]
-
-                    subj_col = self.get_strategy.get_single_base(config, [col_id])
-                    y[subj_id] = np.sum(subj_col)
-
-                y = np.log(y)
-
-                process_linreg(x, y, config.metrics)
-
-                config.metrics['item'].append('epimutations')
-                config.metrics['aux'].append('')
-
-            if config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-
-                for config_child in configs_child:
-                    x = self.get_strategy.get_target(config_child)
-                    indexes = config_child.attributes_indexes
-                    y = np.zeros(len(indexes), dtype=int)
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-                    y = np.log(y)
-
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                config.metrics['p_value'].append(p_value)
-                config.metrics['item'].append('epimutations')
-                config.metrics['aux'].append('')
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-
-                metrics_keys = get_method_metrics_keys(config)
-
-                item = 'epimutations'
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
-
-                config.metrics['item'].append(item)
-                config.metrics['aux'].append('')
-
-        elif config.experiment.data == DataType.entropy:
-
-            if config.experiment.method == Method.linreg:
-
-                indexes = config.attributes_indexes
-
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
-                y = self.get_strategy.get_single_base(config, indexes)
-
-                process_linreg(x, y, config.metrics)
-
-                config.metrics['item'].append('entropy')
-                config.metrics['aux'].append('')
-
-            if config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-
-                for config_child in configs_child:
-
-                    indexes = config_child.attributes_indexes
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = self.get_strategy.get_single_base(config_child, indexes)
-
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                config.metrics['p_value'].append(p_value)
-                config.metrics['item'].append('entropy')
-                config.metrics['aux'].append('')
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-
-                metrics_keys = get_method_metrics_keys(config)
-
-                item = 'entropy'
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
-
-                config.metrics['item'].append(item)
-                config.metrics['aux'].append('')
-
-        elif config.experiment.data == DataType.cells:
-
-            if config.experiment.method == Method.linreg:
-
-                targets = self.get_strategy.get_target(config)
-                x = sm.add_constant(targets)
-
-                cells = config.attributes.cells
-                cells_types = cells.types
-                if isinstance(cells_types, list):
-                    y = np.zeros(len(x))
-                    num_cell_types = 0
-                    for cell_type in cells_types:
-                        if cell_type in config.cells_dict:
-                            y += np.asarray(config.cells_dict[cell_type])
-                            num_cell_types += 1
-                    y /= num_cell_types
-                else:
-                    y = config.cells_dict[cells_types]
-
-                process_linreg(x, y, config.metrics)
-
-                config.metrics['item'].append(str(cells_types))
-                config.metrics['aux'].append('')
-
-            if config.experiment.method == Method.ancova:
-
-                x_all = []
-                y_all = []
-                category_all = []
-
-                for config_child in configs_child:
-                    x = self.get_strategy.get_target(config_child)
-
-                    cells = config_child.attributes.cells
-                    cells_types = cells.types
-                    if isinstance(cells_types, list):
-                        y = np.zeros(len(x))
-                        num_cell_types = 0
-                        for cell_type in cells_types:
-                            if cell_type in config_child.cells_dict:
-                                y += np.asarray(config_child.cells_dict[cell_type])
-                                num_cell_types += 1
-                        y /= num_cell_types
-                    else:
-                        y = config_child.cells_dict[cells_types]
-
-                    x_all += x
-                    y_all += list(y)
-                    category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
-
-                data = {'x': x_all, 'y': y_all, 'category': category_all}
-                df = pd.DataFrame(data)
-                formula = 'y ~ x * category'
-                lm = ols(formula, df)
-                results = lm.fit()
-                p_value = results.pvalues[3]
-
-                cells = config.attributes.cells
-                cells_types = cells.types
-                item = str(cells_types)
-
-                config.metrics['p_value'].append(p_value)
-                config.metrics['item'].append(item)
-                config.metrics['aux'].append('')
-
-            elif config.experiment.method == Method.z_test_linreg:
-
-                slopes = []
-                slopes_std = []
-                num_subs = []
-
-                metrics_keys = get_method_metrics_keys(config)
-
-                cells = config.attributes.cells
-                cells_types = cells.types
-                item = str(cells_types)
-                for config_child in configs_child:
-                    update_parent_dict_with_children(metrics_keys, item, config, config_child)
-
-                    item_id = config_child.advanced_dict[item]
-                    slopes.append(config_child.advanced_data['slope'][item_id])
-                    slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                    num_subs.append(len(config_child.attributes_dict['age']))
-
-                z_test_slope_proc(slopes, slopes_std, num_subs, config.metrics)
-
-                config.metrics['item'].append(item)
-                config.metrics['aux'].append('')
 
 
 class ClockRunStrategy(RunStrategy):
@@ -583,7 +172,9 @@ class ClockRunStrategy(RunStrategy):
 
     def run(self, config, configs_child):
 
-        if config.experiment.data in [DataType.betas, DataType.betas_adj, DataType.residuals_common,
+        if config.experiment.data in [DataType.betas,
+                                      DataType.betas_adj,
+                                      DataType.residuals_common,
                                       DataType.residuals_special]:
 
             if config.experiment.method == Method.linreg:
@@ -668,216 +259,22 @@ class PlotRunStrategy(RunStrategy):
 
     def single(self, item, config, configs_child):
 
-        if config.experiment.data in [DataType.betas,
-                                      DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special]:
+        xs = []
+        ys = []
+        names = []
+        for config_child in configs_child:
+            xs.append(self.get_strategy.get_target(config_child))
+            ys.append(self.get_strategy.get_single_base(config_child, [item])[0])
+            names.append(get_names(config_child, config.experiment.method_params))
 
-            if config.experiment.method == Method.scatter:
+        if config.experiment.method == Method.scatter:
+            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
 
-                line = config.experiment.method_params['line']
-                add = config.experiment.method_params['add']
-                fit = config.experiment.method_params['fit']
-                semi_window = config.experiment.method_params['semi_window']
+        elif config.experiment.method == Method.range:
+            process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
 
-                plot_data = []
-                num_points = []
-                for config_child in configs_child:
-
-                    curr_plot_data = []
-
-                    # Plot data
-                    targets = self.get_strategy.get_target(config_child)
-                    num_points.append(len(targets))
-                    data = self.get_strategy.get_single_base(config_child, [item])[0]
-
-                    # Colors setup
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    # Adding scatter
-                    scatter = go.Scatter(
-                        x=targets,
-                        y=data,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_border,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Linear regression
-                    x = sm.add_constant(targets)
-                    y = data
-                    results = sm.OLS(y, x).fit()
-                    intercept = results.params[0]
-                    slope = results.params[1]
-                    intercept_std = results.bse[0]
-                    slope_std = results.bse[1]
-
-                    # Adding regression line
-                    if line == 'yes':
-                        x_min = np.min(targets)
-                        x_max = np.max(targets)
-                        y_min = slope * x_min + intercept
-                        y_max = slope * x_max + intercept
-                        scatter = go.Scatter(
-                            x=[x_min, x_max],
-                            y=[y_min, y_max],
-                            mode='lines',
-                            marker=dict(
-                                color=color
-                            ),
-                            line=dict(
-                                width=6,
-                                color=color
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    # Adding polygon area
-                    if add == 'polygon':
-                        pr = PolygonRoutines(
-                            x=targets,
-                            params={
-                                'intercept': [intercept],
-                                'slope': [slope],
-                                'intercept_std': [intercept_std],
-                                'slope_std': [slope_std]
-                            },
-                            method=config_child.experiment.method
-                        )
-                        scatter = pr.get_scatter(color_transparent)
-                        curr_plot_data.append(scatter)
-
-                    # Adding box curve
-                    if fit == 'no' and semi_window != 'none':
-                        box_b = config.experiment.method_params['box_b']
-                        box_t = config.experiment.method_params['box_t']
-                        xs, bs, ms, ts = process_box(targets, data, semi_window, box_b, box_t)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=bs,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ms,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=6,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ts,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    # Adding best curve
-                    if fit == 'yes' and semi_window != 'none':
-                        box_b = config.experiment.method_params['box_b']
-                        box_t = config.experiment.method_params['box_t']
-
-                        metrics_dict = {}
-                        init_variance_metrics_dict(metrics_dict, 'box_b')
-                        init_variance_metrics_dict(metrics_dict, 'box_m')
-                        init_variance_metrics_dict(metrics_dict, 'box_t')
-
-                        xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict)
-
-                        ys_b, ys_t = fit_variance(xs, metrics_dict)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ys_t,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                        scatter = go.Scatter(
-                            x=xs,
-                            y=ys_b,
-                            name=get_names(config_child, config.experiment.method_params),
-                            mode='lines',
-                            line=dict(
-                                width=4,
-                                color=color_border
-                            ),
-                            showlegend=False
-                        )
-                        curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                # Sorting by total number of points
-                order = np.argsort(num_points)[::-1]
-                curr_data = []
-                for index in order:
-                    curr_data += plot_data[index]
-                config.experiment_data['data'].append(curr_data)
-
-            elif config.experiment.method == Method.variance_histogram:
-
-                plot_data = {
-                    'hist_data': [],
-                    'group_labels': [],
-                    'colors': []
-                }
-
-                for config_child in configs_child:
-
-                    plot_data['group_labels'].append(str(config_child.attributes.observables))
-                    plot_data['colors'].append(cl.scales['8']['qual']['Set1'][configs_child.index(config_child)])
-
-                    targets = self.get_strategy.get_target(config_child)
-                    data = self.get_strategy.get_single_base(config_child, [item])[0]
-
-                    if config_child.experiment.method == Method.linreg:
-                        x = sm.add_constant(targets)
-                        y = data
-
-                        results = sm.OLS(y, x).fit()
-
-                        plot_data['hist_data'].append(results.resid)
-
-                config.experiment_data['data'].append(plot_data)
+        elif config.experiment.method == Method.variance_histogram:
+            process_variance_histogram(config.experiment_data['data'], xs, ys, names)
 
     def iterate(self, config, configs_child):
         items = config.experiment.method_params['items']
@@ -892,13 +289,14 @@ class PlotRunStrategy(RunStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals_common,
-                                      DataType.residuals_special]:
+                                      DataType.residuals_special,
+                                      DataType.epimutations,
+                                      DataType.entropy,
+                                      DataType.cells,
+                                      DataType.genes]:
 
             if config.experiment.method in [Method.scatter, Method.variance_histogram]:
                 self.iterate(config, configs_child)
-
-            elif config.experiment.method == Method.scatter_comparison:
-                pass
 
             elif config.experiment.method == Method.curve:
 
@@ -945,209 +343,6 @@ class PlotRunStrategy(RunStrategy):
                     plot_data.append(scatter)
 
                 config.experiment_data['data'] = plot_data
-
-        elif config.experiment.data == DataType.epimutations:
-
-            if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                y_type = config.experiment.method_params['y_type']
-
-                for config_child in configs_child:
-
-                    curr_plot_data = []
-
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = np.zeros(len(indexes), dtype=int)
-
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    if y_type == 'log':
-                        y_linreg = np.log(y)
-                    else:
-                        y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    if y_type == 'log':
-                        y_min = np.exp(slope * x_min + intercept)
-                        y_max = np.exp(slope * x_max + intercept)
-                    else:
-                        y_min = slope * x_min + intercept
-                        y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
-
-            elif config.experiment.method == Method.range:
-
-                plot_data = []
-
-                borders = config.experiment.method_params['borders']
-
-                for config_child in configs_child:
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.5) + ')'
-
-                    indexes = config_child.attributes_indexes
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = np.zeros(len(indexes), dtype=int)
-
-                    for subj_id in range(0, len(indexes)):
-                        col_id = indexes[subj_id]
-                        subj_col = self.get_strategy.get_single_base(config_child, [col_id])
-                        y[subj_id] = np.sum(subj_col)
-
-                    for seg_id in range(0, len(borders) - 1):
-                        x_center = (borders[seg_id + 1] + borders[seg_id]) * 0.5
-                        curr_box = []
-                        for subj_id in range(0, len(indexes)):
-                            if borders[seg_id] <= x[subj_id] < borders[seg_id + 1]:
-                                curr_box.append(y[subj_id])
-
-                        trace = go.Box(
-                            y=curr_box,
-                            x=[x_center] * len(curr_box),
-                            name=f'{borders[seg_id]} to {borders[seg_id + 1] - 1}',
-                            marker=dict(
-                                color=color_transparent
-                            )
-                        )
-                        plot_data.append(trace)
-
-                config.experiment_data['data'] = plot_data
-
-        elif config.experiment.data == DataType.entropy:
-
-            if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                for config_child in configs_child:
-                    curr_plot_data = []
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    y = self.get_strategy.get_single_base(config_child, indexes)
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    y_min = slope * x_min + intercept
-                    y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
 
         elif config.experiment.data == DataType.observables:
 
@@ -1196,90 +391,6 @@ class PlotRunStrategy(RunStrategy):
                 # Sorting by total number of points
                 order = np.argsort(num_points)[::-1]
                 config.experiment_data['data'] = [plot_data[index] for index in order]
-
-        elif config.experiment.data == DataType.cells:
-
-            if config.experiment.method == Method.scatter:
-
-                plot_data = []
-                num_points = []
-
-                for config_child in configs_child:
-                    curr_plot_data = []
-                    indexes = config_child.attributes_indexes
-                    num_points.append(len(indexes))
-
-                    x = self.get_strategy.get_target(config_child)
-                    cells = config_child.attributes.cells
-                    cells_types = cells.types
-                    if isinstance(cells_types, list):
-                        y = np.zeros(len(x))
-                        num_cell_types = 0
-                        for cell_type in cells_types:
-                            if cell_type in config_child.cells_dict:
-                                y += np.asarray(config_child.cells_dict[cell_type])
-                                num_cell_types += 1
-                        y /= num_cell_types
-                    else:
-                        y = config_child.cells_dict[cells_types]
-
-                    color = cl.scales['8']['qual']['Set1'][configs_child.index(config_child)]
-                    coordinates = color[4:-1].split(',')
-                    color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.7) + ')'
-                    color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
-
-                    scatter = go.Scatter(
-                        x=x,
-                        y=y,
-                        name=get_names(config_child, config.experiment.method_params),
-                        mode='markers',
-                        marker=dict(
-                            size=4,
-                            color=color_transparent,
-                            line=dict(
-                                width=1,
-                                color=color_border,
-                            )
-                        ),
-                    )
-                    curr_plot_data.append(scatter)
-
-                    # Adding regression line
-
-                    x_linreg = sm.add_constant(x)
-                    y_linreg = y
-
-                    results = sm.OLS(y_linreg, x_linreg).fit()
-
-                    intercept = results.params[0]
-                    slope = results.params[1]
-
-                    x_min = np.min(x)
-                    x_max = np.max(x)
-                    y_min = slope * x_min + intercept
-                    y_max = slope * x_max + intercept
-                    scatter = go.Scatter(
-                        x=[x_min, x_max],
-                        y=[y_min, y_max],
-                        mode='lines',
-                        marker=dict(
-                            color=color
-                        ),
-                        line=dict(
-                            width=6,
-                            color=color
-                        ),
-                        showlegend=False
-                    )
-
-                    curr_plot_data.append(scatter)
-
-                    plot_data.append(curr_plot_data)
-
-                order = np.argsort(num_points)[::-1]
-                config.experiment_data['data'] = []
-                for index in order:
-                    config.experiment_data['data'] += plot_data[index]
 
 
 class CreateRunStrategy(RunStrategy):

@@ -81,10 +81,10 @@ def plot_scatter_comparison(
     annotations_list,
     attributes_list,
     observables_list,
+    data_params_list,
     rows_dict,
     cols_dict,
     child_method=Method.linreg,
-    data_params=None,
     method_params=None,
 ):
 
@@ -116,7 +116,6 @@ def plot_scatter_comparison(
             data=data_type,
             task=Task.plot,
             method=Method.scatter_comparison,
-            data_params=copy.deepcopy(data_params),
             method_params=copy.deepcopy(method_params),
             task_params=task_params
         ),
@@ -147,7 +146,7 @@ def plot_scatter_comparison(
                 data=data_type,
                 task=Task.plot,
                 method=Method.scatter,
-                data_params=copy.deepcopy(data_params),
+                data_params=copy.deepcopy(data_params_list[data_base_id]),
                 task_params=task_params_lvl_1,
                 method_params=method_params_lvl_1
             ),
@@ -183,7 +182,7 @@ def plot_scatter_comparison(
                     data=data_type,
                     task=Task.table,
                     method=copy.deepcopy(child_method),
-                    data_params=copy.deepcopy(data_params),
+                    data_params=copy.deepcopy(data_params_list[data_base_id]),
                 ),
                 annotations=copy.deepcopy(annotations_list[data_base_id]),
                 attributes=attributes_child,
