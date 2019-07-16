@@ -1,8 +1,0 @@
-search: True
-
-requirements:
-  - requirements_dev.txt:
-      update: all
-      pin: True
-
-schedule: every week
