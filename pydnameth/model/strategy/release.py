@@ -257,11 +257,17 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         )
 
                         y_title = config.experiment.method_params['items'][y_id]
-                        if 'aux' in config.experiment.method_params:
-                            aux = config.experiment.method_params['aux'][y_id]
-                            if aux == '':
-                                aux = 'Non-genic'
-                            y_title = y_title + '<br>' + aux
+                        if config.experiment.data in [
+                            DataType.betas,
+                            DataType.betas_adj,
+                            DataType.residuals_common,
+                            DataType.residuals_special
+                        ]:
+                            if 'aux' in config.experiment.method_params:
+                                aux = config.experiment.method_params['aux'][y_id]
+                                if aux == '':
+                                    aux = 'Non-genic'
+                                y_title = y_title + '<br>' + aux
                         layout['yaxis' + y_string_add]['title'] = y_title
 
                         y_range = config.experiment.method_params['y_ranges'][y_id]
