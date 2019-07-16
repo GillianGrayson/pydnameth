@@ -93,6 +93,3 @@ def load_genes(config):
         with open(fn_list_txt, 'w') as f:
             for item in config.genes_list:
                 f.write("%s\n" % item)
-
-        # Clear data
-        del source_data
