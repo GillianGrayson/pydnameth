@@ -58,7 +58,7 @@ class Annotations:
                         str_list.append(key + '(' + str(values) + ')')
                     else:
                         raise ValueError('Each value from Annotations.select_dict.values() must be list')
-                name +=  '_' + '_'.join(str_list)
+                name += '_' + '_'.join(str_list)
             else:
                 raise ValueError('Annotations.select_dict must be dict')
         return name
