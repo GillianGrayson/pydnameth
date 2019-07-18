@@ -45,7 +45,7 @@ class Annotations:
             raise ValueError('Unsupported annotations type')
 
     def __str__(self):
-        name = 'exclude(' + self.exclude + ')'
+        name = 'type(' + self.type + ')' + '_exclude(' + self.exclude + ')'
         if self.select_dict is not None:
             if isinstance(self.select_dict, dict):
                 keys = list(self.select_dict.keys())
@@ -58,7 +58,8 @@ class Annotations:
                         str_list.append(key + '(' + str(values) + ')')
                     else:
                         raise ValueError('Each value from Annotations.select_dict.values() must be list')
-                name += '_' + '_'.join(str_list)
+                if len(str_list) > 0:
+                    name += '_' + '_'.join(str_list)
             else:
                 raise ValueError('Annotations.select_dict must be dict')
         return name
