@@ -8,7 +8,7 @@ from pydnameth.config.attributes.attributes import Observables
 from pydnameth.config.attributes.attributes import Cells
 from pydnameth.config.attributes.attributes import Attributes
 from pydnameth.config.config import Config
-from pydnameth.infrastucture.load.excluded import load_excluded
+from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.path import get_data_base_path
 from tests.tear_down import clear_cache
 
@@ -30,13 +30,15 @@ class TestLoadCpG(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(
@@ -68,20 +70,19 @@ class TestLoadCpG(unittest.TestCase):
     def tearDown(self):
         clear_cache(self.config)
 
-    def test_load_excluded_check_none_excluded(self):
-        self.assertEqual([], load_excluded(self.config))
+    def test_load_cpg_check_files_creation(self):
+        fn_dict = get_data_base_path(self.config) + '/' + 'betas_dict.pkl'
+        fn_data = get_data_base_path(self.config) + '/' + 'betas'
+        fn_npz = fn_data + '.npz'
 
-    def test_load_excluded_check_pkl_creation(self):
-        self.config.annotations.exclude = 'excluded'
-        fn = get_data_base_path(self.config) + '/' + self.config.annotations.exclude + '.pkl'
+        load_betas(self.config)
 
-        self.config.excluded = load_excluded(self.config)
+        self.assertEqual(True, os.path.isfile(fn_dict) and os.path.isfile(fn_npz))
 
-        self.assertEqual(True, os.path.isfile(fn))
+    def test_load_cpg_check_len_cpg_dict(self):
+        load_betas(self.config)
+        self.assertEqual(300, len(list(self.config.betas_dict)))
 
-    def test_load_excluded_check_len_excluded(self):
-        self.config.annotations.exclude = 'excluded'
-
-        self.config.excluded = load_excluded(self.config)
-
-        self.assertEqual(3, len(self.config.excluded))
+    def test_load_cpg_check_shape_cpg_data(self):
+        load_betas(self.config)
+        self.assertEqual((300, 729), self.config.betas_data.shape)

@@ -8,12 +8,12 @@ from pydnameth.config.attributes.attributes import Observables
 from pydnameth.config.attributes.attributes import Cells
 from pydnameth.config.attributes.attributes import Attributes
 from pydnameth.config.config import Config
-from pydnameth.infrastucture.load.residuals_common import load_residuals_common
-from tests.tear_down import clear_cache
+from pydnameth.infrastucture.load.excluded import load_excluded
 from pydnameth.infrastucture.path import get_data_base_path
+from tests.tear_down import clear_cache
 
 
-class TestLoadResidualsCommon(unittest.TestCase):
+class TestLoadCpG(unittest.TestCase):
 
     def setUp(self):
 
@@ -22,24 +22,23 @@ class TestLoadResidualsCommon(unittest.TestCase):
             base='fixtures'
         )
 
-        data_params = {'cells': ['B', 'CD4T', 'NK', 'CD8T', 'Gran']}
-
         experiment = Experiment(
             data=None,
             task=None,
             method=None,
-            data_params=data_params
         )
 
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(
@@ -68,22 +67,16 @@ class TestLoadResidualsCommon(unittest.TestCase):
         )
         self.config.initialize()
 
-    def test_load_residuals_check_files_creation(self):
-        suffix = '_' + self.config.experiment.get_data_params_str()
-        fn_dict = get_data_base_path(self.config) + '/' + 'residuals_common_dict.pkl'
-        fn_data = get_data_base_path(self.config) + '/' + 'residuals_common' + suffix + '.npz'
-
-        load_residuals_common(self.config)
-
-        self.assertEqual(True, os.path.isfile(fn_dict) and os.path.isfile(fn_data))
-
     def tearDown(self):
         clear_cache(self.config)
 
-    def test_load_residuals_check_len_cpg_dict(self):
-        load_residuals_common(self.config)
-        self.assertEqual(300, len(list(self.config.residuals_dict)))
+    def test_load_excluded_check_pkl_creation(self):
+        self.config.annotations.exclude = 'excluded'
+        fn = get_data_base_path(self.config) + '/' + self.config.annotations.exclude + '.pkl'
+        self.config.excluded = load_excluded(self.config)
+        self.assertEqual(True, os.path.isfile(fn))
 
-    def test_load_residuals_check_shape_cpg_data(self):
-        load_residuals_common(self.config)
-        self.assertEqual((300, 729), self.config.residuals_data.shape)
+    def test_load_excluded_check_len_excluded(self):
+        self.config.annotations.exclude = 'excluded'
+        self.config.excluded = load_excluded(self.config)
+        self.assertEqual(3, len(self.config.excluded))

@@ -5,7 +5,7 @@ import pickle
 
 
 def load_excluded(config):
-    exclude = []
+    exclude_dict = {}
 
     if config.annotations.exclude != CommonTypes.none.value:
         fn = get_data_base_path(config) + '/' + config.annotations.exclude
@@ -15,17 +15,18 @@ def load_excluded(config):
         if os.path.isfile(fn_pkl):
 
             f = open(fn_pkl, 'rb')
-            exclude = pickle.load(f)
+            exclude_dict = pickle.load(f)
             f.close()
 
         else:
             f = open(fn_txt)
-            exclude = f.readlines()
-            exclude = [x.rstrip() for x in exclude]
+            exclude_list = f.readlines()
             f.close()
+            for x in exclude_list:
+                exclude_dict[x.rstrip()] = True
 
             f = open(fn_pkl, 'wb')
-            pickle.dump(exclude, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(exclude_dict, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
-    return exclude
+    return exclude_dict

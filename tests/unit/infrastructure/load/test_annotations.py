@@ -10,7 +10,6 @@ from pydnameth.config.attributes.attributes import Attributes
 from pydnameth.config.config import Config
 from pydnameth.infrastucture.load.annotations import load_annotations_dict
 from pydnameth.infrastucture.path import get_data_base_path
-from pydnameth.config.annotations.types import AnnotationKey
 from tests.tear_down import clear_cache
 
 
@@ -27,16 +26,17 @@ class TestLoadAnnotations(unittest.TestCase):
             task=None,
             method=None,
         )
-
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(
@@ -68,65 +68,58 @@ class TestLoadAnnotations(unittest.TestCase):
     def tearDown(self):
         clear_cache(self.config)
 
-    def compare_cross_r_cpg(self, cpg_list, ann_dict):
-        compare = True
-        for cpg in cpg_list:
-            index = ann_dict[AnnotationKey.cpg.value].index(cpg)
-            if not ann_dict[AnnotationKey.cross_reactive.value][index]:
-                compare = False
-                break
-        return compare
-
     def test_load_annotations_dict_num_elems(self):
         annotations_dict = load_annotations_dict(self.config)
-        self.assertEqual(len(annotations_dict['ID_REF']), 300)
+        self.assertEqual(300, len(annotations_dict['ID_REF']), )
 
     def test_load_annotations_dict_num_keys(self):
         annotations_dict = load_annotations_dict(self.config)
-        self.assertEqual(len(list(annotations_dict.keys())), 10)
+        self.assertEqual(14, len(list(annotations_dict.keys())))
 
     def test_load_annotations_dict_num_chrs(self):
         annotations_dict = load_annotations_dict(self.config)
-        self.assertEqual(len(set(annotations_dict['CHR'])), 11)
+        all_elems = []
+        for elems in annotations_dict['CHR']:
+            for elem in elems:
+                all_elems.append(elem)
+        self.assertEqual(11, len(set(all_elems)))
 
     def test_load_annotations_dict_num_bops(self):
         annotations_dict = load_annotations_dict(self.config)
-        self.assertEqual(len(set(annotations_dict['BOP'])), 82)
+        all_elems = []
+        for elems in annotations_dict['BOP']:
+            for elem in elems:
+                all_elems.append(elem)
+        self.assertEqual(81, len(set(all_elems)))
 
     def test_load_annotations_check_pkl_file_creation(self):
         load_annotations_dict(self.config)
-
         create = os.path.isfile(get_data_base_path(self.config) + '/' + self.config.annotations.name + '.pkl')
-
         self.assertEqual(True, create)
 
     def test_load_annotations_num_cross_r_cpgs(self):
         annotations_dict = load_annotations_dict(self.config)
-
-        num_of_cross_r_cpg = sum(list(map(int, annotations_dict[AnnotationKey.cross_reactive.value])))
-
-        self.assertEqual(num_of_cross_r_cpg, 22)
-
-    def test_load_annotations_dict_compare_cross_r_cpg(self):
-        cross_r_cpg = ['cg03242964', 'cg06142509', 'cg06352932', 'cg07110474', 'cg07208077', 'cg07818063',
-                       'cg08555389', 'cg08683088', 'cg09720033', 'cg11032157', 'cg14502651', 'cg14829303',
-                       'cg14894369', 'cg18241189', 'cg20188490', 'cg20418818', 'cg21752292', 'cg22505295',
-                       'cg22805813', 'cg23146713', 'cg24653967', 'cg25677688']
-        annotations_dict = load_annotations_dict(self.config)
-
-        compare = self.compare_cross_r_cpg(cross_r_cpg, annotations_dict)
-
-        self.assertEqual(True, compare)
+        all_elems = []
+        for elems in annotations_dict['CROSS_R']:
+            all_elems.append(elems[0])
+        num_of_cross_r_cpg = sum(list(map(int, all_elems)))
+        self.assertEqual(22, num_of_cross_r_cpg)
 
     def test_load_annotations_dict_num_geo(self):
         annotations_dict = load_annotations_dict(self.config)
-        num_geo = len(set(annotations_dict[AnnotationKey.geo.value]))
-
-        self.assertEqual(6, num_geo)
+        all_elems = []
+        for elems in annotations_dict['RELATION_TO_UCSC_CPG_ISLAND']:
+            for elem in elems:
+                all_elems.append(elem)
+        self.assertEqual(5, len(set(all_elems)))
 
     def test_load_annotations_dict_num_class(self):
         annotations_dict = load_annotations_dict(self.config)
-        self.assertEqual(len(set(annotations_dict[AnnotationKey.probe_class.value])), 4)
+        all_elems = []
+        for elems in annotations_dict['Class']:
+            for elem in elems:
+                all_elems.append(elem)
+        self.assertEqual(4, len(set(all_elems)))
 
 
 if __name__ == '__main__':
