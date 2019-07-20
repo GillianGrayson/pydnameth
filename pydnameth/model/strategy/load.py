@@ -4,7 +4,7 @@ from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
 from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
 from pydnameth.infrastucture.load.betas_spec import load_betas_spec
-from pydnameth.infrastucture.load.residuals_common import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals_common
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
@@ -22,6 +22,7 @@ class LoadStrategy(metaclass=abc.ABCMeta):
         for config_child in configs_child:
             config_child.base_list = config.base_list
             config_child.base_dict = config.base_dict
+            config_child.base_missed_dict = config.base_missed_dict
             config_child.base_data = config.base_data
 
     def load_child(self, config_child):
@@ -47,6 +48,7 @@ class BetasLoadStrategy(LoadStrategy):
             load_betas(config)
             config.base_list = config.cpg_list
             config.base_dict = config.betas_dict
+            config.base_missed_dict = config.betas_missed_dict
             config.base_data = config.betas_data
 
             self.inherit_childs(config, configs_child)
@@ -65,6 +67,7 @@ class BetasAdjLoadStrategy(LoadStrategy):
             config.base_list = config.cpg_list
             config.base_dict = config.betas_adj_dict
             config.base_data = config.betas_adj_data
+            config.base_missed_dict = config.betas_adj_missed_dict
 
             self.inherit_childs(config, configs_child)
 
@@ -86,7 +89,7 @@ class BetasSpecLoadStrategy(LoadStrategy):
         load_betas_spec(config)
 
 
-class ResidualsCommonLoadStrategy(LoadStrategy):
+class ResidualsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         if config.is_init:
@@ -94,6 +97,7 @@ class ResidualsCommonLoadStrategy(LoadStrategy):
             config.base_list = config.cpg_list
             config.base_dict = config.residuals_dict
             config.base_data = config.residuals_data
+            config.base_missed_dict = config.residuals_missed_dict
 
             self.inherit_childs(config, configs_child)
 
@@ -111,6 +115,7 @@ class GenesLoadStrategy(LoadStrategy):
             config.base_list = config.genes_list
             config.base_dict = config.genes_dict
             config.base_data = config.genes_data
+            config.base_missed_dict = config.genes_missed_dict
 
             self.inherit_childs(config, configs_child)
 
@@ -118,12 +123,6 @@ class GenesLoadStrategy(LoadStrategy):
 
             for config_child in configs_child:
                 self.load_child(config_child)
-
-
-class ResidualsSpecialLoadStrategy(LoadStrategy):
-
-    def load(self, config, configs_child):
-        BetasLoadStrategy.load(self, config, configs_child)
 
 
 class EpimutationsLoadStrategy(LoadStrategy):
@@ -134,6 +133,7 @@ class EpimutationsLoadStrategy(LoadStrategy):
             config.base_list = config.epimutations_list
             config.base_dict = config.epimutations_dict
             config.base_data = config.epimutations_data
+            config.base_missed_dict = config.epimutations_missed_dict
 
             self.inherit_childs(config, configs_child)
 
@@ -154,6 +154,7 @@ class EntropyLoadStrategy(LoadStrategy):
             config.base_list = config.entropy_list
             config.base_dict = config.entropy_dict
             config.base_data = config.entropy_data
+            config.base_missed_dict = config.entropy_missed_dict
 
             self.inherit_childs(config, configs_child)
 
@@ -177,6 +178,7 @@ class CellsLoadStrategy(LoadStrategy):
             config.base_list = config.cells_list
             config.base_dict = config.cells_dict
             config.base_data = config.cells_dict
+            config.base_missed_dict = {'any':[]}
 
             self.inherit_childs(config, configs_child)
 

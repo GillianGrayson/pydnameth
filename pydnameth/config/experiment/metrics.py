@@ -8,8 +8,7 @@ def get_method_metrics_keys(config):
                                   DataType.betas_adj,
                                   DataType.epimutations,
                                   DataType.entropy,
-                                  DataType.residuals_common,
-                                  DataType.residuals_special,
+                                  DataType.residuals,
                                   DataType.cells,
                                   DataType.genes]:
 

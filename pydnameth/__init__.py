@@ -77,11 +77,6 @@ from pydnameth.scripts.develop.residuals_common.table import \
     residuals_common_table_aggregator_linreg,\
     residuals_common_table_aggregator_variance
 
-from pydnameth.scripts.develop.residuals_special.plot import \
-    residuals_special_plot_scatter
-from pydnameth.scripts.develop.residuals_special.table import \
-    residuals_special_table_aggregator
-
 from pydnameth.scripts.develop.genes.plot import \
     genes_plot_scatter, \
     genes_plot_scatter_comparison

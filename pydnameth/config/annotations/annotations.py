@@ -14,6 +14,8 @@ class Annotations:
         self.exclude = exclude
         self.select_dict = select_dict
 
+        self.missed_values = ['NA', 'nan']
+
         self.positive_dict = {}
         self.negative_dict = {}
 

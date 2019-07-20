@@ -85,9 +85,9 @@ class TestGetStrategy(unittest.TestCase):
         load_strategy.load(self.config, [])
 
         get_strategy = BetasGetStrategy()
-        single_base = get_strategy.get_single_base(self.config, ['cg00001249', 'cg00001261', 'cg00001269'])
+        single_base = get_strategy.get_single_base(self.config, 'cg00001249')
 
-        self.assertEqual((3, 341), single_base.shape)
+        self.assertEqual((341,), single_base.shape)
 
     def test_betas_get_strategy_check_aux(self):
         load_strategy = BetasLoadStrategy()
