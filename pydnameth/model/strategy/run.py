@@ -173,7 +173,7 @@ class ClockRunStrategy(RunStrategy):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals,]:
+                                      DataType.residuals]:
 
             if config.experiment.method == Method.linreg:
 

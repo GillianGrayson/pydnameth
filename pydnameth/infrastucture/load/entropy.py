@@ -35,19 +35,16 @@ def load_entropy(config):
             load_betas(config)
             data = config.betas_data
             data_dict = config.betas_dict
-            data_missed_dict = config.betas_missed_dict
         elif data_params['data'] == 'betas_adj':
             config.experiment.data_params.pop('data')
             load_betas_adj(config)
             data = config.betas_adj_data
             data_dict = config.betas_adj_dict
-            data_missed_dict = config.betas_adj_missed_dict
         elif data_params['data'] == 'residuals':
             config.experiment.data_params.pop('data')
             load_residuals_common(config)
             data = config.residuals_data
             data_dict = config.residuals_dict
-            data_missed_dict = config.residuals_missed_dict
         else:
             raise ValueError(f'Unsupported data for entropy.')
 
