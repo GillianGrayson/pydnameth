@@ -124,10 +124,14 @@ class ObservablesGetStrategy(GetStrategy):
 
 class CellsGetStrategy(GetStrategy):
 
-    def get_single_base(self, config, items):
-        data = []
-        for item in items:
-            data.append(config.cells_dict[item])
+    def get_single_base(self, config, item):
+        if len(config.base_missed_dict[item]) > 0:
+            data = []
+            for col in config.attributes_indexes:
+                if col not in config.base_missed_dict[item]:
+                    data.append(config.cells_dict[item][col])
+        else:
+            data = config.cells_dict[item]
         return data
 
     def get_aux(self, config, item):

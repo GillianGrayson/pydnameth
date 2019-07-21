@@ -16,7 +16,7 @@ def load_epimutations(config):
 
     config.epimutations_list = ['epimutations']
     config.epimutations_dict = {'epimutations': 0}
-    config.epimutations_missed_dict = {'any': []}
+    config.epimutations_missed_dict = {'epimutations': []}
 
     config.experiment.data_params = {}
     load_betas(config)
@@ -32,7 +32,7 @@ def load_epimutations(config):
         num_subjects = config.betas_data.shape[1]
         config.epimutations_data = np.zeros((num_cpgs, num_subjects), dtype=np.int)
 
-        for cpg, row in tqdm(config.betas_dict.items(), mininterval=60.0):
+        for cpg, row in tqdm(config.betas_dict.items(), mininterval=60.0, desc='epimutations_data creating'):
 
             betas_raw = config.betas_data[row, :]
             if len(config.betas_missed_dict[cpg]) > 0:

@@ -21,7 +21,7 @@ def load_entropy(config):
 
     config.entropy_list = ['entropy']
     config.entropy_dict = {'entropy': 0}
-    config.entropy_missed_dict = {'any': []}
+    config.entropy_missed_dict = {'entropy': []}
 
     if os.path.isfile(fn_data):
 

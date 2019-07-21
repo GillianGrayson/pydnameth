@@ -178,7 +178,7 @@ class CellsLoadStrategy(LoadStrategy):
             config.base_list = config.cells_list
             config.base_dict = config.cells_dict
             config.base_data = config.cells_dict
-            config.base_missed_dict = {'any': []}
+            config.base_missed_dict = config.cells_missed_dict
 
             self.inherit_childs(config, configs_child)
 
