@@ -19,9 +19,9 @@
     :target: https://lgtm.com/projects/g/AaronBlare/pydnameth/context:python
     :alt: LGTM code quality
 
-.. image:: https://pyup.io/repos/github/AaronBlare/pydnameth/shield.svg
-    :target: https://pyup.io/repos/github/AaronBlare/pydnameth/
-    :alt: Updates
+.. image:: https://api.dependabot.com/badges/status?host=github&repo=AaronBlare/pydnameth
+    :target: https://dependabot.com
+    :alt: Dependabot status
 
 .. image:: https://readthedocs.org/projects/pydnameth/badge/?version=latest
     :target: https://pydnameth.readthedocs.io/en/latest/?badge=latest
