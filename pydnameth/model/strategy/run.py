@@ -281,6 +281,10 @@ class PlotRunStrategy(RunStrategy):
                 print(item)
                 config.experiment_data['item'].append(item)
                 self.single(item, config, configs_child)
+            else:
+                if 'type' in config.experiment.task_params:
+                    if config.experiment.task_params['type'] == 'prepare':
+                        config.experiment_data['data'].append([])
 
     def run(self, config, configs_child):
 

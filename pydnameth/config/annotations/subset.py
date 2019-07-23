@@ -112,3 +112,26 @@ def subset_annotations(config):
             f = open(aux_data_fn, 'wb')
             pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
+
+    elif config.annotations.type == 'epityper':
+
+        if os.path.isfile(aux_data_fn):
+            f = open(aux_data_fn, 'rb')
+            aux_data = pickle.load(f)
+            f.close()
+            config.cpg_list = aux_data['cpg_list']
+        else:
+            config.cpg_list = []
+            cpgs_all = config.annotations_dict[config.annotations.id_name]
+            for index, cpg in enumerate(cpgs_all):
+                cpg = cpgs_all[index][0]
+                config.cpg_list.append(cpg)
+
+            aux_data = {
+                'cpg_list': config.cpg_list,
+            }
+
+            f = open(aux_data_fn, 'wb')
+            pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
