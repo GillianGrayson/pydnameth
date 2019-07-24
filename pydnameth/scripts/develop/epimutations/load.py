@@ -18,13 +18,11 @@ def epimutations_load(data):
         ),
         annotations=Annotations(
             name='annotations',
+            type='450k',
             exclude='bad_cpgs',
-            cross_reactive='any',
-            snp='any',
-            chr='NS',
-            gene_region='any',
-            geo='any',
-            probe_class='any'
+            select_dict={
+                'CHR': ['-X', '-Y']
+            }
         ),
         attributes=Attributes(
             target=None,
