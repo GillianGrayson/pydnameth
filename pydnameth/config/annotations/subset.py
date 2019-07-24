@@ -134,4 +134,3 @@ def subset_annotations(config):
             f = open(aux_data_fn, 'wb')
             pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
-
