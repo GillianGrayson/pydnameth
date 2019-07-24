@@ -10,7 +10,7 @@ def residuals_common_table_aggregator_linreg(
     data_params,
 ):
     table_aggregator_linreg(
-        DataType.residuals_common,
+        DataType.residuals,
         data,
         annotations,
         attributes,
@@ -27,7 +27,7 @@ def residuals_common_table_aggregator_variance(
     data_params,
 ):
     table_aggregator_variance(
-        DataType.residuals_common,
+        DataType.residuals,
         data,
         annotations,
         attributes,

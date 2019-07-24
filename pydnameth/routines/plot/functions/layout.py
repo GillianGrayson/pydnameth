@@ -7,15 +7,14 @@ def get_layout(config, title_text=''):
     layout = None
 
     if config.experiment.data in [DataType.betas,
-                                  DataType.residuals_common,
-                                  DataType.residuals_special,
+                                  DataType.residuals,
                                   DataType.epimutations,
                                   DataType.entropy,
                                   DataType.cells,
                                   DataType.genes]:
 
         y_title = 'Methylation level'
-        if config.experiment.data in [DataType.residuals_common, DataType.residuals_special]:
+        if config.experiment.data in [DataType.residuals]:
             y_title = 'Residuals'
         if config.experiment.data == DataType.epimutations:
             y_title = 'log(SEM number)'

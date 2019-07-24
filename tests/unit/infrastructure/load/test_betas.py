@@ -30,13 +30,15 @@ class TestLoadCpG(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(

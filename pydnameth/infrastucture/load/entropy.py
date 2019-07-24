@@ -1,11 +1,12 @@
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
-from pydnameth.infrastucture.load.residuals_common import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals_common
 from pydnameth.infrastucture.path import get_cache_path
 import numpy as np
 import copy
 import os.path
 from tqdm import tqdm
+import math
 
 
 def load_entropy(config):
@@ -20,6 +21,7 @@ def load_entropy(config):
 
     config.entropy_list = ['entropy']
     config.entropy_dict = {'entropy': 0}
+    config.entropy_missed_dict = {'entropy': []}
 
     if os.path.isfile(fn_data):
 
@@ -38,7 +40,7 @@ def load_entropy(config):
             load_betas_adj(config)
             data = config.betas_adj_data
             data_dict = config.betas_adj_dict
-        elif data_params['data'] == 'residuals_common':
+        elif data_params['data'] == 'residuals':
             config.experiment.data_params.pop('data')
             load_residuals_common(config)
             data = config.residuals_data
@@ -56,8 +58,11 @@ def load_entropy(config):
             entropy = 0.0
             outliers = 0
             for val in values:
-                if 0.0 < val < 1.0:
-                    entropy += val * np.log2(val) + (1.0 - val) * np.log2(1.0 - val)
+                if not math.isnan(val):
+                    if 0.0 < val < 1.0:
+                        entropy += val * np.log2(val) + (1.0 - val) * np.log2(1.0 - val)
+                    else:
+                        outliers += 1
                 else:
                     outliers += 1
             entropy /= ((len(values) - outliers) * np.log2(0.5))

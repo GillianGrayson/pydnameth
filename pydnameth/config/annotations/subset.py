@@ -1,6 +1,6 @@
 from pydnameth.infrastucture.path import get_cache_path
-from pydnameth.config.annotations.conditions import check_conditions
-from pydnameth.config.annotations.types import AnnotationKey
+from pydnameth.config.annotations.conditions import global_check
+import copy
 import os.path
 import pickle
 import numpy as np
@@ -9,98 +9,128 @@ import numpy as np
 def subset_annotations(config):
     aux_data_fn = get_cache_path(config) + '/' + 'aux_data.pkl'
 
-    if os.path.isfile(aux_data_fn):
-        f = open(aux_data_fn, 'rb')
-        aux_data = pickle.load(f)
-        f.close()
-        config.cpg_list = aux_data['cpg_list']
-        config.cpg_gene_dict = aux_data['cpg_gene_dict']
-        config.cpg_bop_dict = aux_data['cpg_bop_dict']
-        config.gene_cpg_dict = aux_data['gene_cpg_dict']
-        config.gene_bop_dict = aux_data['gene_bop_dict']
-        config.bop_cpg_dict = aux_data['bop_cpg_dict']
-        config.bop_gene_dict = aux_data['bop_gene_dict']
-    else:
-        config.cpg_list = []
-        config.cpg_gene_dict = {}
-        config.cpg_bop_dict = {}
-        config.gene_cpg_dict = {}
-        config.gene_bop_dict = {}
-        config.bop_cpg_dict = {}
-        config.bop_gene_dict = {}
+    if config.annotations.type == '450k':
 
-        cpgs = config.annotations_dict[AnnotationKey.cpg.value]
-        genes = config.annotations_dict[AnnotationKey.gene.value]
-        bops = config.annotations_dict[AnnotationKey.bop.value]
-        map_infos = config.annotations_dict[AnnotationKey.map_info.value]
+        if os.path.isfile(aux_data_fn):
+            f = open(aux_data_fn, 'rb')
+            aux_data = pickle.load(f)
+            f.close()
+            config.cpg_list = aux_data['cpg_list']
+            config.cpg_gene_dict = aux_data['cpg_gene_dict']
+            config.cpg_bop_dict = aux_data['cpg_bop_dict']
+            config.gene_cpg_dict = aux_data['gene_cpg_dict']
+            config.gene_bop_dict = aux_data['gene_bop_dict']
+            config.bop_cpg_dict = aux_data['bop_cpg_dict']
+            config.bop_gene_dict = aux_data['bop_gene_dict']
+            config.cpg_map_info_dict = aux_data['cpg_map_info_dict']
+        else:
+            config.cpg_list = []
+            config.cpg_gene_dict = {}
+            config.cpg_bop_dict = {}
+            config.gene_cpg_dict = {}
+            config.gene_bop_dict = {}
+            config.bop_cpg_dict = {}
+            config.bop_gene_dict = {}
+            config.cpg_map_info_dict = {}
 
-        for id in range(0, len(cpgs)):
+            cpgs_all = config.annotations_dict[config.annotations.id_name]
+            genes_all = config.annotations_dict['UCSC_REFGENE_NAME']
+            bops_all = config.annotations_dict['BOP']
+            map_infos_all = config.annotations_dict['MAPINFO']
 
-            curr_ann_dict = {}
-            for key in config.annotations_dict:
-                curr_ann_dict[key] = config.annotations_dict[key][id]
+            for index, cpg in enumerate(cpgs_all):
 
-            if check_conditions(config, curr_ann_dict):
+                if global_check(config, index):
 
-                cpg = cpgs[id]
+                    cpg = cpgs_all[index][0]
+                    config.cpg_list.append(cpg)
+
+                    map_info = map_infos_all[index][0]
+                    if map_info == 'NA':
+                        map_info = '0'
+                    config.cpg_map_info_dict[cpg] = int(map_info)
+
+                    genes = genes_all[index]
+                    if len(genes) > 0:
+                        config.cpg_gene_dict[cpg] = genes
+                        for gene in genes:
+                            if gene in config.gene_cpg_dict:
+                                config.gene_cpg_dict[gene].append(cpg)
+                            else:
+                                config.gene_cpg_dict[gene] = [cpg]
+
+                    bops = bops_all[index]
+                    if len(bops) > 0:
+                        config.cpg_bop_dict[cpg] = bops
+                        for bop in bops:
+                            if bop in config.bop_cpg_dict:
+                                config.bop_cpg_dict[bop].append(cpg)
+                            else:
+                                config.bop_cpg_dict[bop] = [cpg]
+
+                    if len(genes) > 0 and len(bops) > 0:
+                        for gene in genes:
+                            if gene in config.gene_bop_dict:
+                                config.gene_bop_dict[gene] += bops
+                            else:
+                                config.gene_bop_dict[gene] = copy.deepcopy(bops)
+                        for bop in bops:
+                            if bop in config.bop_gene_dict:
+                                config.bop_gene_dict[bop] += genes
+                            else:
+                                config.bop_gene_dict[bop] = copy.deepcopy(genes)
+
+            # Sorting cpgs by map_info in gene dict
+            for gene, cpgs in config.gene_cpg_dict.items():
+                map_infos = []
+                for cpg in cpgs:
+                    map_infos.append(int(config.cpg_map_info_dict[cpg]))
+                order = np.argsort(map_infos)
+                cpgs_sorted = list(np.array(cpgs)[order])
+                config.gene_cpg_dict[gene] = cpgs_sorted
+
+            # Sorting cpgs by map_info in bop dict
+            for bop, cpgs in config.bop_cpg_dict.items():
+                map_infos = []
+                for cpg in cpgs:
+                    map_infos.append(int(config.cpg_map_info_dict[cpg]))
+                order = np.argsort(map_infos)
+                cpgs_sorted = list(np.array(cpgs)[order])
+                config.bop_cpg_dict[bop] = cpgs_sorted
+
+            aux_data = {
+                'cpg_list': config.cpg_list,
+                'cpg_gene_dict': config.cpg_gene_dict,
+                'cpg_bop_dict': config.cpg_bop_dict,
+                'gene_cpg_dict': config.gene_cpg_dict,
+                'gene_bop_dict': config.gene_bop_dict,
+                'bop_cpg_dict': config.bop_cpg_dict,
+                'bop_gene_dict': config.bop_gene_dict,
+                'cpg_map_info_dict': config.cpg_map_info_dict
+            }
+
+            f = open(aux_data_fn, 'wb')
+            pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
+    elif config.annotations.type == 'epityper':
+
+        if os.path.isfile(aux_data_fn):
+            f = open(aux_data_fn, 'rb')
+            aux_data = pickle.load(f)
+            f.close()
+            config.cpg_list = aux_data['cpg_list']
+        else:
+            config.cpg_list = []
+            cpgs_all = config.annotations_dict[config.annotations.id_name]
+            for index, cpg in enumerate(cpgs_all):
+                cpg = cpgs_all[index][0]
                 config.cpg_list.append(cpg)
 
-                gene_raw = genes[id]
-                if gene_raw != '':
-                    curr_genes = list(set(gene_raw.split(';')))
-                    config.cpg_gene_dict[cpg] = curr_genes
-                    for gene in curr_genes:
-                        if gene in config.gene_cpg_dict:
-                            config.gene_cpg_dict[gene].append(cpg)
-                        else:
-                            config.gene_cpg_dict[gene] = [cpg]
+            aux_data = {
+                'cpg_list': config.cpg_list,
+            }
 
-                bop = bops[id]
-                if bop != '':
-                    config.cpg_bop_dict[cpg] = bop
-                    if bop in config.bop_cpg_dict:
-                        config.bop_cpg_dict[bop].append(cpg)
-                    else:
-                        config.bop_cpg_dict[bop] = [cpg]
-
-                if gene_raw != '' and bop != '':
-                    for gene in curr_genes:
-                        if gene in config.gene_bop_dict:
-                            config.gene_bop_dict[gene].append(bop)
-                        else:
-                            config.gene_bop_dict[gene] = [bop]
-                    config.bop_gene_dict[bop] = curr_genes
-
-        # Sorting cpgs by map_info in gene dict
-        for curr_gene, curr_cpgs in config.gene_cpg_dict.items():
-            curr_map_infos = []
-            for curr_cpg in curr_cpgs:
-                cpg_index = cpgs.index(curr_cpg)
-                curr_map_infos.append(int(map_infos[cpg_index]))
-            order = np.argsort(curr_map_infos)
-            curr_cpgs_sorted = list(np.array(curr_cpgs)[order])
-            config.gene_cpg_dict[curr_gene] = curr_cpgs_sorted
-
-        # Sorting cpgs by map_info in bop dict
-        for curr_bop, curr_cpgs in config.bop_cpg_dict.items():
-            curr_map_infos = []
-            for curr_cpg in curr_cpgs:
-                cpg_index = cpgs.index(curr_cpg)
-                curr_map_infos.append(int(map_infos[cpg_index]))
-            order = np.argsort(curr_map_infos)
-            curr_cpgs_sorted = list(np.array(curr_cpgs)[order])
-            config.bop_cpg_dict[curr_bop] = curr_cpgs_sorted
-
-        aux_data = {
-            'cpg_list': config.cpg_list,
-            'cpg_gene_dict': config.cpg_gene_dict,
-            'cpg_bop_dict': config.cpg_bop_dict,
-            'gene_cpg_dict': config.gene_cpg_dict,
-            'gene_bop_dict': config.gene_bop_dict,
-            'bop_cpg_dict': config.bop_cpg_dict,
-            'bop_gene_dict': config.bop_gene_dict,
-        }
-
-        f = open(aux_data_fn, 'wb')
-        pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
+            f = open(aux_data_fn, 'wb')
+            pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
