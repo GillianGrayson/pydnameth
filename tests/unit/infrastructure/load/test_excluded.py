@@ -30,13 +30,15 @@ class TestLoadCpG(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(
@@ -68,20 +70,13 @@ class TestLoadCpG(unittest.TestCase):
     def tearDown(self):
         clear_cache(self.config)
 
-    def test_load_excluded_check_none_excluded(self):
-        self.assertEqual([], load_excluded(self.config))
-
     def test_load_excluded_check_pkl_creation(self):
         self.config.annotations.exclude = 'excluded'
         fn = get_data_base_path(self.config) + '/' + self.config.annotations.exclude + '.pkl'
-
         self.config.excluded = load_excluded(self.config)
-
         self.assertEqual(True, os.path.isfile(fn))
 
     def test_load_excluded_check_len_excluded(self):
         self.config.annotations.exclude = 'excluded'
-
         self.config.excluded = load_excluded(self.config)
-
         self.assertEqual(3, len(self.config.excluded))

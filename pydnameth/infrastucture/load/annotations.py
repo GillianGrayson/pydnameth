@@ -1,5 +1,4 @@
 from pydnameth.infrastucture.path import get_data_base_path
-from pydnameth.config.annotations.types import AnnotationKey
 import os.path
 import pickle
 
@@ -17,7 +16,6 @@ def load_annotations_dict(config):
 
     else:
 
-        possible_keys = [x.value for x in AnnotationKey]
         f = open(fn_txt)
         key_line = f.readline()
         keys = key_line.split('\t')
@@ -25,15 +23,18 @@ def load_annotations_dict(config):
 
         annotations_dict = {}
         for key in keys:
-            if key in possible_keys:
-                annotations_dict[key] = []
+            annotations_dict[key] = []
 
         for line in f:
             values = line.split('\t')
-            for key_id in range(0, len(keys)):
-                key = keys[key_id]
-                if key in possible_keys:
-                    annotations_dict[key].append(values[key_id].rstrip())
+            for key_id, key in enumerate(keys):
+                values_for_key = values[key_id].rstrip()
+                if values_for_key == '':
+                    annotations_dict[key].append([])
+                else:
+                    values_for_key = values_for_key.split(';')
+                    values_for_key = list(set(values_for_key))
+                    annotations_dict[key].append(values_for_key)
         f.close()
 
         f = open(fn_pkl, 'wb')

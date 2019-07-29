@@ -38,13 +38,16 @@ class TestContext(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
+            type='450k',
             exclude='excluded',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='A_B'
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+                'Class': ['ClassA', 'ClassB']
+            }
         )
 
         observables = Observables(

@@ -24,13 +24,16 @@ class TestGetStrategy(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
+            type='450k',
             exclude='excluded',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+                'Class': ['ClassA', 'ClassB']
+            }
         )
 
         observables = Observables(
@@ -82,9 +85,9 @@ class TestGetStrategy(unittest.TestCase):
         load_strategy.load(self.config, [])
 
         get_strategy = BetasGetStrategy()
-        single_base = get_strategy.get_single_base(self.config, ['cg00001249', 'cg00001261', 'cg00001269'])
+        single_base = get_strategy.get_single_base(self.config, 'cg00001249')
 
-        self.assertEqual((3, 341), single_base.shape)
+        self.assertEqual((341,), single_base.shape)
 
     def test_betas_get_strategy_check_aux(self):
         load_strategy = BetasLoadStrategy()

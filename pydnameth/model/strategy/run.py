@@ -46,14 +46,14 @@ class TableRunStrategy(RunStrategy):
 
         if config.experiment.method == Method.linreg:
 
-            x = self.get_strategy.get_target(config)
-            y = self.get_strategy.get_single_base(config, [item])[0]
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
             process_linreg(x, y, config.metrics)
 
         elif config.experiment.method == Method.cluster:
 
-            x = self.get_strategy.get_target(config)
-            y = self.get_strategy.get_single_base(config, [item])[0]
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
             process_cluster(x, y, config.experiment.method_params, config.metrics)
 
         elif config.experiment.method == Method.polygon:
@@ -63,8 +63,8 @@ class TableRunStrategy(RunStrategy):
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-                x = self.get_strategy.get_target(config_child)
-                y = self.get_strategy.get_single_base(config_child, [item])[0]
+                x = self.get_strategy.get_target(config_child, item)
+                y = self.get_strategy.get_single_base(config_child, item)
                 xs.append(x)
                 ys.append(y)
 
@@ -97,8 +97,8 @@ class TableRunStrategy(RunStrategy):
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-                x = self.get_strategy.get_target(config_child)
-                y = self.get_strategy.get_single_base(config_child, [item])[0]
+                x = self.get_strategy.get_target(config_child, item)
+                y = self.get_strategy.get_single_base(config_child, item)
                 x_all += x
                 y_all += y
                 category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
@@ -120,8 +120,8 @@ class TableRunStrategy(RunStrategy):
 
         elif config.experiment.method == Method.variance:
 
-            x = self.get_strategy.get_target(config)
-            y = self.get_strategy.get_single_base(config, [item])[0]
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
 
             semi_window = config.experiment.method_params['semi_window']
             box_b = config.experiment.method_params['box_b']
@@ -152,8 +152,7 @@ class TableRunStrategy(RunStrategy):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special,
+                                      DataType.residuals,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,
@@ -174,8 +173,7 @@ class ClockRunStrategy(RunStrategy):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special]:
+                                      DataType.residuals]:
 
             if config.experiment.method == Method.linreg:
 
@@ -263,8 +261,8 @@ class PlotRunStrategy(RunStrategy):
         ys = []
         names = []
         for config_child in configs_child:
-            xs.append(self.get_strategy.get_target(config_child))
-            ys.append(self.get_strategy.get_single_base(config_child, [item])[0])
+            xs.append(self.get_strategy.get_target(config_child, item))
+            ys.append(self.get_strategy.get_single_base(config_child, item))
             names.append(get_names(config_child, config.experiment.method_params))
 
         if config.experiment.method == Method.scatter:
@@ -283,13 +281,16 @@ class PlotRunStrategy(RunStrategy):
                 print(item)
                 config.experiment_data['item'].append(item)
                 self.single(item, config, configs_child)
+            else:
+                if 'type' in config.experiment.task_params:
+                    if config.experiment.task_params['type'] == 'prepare':
+                        config.experiment_data['data'].append([])
 
     def run(self, config, configs_child):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special,
+                                      DataType.residuals,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,

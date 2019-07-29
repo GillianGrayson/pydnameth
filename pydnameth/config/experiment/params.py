@@ -6,8 +6,7 @@ def get_default_method_params(config):
 
     if config.experiment.data in [DataType.betas,
                                   DataType.betas_adj,
-                                  DataType.residuals_common,
-                                  DataType.residuals_special,
+                                  DataType.residuals,
                                   DataType.genes]:
 
         if config.experiment.task == Task.table:
