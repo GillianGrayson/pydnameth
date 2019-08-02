@@ -75,8 +75,10 @@ def get_indexes(config):
 def subset_attributes(config):
     for key in config.attributes_dict:
         values = config.attributes_dict[key]
-        values = list(np.array(values)[config.attributes_indexes])
-        config.attributes_dict[key] = values
+        passed_values = []
+        for index in config.attributes_indexes:
+            passed_values.append(values[index])
+        config.attributes_dict[key] = passed_values
 
 
 def subset_cells(config):

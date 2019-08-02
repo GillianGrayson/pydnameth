@@ -13,13 +13,9 @@ def betas_horvath_calculator_create_regular(
 ):
     annotations = Annotations(
         name='annotations',
-        exclude='bad_cpgs',
-        cross_reactive='any',
-        snp='any',
-        chr='NS',
-        gene_region='any',
-        geo='any',
-        probe_class='any'
+        type='450k',
+        exclude='none',
+        select_dict={}
     )
 
     cells = Cells(

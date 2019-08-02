@@ -8,7 +8,7 @@ from pydnameth.config.attributes.attributes import Observables
 from pydnameth.config.attributes.attributes import Cells
 from pydnameth.config.attributes.attributes import Attributes
 from pydnameth.config.config import Config
-from pydnameth.infrastucture.load.residuals_common import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals_common
 from tests.tear_down import clear_cache
 from pydnameth.infrastucture.path import get_data_base_path
 
@@ -33,13 +33,15 @@ class TestLoadResidualsCommon(unittest.TestCase):
 
         annotations = Annotations(
             name='annotations',
-            exclude='none',
-            cross_reactive='ex',
-            snp='ex',
-            chr='NS',
-            gene_region='yes',
-            geo='any',
-            probe_class='any'
+            type='450k',
+            exclude='excluded',
+            select_dict={
+                'CROSS_R': ['0'],
+                'Probe_SNPs': ['empty'],
+                'Probe_SNPs_10': ['empty'],
+                'CHR': ['-X', '-Y'],
+                'UCSC_REFGENE_NAME': ['non-empty'],
+            }
         )
 
         observables = Observables(
@@ -70,8 +72,8 @@ class TestLoadResidualsCommon(unittest.TestCase):
 
     def test_load_residuals_check_files_creation(self):
         suffix = '_' + self.config.experiment.get_data_params_str()
-        fn_dict = get_data_base_path(self.config) + '/' + 'residuals_common_dict.pkl'
-        fn_data = get_data_base_path(self.config) + '/' + 'residuals_common' + suffix + '.npz'
+        fn_dict = get_data_base_path(self.config) + '/' + 'residuals_dict' + suffix + '.pkl'
+        fn_data = get_data_base_path(self.config) + '/' + 'residuals' + suffix + '.npz'
 
         load_residuals_common(self.config)
 

@@ -23,5 +23,3 @@ def save_table_dict(fn, table_dict):
     writer.book.use_zip64()
     df.to_excel(writer, index=False)
     writer.save()
-
-    save_table_dict_csv(fn, table_dict)

@@ -46,6 +46,8 @@ def load_betas_spec(config):
             if cpg in config.betas_dict:
                 cpg_row_id = config.betas_dict[cpg]
                 curr_betas = list(np.array(config.betas_data[cpg_row_id])[indexes])
+                for missed_id in config.betas_missed_dict[cpg]:
+                    curr_betas[missed_id] = 'NaN'
                 line = [cpg] + curr_betas
                 betas[row_id] = line
             else:

@@ -20,8 +20,7 @@ class TableReleaseStrategy(ReleaseStrategy):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals_common,
-                                      DataType.residuals_special,
+                                      DataType.residuals,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells]:
@@ -48,8 +47,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
             if config.experiment.data in [
                 DataType.betas,
                 DataType.betas_adj,
-                DataType.residuals_common,
-                DataType.residuals_special,
+                DataType.residuals,
                 DataType.epimutations,
                 DataType.entropy,
                 DataType.cells,
@@ -62,8 +60,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         if config.experiment.data in [
                             DataType.betas,
                             DataType.betas_adj,
-                            DataType.residuals_common,
-                            DataType.residuals_special,
+                            DataType.residuals,
                         ]:
                             if items in config.cpg_gene_dict:
                                 aux = config.cpg_gene_dict[items]
@@ -116,7 +113,12 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 elif config.experiment.method == Method.scatter_comparison:
 
                     x_num = len(configs_child)
-                    x_begin = 0.075
+                    if x_num == 3:
+                        x_begin = 0.11
+                    elif x_num == 2:
+                        x_begin = 0.2
+                    else:
+                        x_begin = 0.075
                     x_end = 1
                     x_shift = (x_end - x_begin) / x_num
                     x_size = x_shift - 0.01
@@ -161,7 +163,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     item.yaxis = y_string
 
                                     if item.mode == 'markers':
-                                        item.marker.size = 1
+                                        item.marker.size = 1.5
                                         item.marker.line.width = 0.2
                                     if item.mode == 'lines':
                                         item.line.width = 1
@@ -175,7 +177,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     items.marker.size = 1
                                     items.marker.line.width = 0.2
                                 if items.mode == 'lines':
-                                    items.line.width = 1
+                                    items.line.width = 2
 
                                 config.experiment_data['data'].append(items)
 
@@ -260,8 +262,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                         if config.experiment.data in [
                             DataType.betas,
                             DataType.betas_adj,
-                            DataType.residuals_common,
-                            DataType.residuals_special
+                            DataType.residuals,
                         ]:
                             if 'aux' in config.experiment.method_params:
                                 aux = config.experiment.method_params['aux'][y_id]

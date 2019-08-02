@@ -12,7 +12,7 @@ def residuals_common_plot_scatter(
     method_params=None
 ):
     plot_scatter(
-        DataType.residuals_common,
+        DataType.residuals,
         data,
         annotations,
         attributes,
@@ -35,7 +35,7 @@ def residuals_common_plot_scatter_comparison(
     method_params=None,
 ):
     plot_scatter_comparison(
-        data_type=DataType.residuals_common,
+        data_type=DataType.residuals,
         data_list=data_list,
         annotations_list=annotations_list,
         attributes_list=attributes_list,

@@ -4,8 +4,7 @@ from pydnameth.model.strategy.load import BetasHorvathCalculatorLoadStrategy
 from pydnameth.model.strategy.load import BetasSpecLoadStrategy
 from pydnameth.model.strategy.load import ObservablesLoadStrategy
 from pydnameth.model.strategy.load import CellsLoadStrategy
-from pydnameth.model.strategy.load import ResidualsCommonLoadStrategy
-from pydnameth.model.strategy.load import ResidualsSpecialLoadStrategy
+from pydnameth.model.strategy.load import ResidualsLoadStrategy
 from pydnameth.model.strategy.load import EpimutationsLoadStrategy
 from pydnameth.model.strategy.load import EntropyLoadStrategy
 from pydnameth.model.strategy.load import GenesLoadStrategy
@@ -15,8 +14,7 @@ from pydnameth.model.strategy.get import BetasHorvathCalculatorGetStrategy
 from pydnameth.model.strategy.get import BetasSpecGetStrategy
 from pydnameth.model.strategy.get import CellsGetStrategy
 from pydnameth.model.strategy.get import ObservablesGetStrategy
-from pydnameth.model.strategy.get import ResidualsCommonGetStrategy
-from pydnameth.model.strategy.get import ResidualsSpecialGetStrategy
+from pydnameth.model.strategy.get import ResidualsGetStrategy
 from pydnameth.model.strategy.get import EpimutationsGetStrategy
 from pydnameth.model.strategy.get import EntropyGetStrategy
 from pydnameth.model.strategy.get import GenesGetStrategy
@@ -54,10 +52,8 @@ class Context:
             self.load_strategy = BetasSpecLoadStrategy()
         elif config.experiment.data == DataType.observables:
             self.load_strategy = ObservablesLoadStrategy()
-        elif config.experiment.data == DataType.residuals_common:
-            self.load_strategy = ResidualsCommonLoadStrategy()
-        elif config.experiment.data == DataType.residuals_special:
-            self.load_strategy = ResidualsSpecialLoadStrategy()
+        elif config.experiment.data == DataType.residuals:
+            self.load_strategy = ResidualsLoadStrategy()
         elif config.experiment.data == DataType.epimutations:
             self.load_strategy = EpimutationsLoadStrategy()
         elif config.experiment.data == DataType.entropy:
@@ -77,10 +73,8 @@ class Context:
             self.get_strategy = BetasSpecGetStrategy()
         elif config.experiment.data == DataType.observables:
             self.get_strategy = ObservablesGetStrategy()
-        elif config.experiment.data == DataType.residuals_common:
-            self.get_strategy = ResidualsCommonGetStrategy()
-        elif config.experiment.data == DataType.residuals_special:
-            self.get_strategy = ResidualsSpecialGetStrategy()
+        elif config.experiment.data == DataType.residuals:
+            self.get_strategy = ResidualsGetStrategy()
         elif config.experiment.data == DataType.epimutations:
             self.get_strategy = EpimutationsGetStrategy()
         elif config.experiment.data == DataType.entropy:
