@@ -14,6 +14,7 @@ def betas_plot_scatter(
     attributes,
     observables_list,
     child_method=Method.linreg,
+    data_params=None,
     method_params=None
 ):
     """
@@ -39,6 +40,7 @@ def betas_plot_scatter(
         attributes=attributes,
         observables_list=observables_list,
         child_method=child_method,
+        data_params=data_params,
         method_params=method_params
     )
 
