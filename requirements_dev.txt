@@ -6,7 +6,7 @@ flake8==3.7.8
 tox==3.14.0
 coverage==4.5.4
 Sphinx==2.2.0
-twine==1.14.0
+twine==1.15.0
 numpy==1.17.2
 pandas==0.25.1
 plotly==4.1.1
@@ -19,9 +19,9 @@ sphinx-rtd-theme==0.4.3
 patsy==0.5.1
 geos==0.2.2
 xlrd==1.2.0
-XlsxWriter==1.2.0
+XlsxWriter==1.2.1
 psutil==5.6.3
 coverage==4.5.4
 codecov==2.0.15
 anytree==2.6.0
-tqdm==4.35.0
+tqdm==4.36.1
