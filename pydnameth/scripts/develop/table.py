@@ -76,6 +76,9 @@ def table_aggregator_linreg(
         elif child_method_lvl_1 == Method.z_test_linreg:
             method_params = {}
             is_load_child = True
+        elif child_method_lvl_1 == Method.ancova:
+            method_params = {}
+            is_load_child = True
         else:
             method_params = {}
             is_load_child = False
