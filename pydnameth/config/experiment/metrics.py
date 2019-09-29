@@ -19,6 +19,7 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
+                    'mean',
                     'R2',
                     'R2_adj',
                     'f_stat',

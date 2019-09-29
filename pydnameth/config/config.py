@@ -69,6 +69,8 @@ class Config:
         self.attributes_indexes = None
         self.cells_dict = None
 
+        self.metrics = None
+
     def __str__(self):
         if self.is_root:
             name = f'data({str(self.data)})_' \

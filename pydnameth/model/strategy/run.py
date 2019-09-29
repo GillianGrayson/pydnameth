@@ -99,8 +99,8 @@ class TableRunStrategy(RunStrategy):
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
                 x = self.get_strategy.get_target(config_child, item)
                 y = self.get_strategy.get_single_base(config_child, item)
-                x_all += x
-                y_all += y
+                x_all += list(x)
+                y_all += list(y)
                 category_all += [list(string.ascii_lowercase)[configs_child.index(config_child)]] * len(x)
 
             data = {'x': x_all, 'y': y_all, 'category': category_all}
