@@ -22,6 +22,7 @@ def process_linreg(x, y, metrics_dict):
     _, normality_p_value_ks_with_params = kstest(residuals, 'norm', (res_mean, res_std))
     _, normality_p_value_dagostino = normaltest(residuals)
 
+    metrics_dict['mean'].append(np.mean(y))
     metrics_dict['R2'].append(results.rsquared)
     metrics_dict['R2_adj'].append(results.rsquared_adj)
     metrics_dict['f_stat'].append(results.fvalue)

@@ -28,8 +28,12 @@ class LoadStrategy(metaclass=abc.ABCMeta):
     def load_child(self, config_child):
 
         if config_child.experiment.task in [Task.table, Task.clock]:
-
-            config_child.advanced_data = load_table_dict(config_child)
+            if config_child.metrics is not None:
+                print('Load child from dict')
+                config_child.advanced_data = config_child.metrics
+            else:
+                print('Load child from pkl')
+                config_child.advanced_data = load_table_dict(config_child)
             config_child.advanced_list = config_child.base_list
             config_child.advanced_dict = {}
             row_id = 0
