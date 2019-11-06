@@ -3,10 +3,7 @@
 
 """The setup script."""
 
-import os
 from setuptools import setup, find_packages
-from pip._internal.req import parse_requirements
-from pip._internal.download import PipSession
 
 
 with open('README.rst') as readme_file:
@@ -15,7 +12,8 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = parse_requirements(os.path.join(os.path.dirname(__file__), 'requirements_dev.txt'), session=PipSession())
+with open('requirements_dev.txt', 'r') as f:
+    requirements = list(f)
 
 setup_requirements = [ ]
 
@@ -36,7 +34,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     description="DNA Methylation Analysis Package",
-    install_requires=[str(requirement.req) for requirement in requirements],
+    install_requires=requirements,
     license="MIT license",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
