@@ -5,13 +5,15 @@
 
 from setuptools import setup, find_packages
 
+
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['tqdm', 'numpy', 'statsmodels']
+with open('requirements_dev.txt', 'r') as f:
+    requirements = list(f)
 
 setup_requirements = [ ]
 
@@ -43,6 +45,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/AaronBlare/pydnameth',
-    version='0.2.3',
+    version='0.2.4',
     zip_safe=False,
 )

@@ -181,7 +181,7 @@ Then run::
 
     $ git add HISTORY.rst
     $ git commit -m "Changelog for upcoming release x.x.x."
-    $ bumpversion patch # possible: major / minor / patch
+    $ bump2version patch # possible: major / minor / patch
     $ git push
     $ git push --tags
 
