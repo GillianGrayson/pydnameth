@@ -169,7 +169,9 @@ def get_method_metrics_keys(config):
                         'aux',
                         'area_intersection',
                         'increasing',
-                        'increasing_id'
+                        'increasing_id',
+                        'begin_rel',
+                        'end_rel'
                     ]
 
             elif config.experiment.method == Method.special:
