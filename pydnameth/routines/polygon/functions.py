@@ -106,6 +106,8 @@ def process_variance_polygon(
 
     polygons = []
     increasings = []
+    diffs_begin = []
+    diffs_end = []
 
     for child_id in range(0, len(xs_all)):
 
@@ -127,7 +129,9 @@ def process_variance_polygon(
         polygons.append(polygon)
 
         diff_begin = abs(ys_t_all[child_id][begin_id] - ys_b_all[child_id][begin_id])
+        diffs_begin.append(diff_begin)
         diff_end = abs(ys_t_all[child_id][end_id] - ys_b_all[child_id][end_id])
+        diffs_end.append(diff_end)
         if diff_begin > np.finfo(float).eps and diff_end > np.finfo(float).eps:
             increasings.append(max(diff_end / diff_begin, diff_begin / diff_end))
         else:
@@ -147,11 +151,17 @@ def process_variance_polygon(
         area_intersection = intersection.area / union.area
         increasing = max(increasings) / min(increasings)
         increasing_id = np.argmax(increasings)
+        begin_rel = diffs_begin[0] / diffs_begin[1]
+        end_rel = diffs_end[1] / diffs_end[0]
     else:
         area_intersection = 1.0
         increasing = 0.0
         increasing_id = 0
+        begin_rel = 1.0
+        end_rel = 1.0
 
     metrics_dict['area_intersection'].append(area_intersection)
     metrics_dict['increasing'].append(increasing)
     metrics_dict['increasing_id'].append(increasing_id)
+    metrics_dict['begin_rel'].append(begin_rel)
+    metrics_dict['end_rel'].append(end_rel)
