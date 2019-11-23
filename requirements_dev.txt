@@ -6,7 +6,7 @@ flake8==3.7.9
 tox==3.14.1
 coverage==4.5.4
 Sphinx==2.2.1
-twine==2.0.0
+twine==3.0.0
 numpy==1.17.4
 pandas==0.25.3
 plotly==4.3.0
