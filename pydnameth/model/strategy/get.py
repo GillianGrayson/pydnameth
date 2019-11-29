@@ -20,9 +20,9 @@ class GetStrategy(metaclass=abc.ABCMeta):
                     passed_ids.append(id)
             data = []
             for id in passed_ids:
-                data.append(config.attributes_dict[config.attributes.target][id])
+                data.append(config.observables_categorical_dict[config.attributes.target][id])
         else:
-            data = config.attributes_dict[config.attributes.target]
+            data = config.observables_categorical_dict[config.attributes.target]
         return np.array(data)
 
 

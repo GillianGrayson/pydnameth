@@ -1,9 +1,9 @@
 from pydnameth.infrastucture.load.annotations import load_annotations_dict
 from pydnameth.infrastucture.load.excluded import load_excluded
-from pydnameth.infrastucture.load.attributes import load_observables_dict
+from pydnameth.infrastucture.load.attributes import load_observables_dict, load_observables_categorical_dict
 from pydnameth.infrastucture.load.attributes import load_cells_dict
 from pydnameth.config.annotations.subset import subset_annotations
-from pydnameth.config.attributes.subset import subset_attributes
+from pydnameth.config.attributes.subset import subset_observables
 from pydnameth.config.attributes.subset import subset_cells, get_indexes
 from json import JSONEncoder
 
@@ -65,7 +65,7 @@ class Config:
         self.excluded = None
 
         self.annotations_dict = None
-        self.attributes_dict = None
+        self.observables_dict = None
         self.attributes_indexes = None
         self.cells_dict = None
 
@@ -98,8 +98,10 @@ class Config:
             self.annotations_dict = load_annotations_dict(self)
             subset_annotations(self)
 
-            self.attributes_dict = load_observables_dict(self)
+            self.observables_dict = load_observables_dict(self)
+            self.observables_categorical_dict = load_observables_categorical_dict(self)
             self.attributes_indexes = get_indexes(self)
-            subset_attributes(self)
+            subset_observables(self)
+
             self.cells_dict = load_cells_dict(self)
             subset_cells(self)

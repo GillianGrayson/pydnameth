@@ -9,7 +9,7 @@ import colorlover as cl
 from pydnameth.routines.common import is_float, get_names
 from tqdm import tqdm
 from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
-from pydnameth.routines.common import update_parent_dict_with_children, categorize_data
+from pydnameth.routines.common import update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
@@ -62,8 +62,6 @@ class TableRunStrategy(RunStrategy):
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
 
-            x = categorize_data(x)
-
             corr_coeff, p_value = pearsonr(x, y)
 
             config.metrics['corr_coeff'].append(corr_coeff)
@@ -98,7 +96,7 @@ class TableRunStrategy(RunStrategy):
                 item_id = config_child.advanced_dict[item]
                 slopes.append(config_child.advanced_data['slope'][item_id])
                 slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                num_subs.append(len(config_child.attributes_dict['age']))
+                num_subs.append(len(config_child.observables_dict['age']))
 
             process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 

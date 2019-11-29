@@ -1,5 +1,7 @@
 from pydnameth.routines.common import is_float
 from pydnameth.infrastucture.path import get_data_base_path
+from pydnameth.routines.common import categorize_data
+import numpy as np
 import os.path
 import pickle
 
@@ -12,7 +14,7 @@ def load_observables_dict(config):
     if os.path.isfile(fn_pkl):
 
         f = open(fn_pkl, 'rb')
-        attributes_dict = pickle.load(f)
+        observables_dict = pickle.load(f)
         f.close()
 
     else:
@@ -22,9 +24,9 @@ def load_observables_dict(config):
         keys = key_line.split('\t')
         keys = [x.rstrip() for x in keys]
 
-        attributes_dict = {}
+        observables_dict = {}
         for key in keys:
-            attributes_dict[key] = []
+            observables_dict[key] = []
 
         for line in f:
             values = line.split('\t')
@@ -34,18 +36,47 @@ def load_observables_dict(config):
                 if is_float(value):
                     value = float(value)
                     if value.is_integer():
-                        attributes_dict[key].append(int(value))
+                        observables_dict[key].append(int(value))
                     else:
-                        attributes_dict[key].append(float(value))
+                        observables_dict[key].append(float(value))
                 else:
-                    attributes_dict[key].append(value)
+                    observables_dict[key].append(value)
         f.close()
 
         f = open(fn_pkl, 'wb')
-        pickle.dump(attributes_dict, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(observables_dict, f, pickle.HIGHEST_PROTOCOL)
         f.close()
 
-    return attributes_dict
+    return observables_dict
+
+
+def load_observables_categorical_dict(config):
+    fn = get_data_base_path(config) + '/' + config.attributes.observables.name + '_categorical'
+    fn_pkl = fn + '.pkl'
+
+    if os.path.isfile(fn_pkl):
+
+        f = open(fn_pkl, 'rb')
+        observables_categorical_dict = pickle.load(f)
+        f.close()
+
+    else:
+
+        observables_categorical_dict = {}
+
+        if config.observables_dict is not None:
+            observables_dict = config.observables_dict
+        else:
+            observables_dict = load_observables_dict(config)
+
+        for key in observables_dict:
+            observables_categorical_dict[key] = categorize_data(np.asarray(config.observables_dict[key]))
+
+        f = open(fn_pkl, 'wb')
+        pickle.dump(observables_categorical_dict, f, pickle.HIGHEST_PROTOCOL)
+        f.close()
+
+    return observables_categorical_dict
 
 
 def load_cells_dict(config):
