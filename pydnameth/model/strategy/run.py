@@ -9,7 +9,7 @@ import colorlover as cl
 from pydnameth.routines.common import is_float, get_names
 from tqdm import tqdm
 from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
-from pydnameth.routines.common import update_parent_dict_with_children, categorize_data
+from pydnameth.routines.common import update_parent_dict_with_children
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon

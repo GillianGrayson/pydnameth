@@ -72,15 +72,15 @@ def load_residuals_common(config):
         if 'observables' in data_params:
             observables_dict = load_observables_dict(config)
             if isinstance(data_params['observables'], list):
-                all_types = list(observables_dict.keys())
+                all_types = list(observables_categorical_dict.keys())
                 for key in all_types:
                     if key not in data_params['observables']:
-                        observables_dict.pop(key)
+                        observables_categorical_dict.pop(key)
 
-                if len(list(observables_dict.keys())) != len(data_params['observables']):
+                if len(list(observables_categorical_dict.keys())) != len(data_params['observables']):
                     raise ValueError(f'Wrong number of observables types.')
 
-                exog_dict.update(observables_dict)
+                exog_dict.update(observables_categorical_dict)
 
         exog_keys = []
         for exog_type, exog_data in exog_dict.items():
