@@ -1,5 +1,18 @@
 import plotly.graph_objs as go
 import numpy as np
+import pandas
+
+
+def categorize_data(data):
+    can_cast = np.can_cast(data, float)
+
+    if can_cast:
+        data = data.astype(float)
+    else:
+        data = pandas.factorize(data)[0]
+        data = np.array(data, dtype=float)
+
+    return data
 
 
 def is_float(value):

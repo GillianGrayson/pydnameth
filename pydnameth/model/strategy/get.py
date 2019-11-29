@@ -23,7 +23,7 @@ class GetStrategy(metaclass=abc.ABCMeta):
                 data.append(config.attributes_dict[config.attributes.target][id])
         else:
             data = config.attributes_dict[config.attributes.target]
-        return data
+        return np.array(data)
 
 
 class BetasGetStrategy(GetStrategy):

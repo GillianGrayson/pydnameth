@@ -9,7 +9,7 @@ import colorlover as cl
 from pydnameth.routines.common import is_float, get_names
 from tqdm import tqdm
 from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
-from pydnameth.routines.common import update_parent_dict_with_children
+from pydnameth.routines.common import update_parent_dict_with_children, categorize_data
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
@@ -20,6 +20,7 @@ from pydnameth.routines.plot.functions.variance_histogram import process_varianc
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
+from scipy.stats import pearsonr
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -55,6 +56,18 @@ class TableRunStrategy(RunStrategy):
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
             process_cluster(x, y, config.experiment.method_params, config.metrics)
+
+        elif config.experiment.method == Method.oma:
+
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
+
+            x = categorize_data(x)
+
+            corr_coeff, p_value = pearsonr(x, y)
+
+            config.metrics['corr_coeff'].append(corr_coeff)
+            config.metrics['p_value'].append(p_value)
 
         elif config.experiment.method == Method.polygon:
 

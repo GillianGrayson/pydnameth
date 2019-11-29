@@ -25,7 +25,7 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.entropy,
                                       DataType.cells]:
 
-            if config.experiment.method in [Method.z_test_linreg, Method.ancova]:
+            if config.experiment.method in [Method.z_test_linreg, Method.ancova, Method.oma]:
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
                                                                             0.05,
                                                                             method='fdr_bh')

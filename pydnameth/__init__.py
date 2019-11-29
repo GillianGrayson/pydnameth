@@ -21,6 +21,7 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
     betas_table_linreg,\
+    betas_table_oma, \
     betas_table_cluster, \
     betas_table_variance
 from pydnameth.scripts.develop.betas.clock import \
@@ -74,8 +75,9 @@ from pydnameth.scripts.develop.residuals_common.plot import \
     residuals_common_plot_scatter, \
     residuals_common_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals_common.table import \
-    residuals_common_table_aggregator_linreg,\
-    residuals_common_table_aggregator_variance
+    residuals_table_aggregator_linreg,\
+    residuals_table_aggregator_variance, \
+    residuals_table_oma
 
 from pydnameth.scripts.develop.genes.plot import \
     genes_plot_scatter, \

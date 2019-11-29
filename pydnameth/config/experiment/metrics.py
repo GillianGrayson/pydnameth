@@ -47,11 +47,21 @@ def get_method_metrics_keys(config):
                     'normality_p_value_dagostino'
                 ]
 
-            if config.experiment.method == Method.ancova:
+            elif config.experiment.method == Method.ancova:
 
                 metrics = [
                     'item',
                     'aux',
+                    'p_value',
+                    'p_value_fdr'
+                ]
+
+            elif config.experiment.method == Method.oma:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'corr_coeff',
                     'p_value',
                     'p_value_fdr'
                 ]
