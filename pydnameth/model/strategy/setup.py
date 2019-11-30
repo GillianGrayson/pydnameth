@@ -45,6 +45,9 @@ class TableSetUpStrategy(SetupStrategy):
                         suffix = str(config_child.attributes.observables)
                         if suffix != '' and suffix not in key:
                             key += '_' + suffix
+                        prefix = str(config_child.experiment.method)
+                        if prefix != '' and prefix not in key:
+                            key = prefix + '_' + key
                         config.metrics[key] = []
                         metrics_keys.append(key)
 

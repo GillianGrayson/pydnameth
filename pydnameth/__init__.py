@@ -71,13 +71,14 @@ from pydnameth.scripts.develop.cells.table import \
     cells_table_aggregator_linreg, \
     cells_table_aggregator_variance
 
-from pydnameth.scripts.develop.residuals_common.plot import \
+from pydnameth.scripts.develop.residuals.plot import \
     residuals_common_plot_scatter, \
     residuals_common_plot_scatter_comparison
-from pydnameth.scripts.develop.residuals_common.table import \
+from pydnameth.scripts.develop.residuals.table import \
     residuals_table_aggregator_linreg,\
     residuals_table_aggregator_variance, \
-    residuals_table_oma
+    residuals_table_oma, \
+    residuals_table_approach_3
 
 from pydnameth.scripts.develop.genes.plot import \
     genes_plot_scatter, \
