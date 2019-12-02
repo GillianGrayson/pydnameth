@@ -71,6 +71,8 @@ class Config:
 
         self.metrics = None
 
+        self.base_missed_dict = None
+
     def __str__(self):
         if self.is_root:
             name = f'data({str(self.data)})_' \

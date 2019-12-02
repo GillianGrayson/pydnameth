@@ -13,7 +13,7 @@ class GetStrategy(metaclass=abc.ABCMeta):
         pass
 
     def get_target(self, config, item='any'):
-        if len(config.base_missed_dict[item]) > 0:
+        if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
             passed_ids = []
             for id, col in enumerate(config.attributes_indexes):
                 if col not in config.base_missed_dict[item]:
