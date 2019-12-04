@@ -64,11 +64,8 @@ def residuals_table_approach_3(
     data,
     annotations,
     attributes,
-    observables_list,
-    target_common,
-    target_separated,
-    data_params_common,
-    data_params_separated
+    target_list,
+    data_params_list
 ):
     config_root = Config(
         data=copy.deepcopy(data),
@@ -76,7 +73,7 @@ def residuals_table_approach_3(
             data=DataType.residuals,
             task=Task.table,
             method=Method.aggregator,
-            data_params=copy.deepcopy(data_params_common)
+            data_params=copy.deepcopy(data_params_list[0])
         ),
         annotations=copy.deepcopy(annotations),
         attributes=copy.deepcopy(attributes),
@@ -85,54 +82,23 @@ def residuals_table_approach_3(
     )
     root = Node(name=str(config_root), config=config_root)
 
-    attributes_common = copy.deepcopy(attributes)
-    attributes_common.target = target_common
-    config_common = Config(
-        data=copy.deepcopy(data),
-        experiment=Experiment(
-            data=DataType.residuals,
-            task=Task.table,
-            method=Method.oma,
-            data_params=copy.deepcopy(data_params_common)
-        ),
-        annotations=copy.deepcopy(annotations),
-        attributes=attributes_common,
-        is_run=True,
-        is_root=False
-    )
-    Node(name=str(config_common), config=config_common, parent=root)
-
-    for d in observables_list:
-        curr_observables = Observables(
-            name=copy.deepcopy(attributes.observables.name),
-            types=d
-        )
-
-        curr_cells = Cells(
-            name=copy.deepcopy(attributes.cells.name),
-            types=copy.deepcopy(attributes.cells.types)
-        )
-
-        curr_attributes = Attributes(
-            target=target_separated,
-            observables=curr_observables,
-            cells=curr_cells,
-        )
-
-        curr_config = Config(
+    for id, target in enumerate(target_list):
+        attributes_common = copy.deepcopy(attributes)
+        attributes_common.target = target
+        config_common = Config(
             data=copy.deepcopy(data),
             experiment=Experiment(
                 data=DataType.residuals,
                 task=Task.table,
                 method=Method.oma,
-                data_params=copy.deepcopy(data_params_separated),
+                data_params=copy.deepcopy(data_params_list[id])
             ),
             annotations=copy.deepcopy(annotations),
-            attributes=curr_attributes,
+            attributes=attributes_common,
             is_run=True,
             is_root=False
         )
-        Node(name=str(curr_config), config=curr_config, parent=root)
+        Node(name=str(config_common), config=config_common, parent=root)
 
     build_tree(root)
     calc_tree(root)
