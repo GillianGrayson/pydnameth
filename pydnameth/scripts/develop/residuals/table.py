@@ -2,7 +2,6 @@ import copy
 from anytree import Node
 from pydnameth.config.config import Config
 from pydnameth.config.experiment.experiment import Experiment
-from pydnameth.config.attributes.attributes import Observables, Cells, Attributes
 from pydnameth.config.experiment.types import DataType, Method, Task
 from pydnameth.model.tree import build_tree, calc_tree
 from pydnameth.scripts.develop.table import table_aggregator_linreg, table_aggregator_variance, table
