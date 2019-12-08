@@ -15,6 +15,10 @@ def categorize_data(data):
     return data
 
 
+def is_categorical(data):
+    return not np.can_cast(np.asarray(data), float)
+
+
 def is_float(value):
     try:
         float(value)
