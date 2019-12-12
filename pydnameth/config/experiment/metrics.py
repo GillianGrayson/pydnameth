@@ -53,7 +53,8 @@ def get_method_metrics_keys(config):
                     'item',
                     'aux',
                     'p_value',
-                    'p_value_fdr'
+                    'p_value_fdr_bh',
+                    'p_value_bonferroni'
                 ]
 
             elif config.experiment.method == Method.oma:
@@ -63,7 +64,8 @@ def get_method_metrics_keys(config):
                     'aux',
                     'corr_coeff',
                     'p_value',
-                    'p_value_fdr'
+                    'p_value_fdr_bh',
+                    'p_value_bonferroni'
                 ]
 
             elif config.experiment.method == Method.variance:
