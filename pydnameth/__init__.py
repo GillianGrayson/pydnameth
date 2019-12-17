@@ -72,13 +72,22 @@ from pydnameth.scripts.develop.cells.table import \
     cells_table_aggregator_variance
 
 from pydnameth.scripts.develop.residuals.plot import \
-    residuals_common_plot_scatter, \
-    residuals_common_plot_scatter_comparison
+    residuals_plot_scatter, \
+    residuals_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals.table import \
     residuals_table_aggregator_linreg,\
     residuals_table_aggregator_variance, \
     residuals_table_oma, \
     residuals_table_approach_3
+
+from pydnameth.scripts.develop.betas_adj.plot import \
+    betas_adj_plot_scatter, \
+    betas_adj_plot_scatter_comparison
+from pydnameth.scripts.develop.betas_adj.table import \
+    betas_adj_table_aggregator_linreg,\
+    betas_adj_table_aggregator_variance, \
+    betas_adj_table_oma, \
+    betas_adj_table_approach_3
 
 from pydnameth.scripts.develop.genes.plot import \
     genes_plot_scatter, \

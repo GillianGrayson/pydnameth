@@ -7,7 +7,7 @@ from pydnameth.model.tree import build_tree, calc_tree
 from pydnameth.scripts.develop.table import table_aggregator_linreg, table_aggregator_variance, table
 
 
-def residuals_table_aggregator_linreg(
+def betas_adj_table_aggregator_linreg(
     data,
     annotations,
     attributes,
@@ -15,7 +15,7 @@ def residuals_table_aggregator_linreg(
     data_params,
 ):
     table_aggregator_linreg(
-        DataType.residuals,
+        DataType.betas_adj,
         data,
         annotations,
         attributes,
@@ -24,7 +24,7 @@ def residuals_table_aggregator_linreg(
     )
 
 
-def residuals_table_aggregator_variance(
+def betas_adj_table_aggregator_variance(
     data,
     annotations,
     attributes,
@@ -32,7 +32,7 @@ def residuals_table_aggregator_variance(
     data_params,
 ):
     table_aggregator_variance(
-        DataType.residuals,
+        DataType.betas_adj,
         data,
         annotations,
         attributes,
@@ -41,7 +41,7 @@ def residuals_table_aggregator_variance(
     )
 
 
-def residuals_table_oma(
+def betas_adj_table_oma(
     data,
     annotations,
     attributes,
@@ -51,7 +51,7 @@ def residuals_table_oma(
         data=data,
         annotations=annotations,
         attributes=attributes,
-        data_type=DataType.residuals,
+        data_type=DataType.betas_adj,
         method=Method.oma,
         data_params=data_params,
         task_params=None,
@@ -59,7 +59,7 @@ def residuals_table_oma(
     )
 
 
-def residuals_table_approach_3(
+def betas_adj_table_approach_3(
     data,
     annotations,
     attributes,
@@ -69,7 +69,7 @@ def residuals_table_approach_3(
     config_root = Config(
         data=copy.deepcopy(data),
         experiment=Experiment(
-            data=DataType.residuals,
+            data=DataType.betas_adj,
             task=Task.table,
             method=Method.aggregator,
             data_params=copy.deepcopy(data_params_list[0])
@@ -87,7 +87,7 @@ def residuals_table_approach_3(
         config_common = Config(
             data=copy.deepcopy(data),
             experiment=Experiment(
-                data=DataType.residuals,
+                data=DataType.betas_adj,
                 task=Task.table,
                 method=Method.oma,
                 data_params=copy.deepcopy(data_params_list[id])

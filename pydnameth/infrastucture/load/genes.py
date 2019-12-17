@@ -4,7 +4,7 @@ import os.path
 import pickle
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
-from pydnameth.infrastucture.load.residuals import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals
 from tqdm import tqdm
 
 
@@ -54,7 +54,7 @@ def load_genes(config):
             source_data = config.betas_adj_data
             source_missed_dict = config.betas_adj_missed_dict
         elif source == 'residuals':
-            load_residuals_common(config)
+            load_residuals(config)
             source_dict = config.residuals_dict
             source_data = config.residuals_data
             source_missed_dict = config.residuals_missed_dict

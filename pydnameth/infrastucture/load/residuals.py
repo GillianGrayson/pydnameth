@@ -11,7 +11,7 @@ from tqdm import tqdm
 import copy
 
 
-def load_residuals_common(config):
+def load_residuals(config):
 
     suffix = ''
     if bool(config.experiment.data_params):
@@ -139,7 +139,7 @@ def load_residuals_common(config):
             for missed_id in config.residuals_missed_dict[cpg]:
                 residuals_raw[missed_id] = np.float32('nan')
 
-            config.residuals_data[row] = residuals
+            config.residuals_data[row] = residuals_raw
 
         np.savez_compressed(fn_data, data=config.residuals_data)
 

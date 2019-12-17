@@ -2,7 +2,7 @@ from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.plot import plot_scatter, plot_scatter_comparison
 
 
-def residuals_plot_scatter(
+def betas_adj_plot_scatter(
     data,
     annotations,
     attributes,
@@ -12,7 +12,7 @@ def residuals_plot_scatter(
     method_params=None
 ):
     plot_scatter(
-        DataType.residuals,
+        DataType.betas_adj,
         data,
         annotations,
         attributes,
@@ -23,7 +23,7 @@ def residuals_plot_scatter(
     )
 
 
-def residuals_plot_scatter_comparison(
+def betas_adj_plot_scatter_comparison(
     data_list,
     annotations_list,
     attributes_list,
@@ -35,7 +35,7 @@ def residuals_plot_scatter_comparison(
     method_params=None,
 ):
     plot_scatter_comparison(
-        data_type=DataType.residuals,
+        data_type=DataType.betas_adj,
         data_list=data_list,
         annotations_list=annotations_list,
         attributes_list=attributes_list,

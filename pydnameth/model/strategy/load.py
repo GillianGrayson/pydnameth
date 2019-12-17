@@ -4,7 +4,7 @@ from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
 from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
 from pydnameth.infrastucture.load.betas_spec import load_betas_spec
-from pydnameth.infrastucture.load.residuals import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
@@ -97,7 +97,7 @@ class ResidualsLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):
         if config.is_init:
-            load_residuals_common(config)
+            load_residuals(config)
             config.base_list = config.cpg_list
             config.base_dict = config.residuals_dict
             config.base_data = config.residuals_data
