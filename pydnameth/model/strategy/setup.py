@@ -45,6 +45,9 @@ class TableSetUpStrategy(SetupStrategy):
                         suffix = str(config_child.attributes.observables)
                         if suffix != '' and suffix not in key:
                             key += '_' + suffix
+                        prefix = str(config_child.experiment.method) + '_' + config_child.attributes.target
+                        if prefix != '' and prefix not in key:
+                            key = prefix + '_' + key
                         config.metrics[key] = []
                         metrics_keys.append(key)
 
@@ -55,7 +58,7 @@ class ClockSetUpStrategy(SetupStrategy):
         self.setup_method_params(config)
         self.setup_method_metrics(config)
 
-        max_size = len(config.attributes_dict[config.attributes.target])
+        max_size = len(config.observables_dict[config.attributes.target])
         test_size = math.floor(max_size * config.experiment.method_params['part'])
         train_size = max_size - test_size
 

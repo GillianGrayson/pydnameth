@@ -20,6 +20,7 @@ from pydnameth.routines.plot.functions.variance_histogram import process_varianc
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
+from scipy.stats import pearsonr
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -56,6 +57,16 @@ class TableRunStrategy(RunStrategy):
             y = self.get_strategy.get_single_base(config, item)
             process_cluster(x, y, config.experiment.method_params, config.metrics)
 
+        elif config.experiment.method == Method.oma:
+
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
+
+            corr_coeff, p_value = pearsonr(x, y)
+
+            config.metrics['corr_coeff'].append(corr_coeff)
+            config.metrics['p_value'].append(p_value)
+
         elif config.experiment.method == Method.polygon:
 
             xs = []
@@ -85,7 +96,7 @@ class TableRunStrategy(RunStrategy):
                 item_id = config_child.advanced_dict[item]
                 slopes.append(config_child.advanced_data['slope'][item_id])
                 slopes_std.append(config_child.advanced_data['slope_std'][item_id])
-                num_subs.append(len(config_child.attributes_dict['age']))
+                num_subs.append(len(config_child.observables_dict['age']))
 
             process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
 

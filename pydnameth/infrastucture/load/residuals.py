@@ -1,9 +1,10 @@
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.path import get_data_base_path
 from pydnameth.infrastucture.load.attributes import load_cells_dict, load_observables_dict
+from pydnameth.routines.common import is_categorical
 import numpy as np
 import pandas as pd
-from statsmodels import api as sm
+import statsmodels.formula.api as smf
 import pickle
 import os.path
 from tqdm import tqdm
@@ -69,7 +70,6 @@ def load_residuals_common(config):
                 exog_dict.update(cells_dict)
 
         if 'observables' in data_params:
-
             observables_dict = load_observables_dict(config)
             if isinstance(data_params['observables'], list):
                 all_types = list(observables_dict.keys())
@@ -82,6 +82,22 @@ def load_residuals_common(config):
 
                 exog_dict.update(observables_dict)
 
+        exog_keys = []
+        for exog_type, exog_data in exog_dict.items():
+            if is_categorical(exog_data):
+                exog_keys.append('C(' + exog_type + ')')
+            else:
+                exog_keys.append(exog_type)
+        formula = 'cpg ~ ' + ' + '.join(exog_keys)
+
+        exog_keys = []
+        for exog_type, exog_data in exog_dict.items():
+            if is_categorical(exog_data):
+                exog_keys.append('C(' + exog_type + ')')
+            else:
+                exog_keys.append(exog_type)
+        formula = 'cpg ~ ' + ' + '.join(exog_keys)
+
         num_cpgs = config.betas_data.shape[0]
         num_subjects = config.betas_data.shape[1]
         config.residuals_data = np.zeros((num_cpgs, num_subjects), dtype=np.float32)
@@ -89,16 +105,16 @@ def load_residuals_common(config):
         for cpg, row in tqdm(config.betas_dict.items(), mininterval=60.0, desc='residuals_data creating'):
             raw_betas = config.betas_data[row, :]
 
-            current_exog_dict = copy.deepcopy(exog_dict)
+            current_data_dict = copy.deepcopy(exog_dict)
 
             if len(config.betas_missed_dict[cpg]) > 0:
 
-                for key in current_exog_dict:
+                for key in current_data_dict:
                     values = []
-                    for value_id in range(0, len(current_exog_dict[key])):
+                    for value_id in range(0, len(current_data_dict[key])):
                         if value_id not in config.betas_adj_missed_dict[cpg]:
-                            values.append(current_exog_dict[key][value_id])
-                    current_exog_dict[key] = values
+                            values.append(current_data_dict[key][value_id])
+                    current_data_dict[key] = values
 
                 betas = []
                 passed_ids = []
@@ -111,11 +127,9 @@ def load_residuals_common(config):
                 betas = raw_betas
                 passed_ids = list(range(0, len(betas)))
 
-            endog_dict = {cpg: betas}
-            endog_df = pd.DataFrame(endog_dict)
-            exog_df = pd.DataFrame(current_exog_dict)
-
-            reg_res = sm.OLS(endog=endog_df, exog=exog_df).fit()
+            current_data_dict['cpg'] = betas
+            data_df = pd.DataFrame(current_data_dict)
+            reg_res = smf.ols(formula=formula, data=data_df).fit()
 
             residuals = list(map(np.float32, reg_res.resid))
             residuals_raw = np.zeros(num_subjects, dtype=np.float32)
