@@ -7,6 +7,7 @@ def get_layout(config, title_text=''):
     layout = None
 
     if config.experiment.data in [DataType.betas,
+                                  DataType.betas_adj,
                                   DataType.residuals,
                                   DataType.epimutations,
                                   DataType.entropy,
