@@ -84,12 +84,13 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
         if add == 'polygon':
             pr = PolygonRoutines(
                 x=targets,
-                params={
+                metrics_dict={
                     'intercept': [intercept],
                     'slope': [slope],
                     'intercept_std': [intercept_std],
                     'slope_std': [slope_std]
-                }
+                },
+                suffix=''
             )
             scatter = pr.get_scatter(color_transparent)
             curr_plot_data.append(scatter)

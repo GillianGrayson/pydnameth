@@ -49,13 +49,13 @@ class TableRunStrategy(RunStrategy):
 
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
-            process_linreg(x, y, config.metrics)
+            process_linreg(x, y, config.metrics, f'_{config.hash[0:8]}')
 
         elif config.experiment.method == Method.cluster:
 
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
-            process_cluster(x, y, config.experiment.method_params, config.metrics)
+            process_cluster(x, y, config.experiment.method_params, config.metrics, f'_{config.hash[0:8]}')
 
         elif config.experiment.method == Method.oma:
 
@@ -64,8 +64,8 @@ class TableRunStrategy(RunStrategy):
 
             corr_coeff, p_value = pearsonr(x, y)
 
-            config.metrics['corr_coeff'].append(corr_coeff)
-            config.metrics['p_value'].append(p_value)
+            config.metrics['corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
+            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
 
         elif config.experiment.method == Method.polygon:
 
@@ -80,10 +80,10 @@ class TableRunStrategy(RunStrategy):
                 ys.append(y)
 
             if config.experiment.method_params['method'] == Method.linreg:
-                process_linreg_polygon(configs_child, item, xs, config.metrics)
+                process_linreg_polygon(configs_child, item, xs, config.metrics, f'_{config.hash[0:8]}')
 
             elif config.experiment.method_params['method'] == Method.variance:
-                process_variance_polygon(configs_child, item, xs, config.metrics)
+                process_variance_polygon(configs_child, item, xs, config.metrics, f'_{config.hash[0:8]}')
 
         elif config.experiment.method == Method.z_test_linreg:
 
@@ -94,11 +94,11 @@ class TableRunStrategy(RunStrategy):
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
                 item_id = config_child.advanced_dict[item]
-                slopes.append(config_child.advanced_data['slope'][item_id])
-                slopes_std.append(config_child.advanced_data['slope_std'][item_id])
+                slopes.append(config_child.advanced_data['slope' + f'_{config_child.hash[0:8]}'][item_id])
+                slopes_std.append(config_child.advanced_data['slope_std' + f'_{config_child.hash[0:8]}'][item_id])
                 num_subs.append(len(config_child.observables_dict['age']))
 
-            process_z_test_slope(slopes, slopes_std, num_subs, config.metrics)
+            process_z_test_slope(slopes, slopes_std, num_subs, config.metrics, f'_{config.hash[0:8]}')
 
         elif config.experiment.method == Method.ancova:
 
@@ -121,7 +121,7 @@ class TableRunStrategy(RunStrategy):
             results = lm.fit()
             p_value = results.pvalues[3]
 
-            config.metrics['p_value'].append(p_value)
+            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
 
         elif config.experiment.method == Method.aggregator:
 
@@ -138,16 +138,20 @@ class TableRunStrategy(RunStrategy):
             box_b = config.experiment.method_params['box_b']
             box_t = config.experiment.method_params['box_t']
 
-            process_variance(x, y, semi_window, box_b, box_t, config.metrics)
+            process_variance(x, y, semi_window, box_b, box_t, config.metrics, f'_{config.hash[0:8]}')
 
             xs = get_box_xs(x)
-            ys_b, ys_t = fit_variance(xs, config.metrics)
+            ys_b, ys_t = fit_variance(xs, config.metrics, f'_{config.hash[0:8]}')
 
             diff_begin = abs(ys_t[0] - ys_b[0])
             diff_end = abs(ys_t[-1] - ys_b[-1])
 
-            config.metrics['increasing_div'].append(max(diff_begin, diff_end) / min(diff_begin, diff_end))
-            config.metrics['increasing_sub'].append(abs(diff_begin - diff_end))
+            config.metrics['increasing_div' + f'_{config.hash[0:8]}'].append(
+                max(diff_begin, diff_end) / min(diff_begin, diff_end)
+            )
+            config.metrics['increasing_sub' + f'_{config.hash[0:8]}'].append(
+                abs(diff_begin - diff_end)
+            )
 
         config.metrics['item'].append(item)
         aux = self.get_strategy.get_aux(config, item)
@@ -220,7 +224,7 @@ class ClockRunStrategy(RunStrategy):
                             num_bootstrap_runs=runs
                         )
 
-                        build_clock_linreg(clock)
+                        build_clock_linreg(clock, f'_{config.hash[0:8]}')
 
                 elif type == ClockExogType.deep.value:
 
@@ -241,7 +245,7 @@ class ClockRunStrategy(RunStrategy):
                             num_bootstrap_runs=runs
                         )
 
-                        build_clock_linreg(clock)
+                        build_clock_linreg(clock, f'_{config.hash[0:8]}')
 
                 elif type == ClockExogType.single.value:
 
@@ -261,7 +265,7 @@ class ClockRunStrategy(RunStrategy):
                         num_bootstrap_runs=runs
                     )
 
-                    build_clock_linreg(clock)
+                    build_clock_linreg(clock, f'_{config.hash[0:8]}')
 
 
 class PlotRunStrategy(RunStrategy):

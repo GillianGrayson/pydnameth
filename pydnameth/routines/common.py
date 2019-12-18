@@ -123,11 +123,5 @@ def update_parent_dict_with_children(parent_metrics_keys, item, config_parent, c
     for key in config_child.advanced_data:
         if key not in parent_metrics_keys:
             advanced_data = config_child.advanced_data[key][item_id]
-            suffix = str(config_child.attributes.observables)
-            if suffix != '' and suffix not in key:
-                key += '_' + suffix
-            prefix = str(config_child.experiment.method) + '_' + config_child.attributes.target
-            if prefix != '' and prefix not in key:
-                key = prefix + '_' + key
             config_parent.metrics[key].append(advanced_data)
             parent_metrics_keys.append(key)

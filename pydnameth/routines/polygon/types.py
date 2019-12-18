@@ -6,19 +6,21 @@ import plotly.graph_objs as go
 class PolygonRoutines:
     def __init__(self,
                  x,
-                 params
+                 metrics_dict,
+                 suffix
                  ):
         self.x = x
-        self.params = params
+        self.metrics_dict = metrics_dict
+        self.suffix = suffix
 
     def get_border_points(self):
 
         sigma = 3.0
 
-        intercept = self.params['intercept'][0]
-        slope = self.params['slope'][0]
-        intercept_std = self.params['intercept_std'][0]
-        slope_std = self.params['slope_std'][0]
+        intercept = self.metrics_dict['intercept' + self.suffix][0]
+        slope = self.metrics_dict['slope' + self.suffix][0]
+        intercept_std = self.metrics_dict['intercept_std' + self.suffix][0]
+        slope_std = self.metrics_dict['slope_std' + self.suffix][0]
 
         x_min = np.min(self.x)
         x_max = np.max(self.x)

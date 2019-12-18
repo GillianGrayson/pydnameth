@@ -29,12 +29,12 @@ class TableReleaseStrategy(ReleaseStrategy):
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
                                                                             0.05,
                                                                             method='fdr_bh')
-                config.metrics['p_value_fdr_bh'] = pvals_corr
+                config.metrics['p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
 
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
                                                                             0.05,
                                                                             method='bonferroni')
-                config.metrics['p_value_bonferroni'] = pvals_corr
+                config.metrics['p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
 
 class ClockReleaseStrategy(ReleaseStrategy):

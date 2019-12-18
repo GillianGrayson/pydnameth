@@ -222,4 +222,6 @@ def get_method_metrics_keys(config):
                     'rmse',
                 ]
 
+    metrics = [f'{m}_{config.hash[0:8]}' if m not in ['item', 'aux'] else m for m in metrics]
+
     return metrics

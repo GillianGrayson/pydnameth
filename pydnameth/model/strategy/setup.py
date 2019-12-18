@@ -42,12 +42,6 @@ class TableSetUpStrategy(SetupStrategy):
 
                 for key in config_child.advanced_data:
                     if key not in metrics_keys:
-                        suffix = str(config_child.attributes.observables)
-                        if suffix != '' and suffix not in key:
-                            key += '_' + suffix
-                        prefix = str(config_child.experiment.method) + '_' + config_child.attributes.target
-                        if prefix != '' and prefix not in key:
-                            key = prefix + '_' + key
                         config.metrics[key] = []
                         metrics_keys.append(key)
 
