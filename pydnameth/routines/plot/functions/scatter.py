@@ -143,13 +143,13 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
         if fit == 'yes' and semi_window != 'none':
 
             metrics_dict = {}
-            init_variance_metrics_dict(metrics_dict, 'box_b')
-            init_variance_metrics_dict(metrics_dict, 'box_m')
-            init_variance_metrics_dict(metrics_dict, 'box_t')
+            init_variance_metrics_dict(metrics_dict, 'box_b', '')
+            init_variance_metrics_dict(metrics_dict, 'box_m', '')
+            init_variance_metrics_dict(metrics_dict, 'box_t', '')
 
-            xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict)
+            xs, _, _, _ = process_variance(targets, data, semi_window, box_b, box_t, metrics_dict, '')
 
-            ys_b, ys_t = fit_variance(xs, metrics_dict)
+            ys_b, ys_t = fit_variance(xs, metrics_dict, '')
 
             scatter = go.Scatter(
                 x=xs,
