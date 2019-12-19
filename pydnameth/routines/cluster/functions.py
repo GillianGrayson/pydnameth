@@ -3,7 +3,7 @@ from sklearn.cluster import DBSCAN
 from pydnameth.routines.common import normalize_to_0_1
 
 
-def process_cluster(x, y, method_params, metrics_dict):
+def process_cluster(x, y, method_params, metrics_dict, suffix):
 
     x_normed = normalize_to_0_1(x)
     y_normed = normalize_to_0_1(y)
@@ -19,6 +19,6 @@ def process_cluster(x, y, method_params, metrics_dict):
     number_of_noise_points = list(labels).count(-1)
     percent_of_noise_points = float(number_of_noise_points) / float(len(x)) * 100.0
 
-    metrics_dict['number_of_clusters'].append(number_of_clusters)
-    metrics_dict['number_of_noise_points'].append(number_of_noise_points)
-    metrics_dict['percent_of_noise_points'].append(percent_of_noise_points)
+    metrics_dict['number_of_clusters' + suffix].append(number_of_clusters)
+    metrics_dict['number_of_noise_points' + suffix].append(number_of_noise_points)
+    metrics_dict['percent_of_noise_points' + suffix].append(percent_of_noise_points)

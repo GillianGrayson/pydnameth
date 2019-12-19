@@ -1,5 +1,22 @@
 import plotly.graph_objs as go
 import numpy as np
+import pandas
+
+
+def categorize_data(data):
+    can_cast = np.can_cast(data, float)
+
+    if can_cast:
+        data = data.astype(float)
+    else:
+        data = pandas.factorize(data)[0]
+        data = np.array(data, dtype=float)
+
+    return data
+
+
+def is_categorical(data):
+    return not np.can_cast(np.asarray(data), float)
 
 
 def is_float(value):
@@ -106,8 +123,5 @@ def update_parent_dict_with_children(parent_metrics_keys, item, config_parent, c
     for key in config_child.advanced_data:
         if key not in parent_metrics_keys:
             advanced_data = config_child.advanced_data[key][item_id]
-            suffix = str(config_child.attributes.observables)
-            if suffix != '' and suffix not in key:
-                key += '_' + suffix
             config_parent.metrics[key].append(advanced_data)
             parent_metrics_keys.append(key)

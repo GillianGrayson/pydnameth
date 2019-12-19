@@ -5,7 +5,7 @@ from pydnameth.routines.variance.functions import fit_variance, get_box_xs
 from pydnameth.routines.common import find_nearest_id, dict_slice
 
 
-def process_linreg_polygon(configs_child, item, xs, metrics_dict):
+def process_linreg_polygon(configs_child, item, xs, metrics_dict, suffix):
 
     polygons_region = []
     polygons_slope = []
@@ -24,12 +24,13 @@ def process_linreg_polygon(configs_child, item, xs, metrics_dict):
 
         local_dict = dict_slice(config_child.advanced_data, item_id)
 
-        slope = config_child.advanced_data['slope'][item_id]
-        slope_std = config_child.advanced_data['slope_std'][item_id]
+        slope = config_child.advanced_data['slope' + f'_{config_child.hash[0:8]}'][item_id]
+        slope_std = config_child.advanced_data['slope_std' + f'_{config_child.hash[0:8]}'][item_id]
 
         pr = PolygonRoutines(
             x=targets,
-            params=local_dict
+            metrics_dict=local_dict,
+            suffix=f'_{config_child.hash[0:8]}'
         )
         points_region = pr.get_border_points()
 
@@ -61,16 +62,17 @@ def process_linreg_polygon(configs_child, item, xs, metrics_dict):
         union = union.union(polygon)
     slope_intersection = intersection.area / union.area
 
-    metrics_dict['area_intersection'].append(area_intersection)
-    metrics_dict['slope_intersection'].append(slope_intersection)
-    metrics_dict['max_abs_slope'].append(max_abs_slope)
+    metrics_dict['area_intersection' + suffix].append(area_intersection)
+    metrics_dict['slope_intersection' + suffix].append(slope_intersection)
+    metrics_dict['max_abs_slope' + suffix].append(max_abs_slope)
 
 
 def process_variance_polygon(
     configs_child,
     item,
     xs,
-    metrics_dict
+    metrics_dict,
+    suffix
 ):
     xs_all = []
     ys_b_all = []
@@ -89,7 +91,7 @@ def process_variance_polygon(
         item_id = config_child.advanced_dict[item]
         metrics_dict_curr = dict_slice(config_child.advanced_data, item_id)
 
-        ys_b, ys_t = fit_variance(xs_curr, metrics_dict_curr)
+        ys_b, ys_t = fit_variance(xs_curr, metrics_dict_curr, f'_{config_child.hash[0:8]}')
         ys_b_all.append(ys_b)
         ys_t_all.append(ys_t)
 
@@ -160,8 +162,8 @@ def process_variance_polygon(
         begin_rel = 1.0
         end_rel = 1.0
 
-    metrics_dict['area_intersection'].append(area_intersection)
-    metrics_dict['increasing'].append(increasing)
-    metrics_dict['increasing_id'].append(increasing_id)
-    metrics_dict['begin_rel'].append(begin_rel)
-    metrics_dict['end_rel'].append(end_rel)
+    metrics_dict['area_intersection' + suffix].append(area_intersection)
+    metrics_dict['increasing' + suffix].append(increasing)
+    metrics_dict['increasing_id' + suffix].append(increasing_id)
+    metrics_dict['begin_rel' + suffix].append(begin_rel)
+    metrics_dict['end_rel' + suffix].append(end_rel)

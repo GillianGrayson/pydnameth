@@ -13,17 +13,17 @@ class GetStrategy(metaclass=abc.ABCMeta):
         pass
 
     def get_target(self, config, item='any'):
-        if len(config.base_missed_dict[item]) > 0:
+        if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
             passed_ids = []
             for id, col in enumerate(config.attributes_indexes):
                 if col not in config.base_missed_dict[item]:
                     passed_ids.append(id)
             data = []
             for id in passed_ids:
-                data.append(config.attributes_dict[config.attributes.target][id])
+                data.append(config.observables_categorical_dict[config.attributes.target][id])
         else:
-            data = config.attributes_dict[config.attributes.target]
-        return data
+            data = config.observables_categorical_dict[config.attributes.target]
+        return np.array(data)
 
 
 class BetasGetStrategy(GetStrategy):

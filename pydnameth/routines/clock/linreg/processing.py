@@ -7,7 +7,7 @@ from sklearn.model_selection import ShuffleSplit
 from statsmodels import api as sm
 
 
-def build_clock_linreg(clock):
+def build_clock_linreg(clock, suffix):
     endog_data = clock.endog_data
     endog_name = clock.endog_names
     exog_data = clock.exog_data
@@ -100,8 +100,8 @@ def build_clock_linreg(clock):
             mae_best = mae_test
             rms_best = rms_test
 
-    metrics_dict['R2'].append(R2_best)
-    metrics_dict['r'].append(r_best)
-    metrics_dict['evs'].append(evs_best)
-    metrics_dict['mae'].append(mae_best)
-    metrics_dict['rmse'].append(rms_best)
+    metrics_dict['R2' + suffix].append(R2_best)
+    metrics_dict['r' + suffix].append(r_best)
+    metrics_dict['evs' + suffix].append(evs_best)
+    metrics_dict['mae' + suffix].append(mae_best)
+    metrics_dict['rmse' + suffix].append(rms_best)

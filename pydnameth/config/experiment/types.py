@@ -12,6 +12,7 @@ class Task(Enum):
 
 
 class Method(Enum):
+    oma = 'oma'
     linreg = 'linreg'
     ancova = 'ancova'
     variance = 'variance'

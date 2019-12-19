@@ -1,6 +1,6 @@
 from pydnameth.infrastucture.load.betas import load_betas
 from pydnameth.infrastucture.load.betas_adj import load_betas_adj
-from pydnameth.infrastucture.load.residuals import load_residuals_common
+from pydnameth.infrastucture.load.residuals import load_residuals
 from pydnameth.infrastucture.path import get_cache_path
 import numpy as np
 import copy
@@ -42,7 +42,7 @@ def load_entropy(config):
             data_dict = config.betas_adj_dict
         elif data_params['data'] == 'residuals':
             config.experiment.data_params.pop('data')
-            load_residuals_common(config)
+            load_residuals(config)
             data = config.residuals_data
             data_dict = config.residuals_dict
         else:

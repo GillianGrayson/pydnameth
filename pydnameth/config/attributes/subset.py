@@ -5,7 +5,7 @@ from pydnameth.routines.common import is_float
 
 def pass_indexes(config, target, variable, any):
     passed_indexes = []
-    attributes = config.attributes_dict[target]
+    attributes = config.observables_dict[target]
     if variable == any:
         passed_indexes = list(range(0, len(attributes)))
     else:
@@ -21,7 +21,7 @@ def pass_indexes(config, target, variable, any):
 
 def pass_indexes_interval(config, target, left, right):
     passed_indexes = []
-    attributes = config.attributes_dict[target]
+    attributes = config.observables_dict[target]
     for index in range(0, len(attributes)):
         if left <= attributes[index] < right:
             passed_indexes.append(index)
@@ -29,11 +29,11 @@ def pass_indexes_interval(config, target, left, right):
 
 
 def get_indexes(config):
-    indexes = list(range(0, len(list(config.attributes_dict.values())[0])))
+    indexes = list(range(0, len(list(config.observables_dict.values())[0])))
 
     for obs, value in config.attributes.observables.types.items():
         any = CommonTypes.any.value
-        if obs in config.attributes_dict:
+        if obs in config.observables_dict:
 
             if obs == 'age':
 
@@ -42,7 +42,7 @@ def get_indexes(config):
                     right = float(value[1])
                     passed_indexes = pass_indexes_interval(config, obs, left, right)
                 else:
-                    raise ValueError('Wrong attributes_dict key for age. It should be (left, right).')
+                    raise ValueError('Wrong observables_dict key for age. It should be (left, right).')
 
             else:
 
@@ -72,13 +72,17 @@ def get_indexes(config):
     return indexes
 
 
-def subset_attributes(config):
-    for key in config.attributes_dict:
-        values = config.attributes_dict[key]
+def subset_observables(config):
+    for key in config.observables_dict:
+        values = config.observables_dict[key]
+        values_categorized = config.observables_categorical_dict[key]
         passed_values = []
+        passed_values_categorized = []
         for index in config.attributes_indexes:
             passed_values.append(values[index])
-        config.attributes_dict[key] = passed_values
+            passed_values_categorized.append(values_categorized[index])
+        config.observables_dict[key] = passed_values
+        config.observables_categorical_dict[key] = passed_values_categorized
 
 
 def subset_cells(config):

@@ -69,39 +69,39 @@ class TestLoadAnnotations(unittest.TestCase):
     def tearDown(self):
         clear_cache(self.config)
 
-    def test_load_attributes_dict_num_elems(self):
-        attributes_dict = load_observables_dict(self.config)
-        self.assertEqual(len(attributes_dict['age']), 729)
+    def test_load_observables_dict_num_elems(self):
+        observables_dict = load_observables_dict(self.config)
+        self.assertEqual(len(observables_dict['age']), 729)
 
-    def test_load_attributes_dict_age_range(self):
-        attributes_dict = load_observables_dict(self.config)
-        self.assertEqual(max(attributes_dict['age']) - min(attributes_dict['age']), 80)
+    def test_load_observables_dict_age_range(self):
+        observables_dict = load_observables_dict(self.config)
+        self.assertEqual(max(observables_dict['age']) - min(observables_dict['age']), 80)
 
-    def test_load_attributes_dict_check_pkl_file_creation(self):
+    def test_load_observables_dict_check_pkl_file_creation(self):
         load_observables_dict(self.config)
 
         create = os.path.isfile(get_data_base_path(self.config) + '/' + self.config.attributes.observables.name + '.pkl')
 
         self.assertEqual(True, create)
 
-    def test_load_attributes_dict_check_sum_smoke(self):
-        attributes_dict = load_observables_dict(self.config)
+    def test_load_observables_dict_check_sum_smoke(self):
+        observables_dict = load_observables_dict(self.config)
 
-        sum_smoke = sum(list(map(int, attributes_dict['smoke'])))
+        sum_smoke = sum(list(map(int, observables_dict['smoke'])))
 
         self.assertEqual(188, sum_smoke)
 
-    def test_load_attributes_dict_num_Male(self):
-        attributes_dict = load_observables_dict(self.config)
+    def test_load_observables_dict_num_Male(self):
+        observables_dict = load_observables_dict(self.config)
 
-        indexes = [ind for ind, val in enumerate(attributes_dict['gender']) if val == 'M']
+        indexes = [ind for ind, val in enumerate(observables_dict['gender']) if val == 'M']
 
         self.assertEqual(341, len(indexes))
 
-    def test_load_attributes_dict_num_Female(self):
-        attributes_dict = load_observables_dict(self.config)
+    def test_load_observables_dict_num_Female(self):
+        observables_dict = load_observables_dict(self.config)
 
-        indexes = [ind for ind, val in enumerate(attributes_dict['gender']) if val == 'F']
+        indexes = [ind for ind, val in enumerate(observables_dict['gender']) if val == 'F']
 
         self.assertEqual(388, len(indexes))
 

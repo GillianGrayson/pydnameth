@@ -47,6 +47,22 @@ def betas_table_linreg(
     )
 
 
+def betas_table_oma(
+    data,
+    annotations,
+    attributes,
+    method_params=None
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.oma,
+        method_params=method_params,
+    )
+
+
 def betas_table_variance(
     data,
     annotations,
