@@ -39,6 +39,7 @@ def get_method_metrics_keys(config):
                     'gq_f_pvalue',
                     'gq_f_pvalue_fdr_bh',
                     'gq_f_pvalue_bonferroni',
+                    'gq_type'
                 ]
 
             if config.experiment.method == Method.linreg:

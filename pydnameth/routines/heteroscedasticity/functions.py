@@ -1,5 +1,5 @@
 import statsmodels.api as sm
-from statsmodels.stats.diagnostic import het_breuschpagan, het_white, het_goldfeldquandt
+import statsmodels.stats.api as sms
 
 
 def process_heteroscedasticity(x, y, metrics_dict, suffix):
@@ -7,9 +7,9 @@ def process_heteroscedasticity(x, y, metrics_dict, suffix):
 
     results = sm.OLS(y, x_with_const).fit()
 
-    bp_lm, bp_lm_pvalue, bp_fvalue, bp_f_pvalue = het_breuschpagan(results.resid, results.model.exog)
-    w_lm, w_lm_pvalue, w_fvalue, w_f_pvalue = het_white(results.resid, results.model.exog)
-    gq_fvalue, gq_f_pvalue = het_goldfeldquandt(results.resid, results.model.exog)
+    bp_lm, bp_lm_pvalue, bp_fvalue, bp_f_pvalue = sms.het_breuschpagan(results.resid, results.model.exog)
+    w_lm, w_lm_pvalue, w_fvalue, w_f_pvalue = sms.het_white(results.resid, results.model.exog)
+    gq_fvalue, gq_f_pvalue, gq_type = sms.het_goldfeldquandt(results.resid, results.model.exog)
 
     metrics_dict['bp_lm' + suffix].append(bp_lm)
     metrics_dict['bp_lm_pvalue' + suffix].append(bp_lm_pvalue)
@@ -23,3 +23,4 @@ def process_heteroscedasticity(x, y, metrics_dict, suffix):
 
     metrics_dict['gq_fvalue' + suffix].append(gq_fvalue)
     metrics_dict['gq_f_pvalue' + suffix].append(gq_f_pvalue)
+    metrics_dict['gq_type' + suffix].append(gq_type)
