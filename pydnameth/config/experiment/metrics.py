@@ -19,6 +19,7 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
+                    'type'
                     'bp_lm',
                     'bp_lm_pvalue',
                     'bp_lm_pvalue_fdr_bh',
