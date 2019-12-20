@@ -10,6 +10,7 @@ from pydnameth.routines.common import is_float, get_names
 from tqdm import tqdm
 from pydnameth.routines.variance.functions import process_variance, fit_variance, get_box_xs
 from pydnameth.routines.common import update_parent_dict_with_children
+from pydnameth.routines.heteroscedasticity.functions import process_heteroscedasticity
 from pydnameth.routines.linreg.functions import process_linreg
 from pydnameth.routines.z_test_slope.functions import process_z_test_slope
 from pydnameth.routines.polygon.functions import process_linreg_polygon, process_variance_polygon
@@ -45,7 +46,13 @@ class TableRunStrategy(RunStrategy):
 
     def single(self, item, config, configs_child):
 
-        if config.experiment.method == Method.linreg:
+        if config.experiment.method == Method.heteroskedasticity:
+
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
+            process_heteroscedasticity(x, y, config.metrics, f'_{config.hash[0:8]}')
+
+        elif config.experiment.method == Method.linreg:
 
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
