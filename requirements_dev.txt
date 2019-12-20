@@ -4,7 +4,7 @@ wheel==0.33.6
 watchdog==0.9.0
 flake8==3.7.9
 tox==3.14.2
-coverage==4.5.4
+coverage==5.0
 Sphinx==2.3.0
 twine==3.1.1
 numpy==1.17.4
@@ -21,7 +21,7 @@ geos==0.2.2
 xlrd==1.2.0
 XlsxWriter==1.2.6
 psutil==5.6.7
-coverage==4.5.4
+coverage==5.0
 codecov==2.0.15
 anytree==2.7.3
 tqdm==4.40.2
