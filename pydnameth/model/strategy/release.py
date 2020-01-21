@@ -210,6 +210,9 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                 config.experiment_data['data'].append(items)
 
                     layout = {}
+
+                    layout['template'] = 'plotly_white'
+
                     layout['showlegend'] = False
                     layout['margin'] = {
                         'l': 0,
