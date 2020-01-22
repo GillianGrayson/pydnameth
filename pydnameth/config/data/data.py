@@ -25,6 +25,8 @@ class Data:
                 self.path = DataPath.local_2.value
             elif host_name == 'DESKTOP-4BEQ7MS':
                 self.path = DataPath.local_3.value
+            elif host_name == 'DESKTOP-7H2CNDR':
+                self.path = DataPath.local_4.value
             elif host_name == 'master' or host_name[0:4] == 'node':
                 user = getpass.getuser()
                 if user == 'yusipov_i':
