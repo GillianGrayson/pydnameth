@@ -103,7 +103,7 @@ class TableRunStrategy(RunStrategy):
                 item_id = config_child.advanced_dict[item]
                 slopes.append(config_child.advanced_data['slope' + f'_{config_child.hash[0:8]}'][item_id])
                 slopes_std.append(config_child.advanced_data['slope_std' + f'_{config_child.hash[0:8]}'][item_id])
-                num_subs.append(len(config_child.observables_dict['age']))
+                num_subs.append(len(config_child.observables_dict[config_child.attributes.target]))
 
             process_z_test_slope(slopes, slopes_std, num_subs, config.metrics, f'_{config.hash[0:8]}')
 
