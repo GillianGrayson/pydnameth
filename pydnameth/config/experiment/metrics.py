@@ -108,6 +108,8 @@ def get_method_metrics_keys(config):
                     'increasing_div',
                     'increasing_sub',
 
+                    'increasing_type',
+
                     'box_b_best_type',
                     'box_b_best_R2',
                     'box_b_lin_lin_R2',

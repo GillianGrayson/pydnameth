@@ -160,6 +160,15 @@ class TableRunStrategy(RunStrategy):
                 abs(diff_begin - diff_end)
             )
 
+            if diff_end > diff_begin:
+                config.metrics['increasing_type' + f'_{config.hash[0:8]}'].append(
+                    +1
+                )
+            else:
+                config.metrics['increasing_type' + f'_{config.hash[0:8]}'].append(
+                    -1
+                )
+
         config.metrics['item'].append(item)
         aux = self.get_strategy.get_aux(config, item)
         config.metrics['aux'].append(aux)
