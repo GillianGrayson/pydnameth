@@ -59,7 +59,9 @@ class ClockSetUpStrategy(SetupStrategy):
         # In clock task only first base config matters
         table = configs_child[0].advanced_data
         items = table['item'][0:max_size]
-        values = self.get_strategy.get_single_base(config, items)
+        values = []
+        for item in items:
+            values.append(self.get_strategy.get_single_base(config, item))
 
         config.experiment_data = {
             'items': items,
