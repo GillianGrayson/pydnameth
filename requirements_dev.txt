@@ -20,7 +20,7 @@ patsy==0.5.1
 geos==0.2.2
 xlrd==1.2.0
 XlsxWriter==1.2.7
-psutil==5.6.7
+psutil==5.7.0
 coverage==5.0.3
 codecov==2.0.15
 anytree==2.8.0
