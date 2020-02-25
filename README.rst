@@ -38,7 +38,7 @@ pydnameth
 
 DNA Methylation Analysis Package
 
-This package provides some pipelines for analysis mythylation data.
+This package provides some pipelines for analysis methylation data.
 The main goal is to find correlations between methylation on the one hand,
 and age, sex, disease, and other characteristics of subjects on the other.
 
