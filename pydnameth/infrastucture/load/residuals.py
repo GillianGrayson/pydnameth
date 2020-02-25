@@ -90,14 +90,6 @@ def load_residuals(config):
                 exog_keys.append(exog_type)
         formula = 'cpg ~ ' + ' + '.join(exog_keys)
 
-        exog_keys = []
-        for exog_type, exog_data in exog_dict.items():
-            if is_categorical(exog_data):
-                exog_keys.append('C(' + exog_type + ')')
-            else:
-                exog_keys.append(exog_type)
-        formula = 'cpg ~ ' + ' + '.join(exog_keys)
-
         num_cpgs = config.betas_data.shape[0]
         num_subjects = config.betas_data.shape[1]
         config.residuals_data = np.zeros((num_cpgs, num_subjects), dtype=np.float32)
