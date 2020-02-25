@@ -12,6 +12,7 @@ class Task(Enum):
 
 
 class Method(Enum):
+    heteroskedasticity = 'heteroskedasticity'
     oma = 'oma'
     linreg = 'linreg'
     ancova = 'ancova'

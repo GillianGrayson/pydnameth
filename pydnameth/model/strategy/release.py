@@ -26,15 +26,38 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.cells]:
 
             if config.experiment.method in [Method.ancova, Method.oma]:
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
-                                                                            0.05,
-                                                                            method='fdr_bh')
+                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
+                    0.05,
+                    method='fdr_bh'
+                )
                 config.metrics['p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
 
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(config.metrics['p_value'],
-                                                                            0.05,
-                                                                            method='bonferroni')
+                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
+                    0.05,
+                    method='bonferroni'
+                )
                 config.metrics['p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+
+            if config.experiment.method == Method.heteroskedasticity:
+
+                keys = ['bp_lm_pvalue', 'bp_f_pvalue', 'w_lm_pvalue', 'w_f_pvalue', 'gq_f_pvalue']
+
+                for key in keys:
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key + f'_{config.hash[0:8]}'],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[key + '_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key + f'_{config.hash[0:8]}'],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[key + '_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
 
 class ClockReleaseStrategy(ReleaseStrategy):
@@ -187,6 +210,9 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                 config.experiment_data['data'].append(items)
 
                     layout = {}
+
+                    layout['template'] = 'plotly_white'
+
                     layout['showlegend'] = False
                     layout['margin'] = {
                         'l': 0,

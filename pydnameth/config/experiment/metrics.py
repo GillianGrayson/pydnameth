@@ -14,6 +14,35 @@ def get_method_metrics_keys(config):
 
         if config.experiment.task == Task.table:
 
+            if config.experiment.method == Method.heteroskedasticity:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'type',
+                    'bp_lm',
+                    'bp_lm_pvalue',
+                    'bp_lm_pvalue_fdr_bh',
+                    'bp_lm_pvalue_bonferroni',
+                    'bp_fvalue',
+                    'bp_f_pvalue',
+                    'bp_f_pvalue_fdr_bh',
+                    'bp_f_pvalue_bonferroni',
+                    'w_lm',
+                    'w_lm_pvalue',
+                    'w_lm_pvalue_fdr_bh',
+                    'w_lm_pvalue_bonferroni',
+                    'w_fvalue',
+                    'w_f_pvalue',
+                    'w_f_pvalue_fdr_bh',
+                    'w_f_pvalue_bonferroni',
+                    'gq_fvalue',
+                    'gq_f_pvalue',
+                    'gq_f_pvalue_fdr_bh',
+                    'gq_f_pvalue_bonferroni',
+                    'gq_type'
+                ]
+
             if config.experiment.method == Method.linreg:
 
                 metrics = [
@@ -78,6 +107,8 @@ def get_method_metrics_keys(config):
 
                     'increasing_div',
                     'increasing_sub',
+
+                    'increasing_type',
 
                     'box_b_best_type',
                     'box_b_best_R2',
