@@ -383,3 +383,62 @@ def table_aggregator_variance(
 
     build_tree(root)
     calc_tree(root)
+
+
+def table_aggregator_approach_4(
+    data_type,
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params,
+):
+    config_root = Config(
+        data=copy.deepcopy(data),
+        experiment=Experiment(
+            data=data_type,
+            task=Task.table,
+            method=Method.aggregator,
+            data_params=copy.deepcopy(data_params),
+        ),
+        annotations=copy.deepcopy(annotations),
+        attributes=copy.deepcopy(attributes),
+        is_run=True,
+        is_root=True
+    )
+    root = Node(name=str(config_root), config=config_root)
+
+    for d in observables_list:
+        observables_lvl_1 = Observables(
+            name=copy.deepcopy(attributes.observables.name),
+            types=d
+        )
+
+        cells_lvl_1 = Cells(
+            name=copy.deepcopy(attributes.cells.name),
+            types=copy.deepcopy(attributes.cells.types)
+        )
+
+        attributes_lvl_1 = Attributes(
+            target=copy.deepcopy(attributes.target),
+            observables=observables_lvl_1,
+            cells=cells_lvl_1,
+        )
+
+        config_lvl_1 = Config(
+            data=copy.deepcopy(data),
+            experiment=Experiment(
+                data=data_type,
+                task=Task.table,
+                method=Method.heteroskedasticity,
+                data_params=copy.deepcopy(data_params)
+            ),
+            annotations=copy.deepcopy(annotations),
+            attributes=attributes_lvl_1,
+            is_run=True,
+            is_root=False
+        )
+        Node(name=str(config_lvl_1), config=config_lvl_1, parent=root)
+
+    build_tree(root)
+    calc_tree(root)

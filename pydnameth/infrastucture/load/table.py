@@ -6,7 +6,12 @@ import pickle
 
 
 def load_table_dict(config):
-    table_dict = load_table_dict_pkl(config)
+    fn_pkl = get_save_path(config) + '/' + get_file_name(config) + '.pkl'
+    fn_xlsx = get_save_path(config) + '/' + get_file_name(config) + '.xlsx'
+    if os.path.isfile(fn_pkl):
+        table_dict = load_table_dict_pkl(config)
+    elif os.path.isfile(fn_xlsx):
+        table_dict = load_table_dict_xlsx(config)
     return table_dict
 
 

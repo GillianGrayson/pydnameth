@@ -1,5 +1,6 @@
 from pydnameth.config.experiment.types import Method, DataType
-from pydnameth.scripts.develop.table import table, table_aggregator_linreg, table_aggregator_variance
+from pydnameth.scripts.develop.table import table, table_aggregator_linreg, table_aggregator_variance,\
+    table_aggregator_approach_4
 
 
 def betas_table_linreg(
@@ -43,6 +44,22 @@ def betas_table_linreg(
         attributes=attributes,
         data_type=DataType.betas,
         method=Method.linreg,
+        method_params=method_params,
+    )
+
+
+def betas_table_heteroscedasticity(
+    data,
+    annotations,
+    attributes,
+    method_params=None
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.heteroskedasticity,
         method_params=method_params,
     )
 
@@ -168,6 +185,23 @@ def betas_table_aggregator_variance(
     data_params,
 ):
     table_aggregator_variance(
+        DataType.betas,
+        data,
+        annotations,
+        attributes,
+        observables_list,
+        data_params=data_params,
+    )
+
+
+def betas_table_aggregator_approach_4(
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params,
+):
+    table_aggregator_approach_4(
         DataType.betas,
         data,
         annotations,
