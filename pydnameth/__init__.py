@@ -77,7 +77,8 @@ from pydnameth.scripts.develop.residuals.plot import \
     residuals_plot_scatter, \
     residuals_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals.table import \
-    residuals_table_aggregator_linreg,\
+    residuals_table_linreg, \
+    residuals_table_aggregator_linreg, \
     residuals_table_aggregator_variance, \
     residuals_table_oma, \
     residuals_table_approach_3

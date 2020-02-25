@@ -7,6 +7,24 @@ from pydnameth.model.tree import build_tree, calc_tree
 from pydnameth.scripts.develop.table import table_aggregator_linreg, table_aggregator_variance, table
 
 
+def residuals_table_linreg(
+    data,
+    annotations,
+    attributes,
+    data_params,
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.residuals,
+        method=Method.linreg,
+        data_params=data_params,
+        task_params=None,
+        method_params=None
+    )
+
+
 def residuals_table_aggregator_linreg(
     data,
     annotations,
