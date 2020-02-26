@@ -60,6 +60,10 @@ class Config:
         self.residuals_dict = {}
         self.residuals_data = []
 
+        self.resid_old_list = []
+        self.resid_old_dict = {}
+        self.resid_old_data = []
+
         self.attributes_indexes = []
 
         self.excluded = None

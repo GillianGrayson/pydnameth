@@ -21,6 +21,7 @@ class TableReleaseStrategy(ReleaseStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals,
+                                      DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells]:
@@ -76,6 +77,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 DataType.betas,
                 DataType.betas_adj,
                 DataType.residuals,
+                DataType.resid_old,
                 DataType.epimutations,
                 DataType.entropy,
                 DataType.cells,
@@ -89,6 +91,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             DataType.betas,
                             DataType.betas_adj,
                             DataType.residuals,
+                            DataType.resid_old,
                         ]:
                             if items in config.cpg_gene_dict:
                                 aux = config.cpg_gene_dict[items]
@@ -294,6 +297,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             DataType.betas,
                             DataType.betas_adj,
                             DataType.residuals,
+                            DataType.resid_old,
                         ]:
                             if 'aux' in config.experiment.method_params:
                                 aux = config.experiment.method_params['aux'][y_id]

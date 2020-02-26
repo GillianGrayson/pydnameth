@@ -41,6 +41,7 @@ class DataType(Enum):
     betas_horvath_calculator = 'betas_horvath_calculator'
     betas_spec = 'betas_spec'
     residuals = 'residuals'
+    resid_old = 'resid_old'
     epimutations = 'epimutations'
     entropy = 'entropy'
     observables = 'observables'
