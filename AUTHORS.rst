@@ -2,7 +2,7 @@
 Credits
 =======
 
-Development Lead
+Development Team
 ----------------
 
 * Kalyakulina Alena <kalyakulina.alena@gmail.com>
