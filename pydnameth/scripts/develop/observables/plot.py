@@ -3,7 +3,7 @@ from anytree import Node
 from pydnameth.config.config import Config
 from pydnameth.config.experiment.types import Task, Method, DataType
 from pydnameth.config.experiment.experiment import Experiment
-from pydnameth.config.attributes.attributes import Observables, Cells, Attributes
+from pydnameth.config.attributes.attributes import Observables, Attributes
 from pydnameth.model.tree import build_tree, calc_tree
 
 
