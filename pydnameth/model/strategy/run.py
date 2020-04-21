@@ -184,6 +184,7 @@ class TableRunStrategy(RunStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals,
+                                      DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,
@@ -204,7 +205,8 @@ class ClockRunStrategy(RunStrategy):
 
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
-                                      DataType.residuals]:
+                                      DataType.residuals,
+                                      DataType.resid_old]:
 
             if config.experiment.method == Method.linreg:
 
@@ -322,6 +324,7 @@ class PlotRunStrategy(RunStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals,
+                                      DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,
@@ -404,7 +407,7 @@ class PlotRunStrategy(RunStrategy):
                     if config_child.experiment.method == Method.histogram:
                         histogram = go.Histogram(
                             x=targets,
-                            name=get_names(config_child, config.experiment.method_params),
+                            name=get_names(config_child, config.experiment.method_params) + f': {len(targets)}',
                             xbins=xbins,
                             marker=dict(
                                 opacity=config.experiment.method_params['opacity'],

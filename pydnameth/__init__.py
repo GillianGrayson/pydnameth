@@ -83,6 +83,9 @@ from pydnameth.scripts.develop.residuals.table import \
     residuals_table_oma, \
     residuals_table_approach_3
 
+from pydnameth.scripts.develop.resid_old.table import \
+    resid_old_table_linreg
+
 from pydnameth.scripts.develop.betas_adj.plot import \
     betas_adj_plot_scatter, \
     betas_adj_plot_scatter_comparison

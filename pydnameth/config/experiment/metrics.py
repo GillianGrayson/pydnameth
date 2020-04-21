@@ -9,6 +9,7 @@ def get_method_metrics_keys(config):
                                   DataType.epimutations,
                                   DataType.entropy,
                                   DataType.residuals,
+                                  DataType.resid_old,
                                   DataType.cells,
                                   DataType.genes]:
 

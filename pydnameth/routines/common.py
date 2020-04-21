@@ -52,8 +52,12 @@ def get_axis(title):
     axis = dict(
         title=title,
         showgrid=True,
+        linewidth=2,
+        linecolor='black',
         showline=True,
-        mirror='ticks',
+        gridcolor='gray',
+        mirror=True,
+        ticks='outside',
         titlefont=dict(
             family='Arial',
             size=33,

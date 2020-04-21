@@ -83,6 +83,15 @@ class ResidualsGetStrategy(GetStrategy):
         return BetasGetStrategy.get_aux(self, config, item)
 
 
+class ResidOldGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, item):
+        return BetasGetStrategy.get_single_base(self, config, item)
+
+    def get_aux(self, config, item):
+        return BetasGetStrategy.get_aux(self, config, item)
+
+
 class EpimutationsGetStrategy(GetStrategy):
 
     def get_single_base(self, config, item):

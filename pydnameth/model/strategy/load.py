@@ -5,6 +5,7 @@ from pydnameth.infrastucture.load.betas_adj import load_betas_adj
 from pydnameth.infrastucture.load.betas_horvath_calculator import load_betas_horvath_calculator
 from pydnameth.infrastucture.load.betas_spec import load_betas_spec
 from pydnameth.infrastucture.load.residuals import load_residuals
+from pydnameth.infrastucture.load.resid_old import load_resid_old
 from pydnameth.infrastucture.load.table import load_table_dict
 from pydnameth.infrastucture.load.epimutations import load_epimutations
 from pydnameth.infrastucture.load.entropy import load_entropy
@@ -102,6 +103,24 @@ class ResidualsLoadStrategy(LoadStrategy):
             config.base_dict = config.residuals_dict
             config.base_data = config.residuals_data
             config.base_missed_dict = config.residuals_missed_dict
+
+            self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
+
+class ResidOldLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        if config.is_init:
+            load_resid_old(config)
+            config.base_list = config.cpg_list
+            config.base_dict = config.resid_old_dict
+            config.base_data = config.resid_old_data
+            config.base_missed_dict = config.resid_old_missed_dict
 
             self.inherit_childs(config, configs_child)
 

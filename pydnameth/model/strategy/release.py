@@ -4,7 +4,8 @@ import plotly.graph_objs as go
 from statsmodels.stats.multitest import multipletests
 import plotly.figure_factory as ff
 from pydnameth.routines.plot.functions.layout import get_layout
-from pydnameth.routines.common import get_axis
+from pydnameth.routines.common import get_axis, is_float
+import math
 
 
 class ReleaseStrategy(metaclass=abc.ABCMeta):
@@ -21,6 +22,7 @@ class TableReleaseStrategy(ReleaseStrategy):
         if config.experiment.data in [DataType.betas,
                                       DataType.betas_adj,
                                       DataType.residuals,
+                                      DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells]:
@@ -76,6 +78,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                 DataType.betas,
                 DataType.betas_adj,
                 DataType.residuals,
+                DataType.resid_old,
                 DataType.epimutations,
                 DataType.entropy,
                 DataType.cells,
@@ -89,6 +92,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             DataType.betas,
                             DataType.betas_adj,
                             DataType.residuals,
+                            DataType.resid_old,
                         ]:
                             if items in config.cpg_gene_dict:
                                 aux = config.cpg_gene_dict[items]
@@ -294,12 +298,13 @@ class PlotReleaseStrategy(ReleaseStrategy):
                             DataType.betas,
                             DataType.betas_adj,
                             DataType.residuals,
+                            DataType.resid_old,
                         ]:
                             if 'aux' in config.experiment.method_params:
                                 aux = config.experiment.method_params['aux'][y_id]
-                                if aux == '':
-                                    aux = 'Non-genic'
-                                y_title = y_title + '<br>' + aux
+                                if is_float(aux) and math.isnan(aux):
+                                    aux = ''
+                                y_title = str(y_title) + '<br>' + str(aux)
                         layout['yaxis' + y_string_add]['title'] = y_title
 
                         y_range = config.experiment.method_params['y_ranges'][y_id]
