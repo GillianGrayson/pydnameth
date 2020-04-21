@@ -60,6 +60,10 @@ class Config:
         self.residuals_dict = {}
         self.residuals_data = []
 
+        self.resid_old_list = []
+        self.resid_old_dict = {}
+        self.resid_old_data = []
+
         self.attributes_indexes = []
 
         self.excluded = None
@@ -95,15 +99,17 @@ class Config:
     def initialize(self):
 
         if self.is_init:
-            self.excluded = load_excluded(self)
 
-            self.annotations_dict = load_annotations_dict(self)
-            subset_annotations(self)
+            if self.annotations is not None:
+                self.excluded = load_excluded(self)
+                self.annotations_dict = load_annotations_dict(self)
+                subset_annotations(self)
 
             self.observables_dict = load_observables_dict(self)
             self.observables_categorical_dict = load_observables_categorical_dict(self)
             self.attributes_indexes = get_indexes(self)
             subset_observables(self)
 
-            self.cells_dict = load_cells_dict(self)
-            subset_cells(self)
+            if self.attributes.cells is not None:
+                self.cells_dict = load_cells_dict(self)
+                subset_cells(self)

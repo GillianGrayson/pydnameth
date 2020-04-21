@@ -104,14 +104,14 @@ def load_residuals(config):
                 for key in current_data_dict:
                     values = []
                     for value_id in range(0, len(current_data_dict[key])):
-                        if value_id not in config.betas_adj_missed_dict[cpg]:
+                        if value_id not in config.betas_missed_dict[cpg]:
                             values.append(current_data_dict[key][value_id])
                     current_data_dict[key] = values
 
                 betas = []
                 passed_ids = []
                 for beta_id in range(0, len(raw_betas)):
-                    if beta_id not in config.betas_adj_missed_dict[cpg]:
+                    if beta_id not in config.betas_missed_dict[cpg]:
                         betas.append(raw_betas[beta_id])
                         passed_ids.append(beta_id)
             else:
