@@ -159,4 +159,6 @@ def get_layout(config, title_text=''):
                 yaxis=get_axis('Count'),
             )
 
+    layout.plot_bgcolor='rgba(233,233,233,0)'
+
     return layout

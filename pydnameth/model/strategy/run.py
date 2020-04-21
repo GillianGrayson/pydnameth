@@ -407,7 +407,7 @@ class PlotRunStrategy(RunStrategy):
                     if config_child.experiment.method == Method.histogram:
                         histogram = go.Histogram(
                             x=targets,
-                            name=get_names(config_child, config.experiment.method_params),
+                            name=get_names(config_child, config.experiment.method_params) + f': {len(targets)}',
                             xbins=xbins,
                             marker=dict(
                                 opacity=config.experiment.method_params['opacity'],

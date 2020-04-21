@@ -60,10 +60,7 @@ def observables_plot_histogram(
             types=d
         )
 
-        cells_child = Cells(
-            name=copy.deepcopy(attributes.cells.name),
-            types=copy.deepcopy(attributes.cells.types)
-        )
+        cells_child = copy.deepcopy(attributes.cells)
 
         attributes_child = Attributes(
             target=copy.deepcopy(attributes.target),
