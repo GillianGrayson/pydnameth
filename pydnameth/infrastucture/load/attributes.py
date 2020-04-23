@@ -22,7 +22,7 @@ def load_observables_dict(config):
     else:
 
         if os.path.isfile(fn_xlsx):
-            df = pd.read_excel(fn_xlsx)
+            df = pd.read_excel(fn_xlsx, keep_default_na=False)
             tmp_dict = df.to_dict()
             observables_dict = {}
             for key in tmp_dict:
