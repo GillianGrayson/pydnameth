@@ -83,8 +83,28 @@ def load_observables_categorical_dict(config):
         else:
             observables_dict = load_observables_dict(config)
 
+        na_values = ['', '#N/A', '#N/A N/A', '#NA', '-1.#IND', '-1.#QNAN', '-NaN', '-nan', '1.#IND', '1.#QNAN', '<NA>',
+                     'N/A', 'NA', 'NULL', 'NaN', 'n/a', 'nan', 'null', '-', '--']
+
         for key in observables_dict:
-            observables_categorical_dict[key] = categorize_data(np.asarray(config.observables_dict[key]))
+            all_numeric = True
+            for i in range(0, len(observables_dict[key])):
+                value = observables_dict[key][i]
+                if value in na_values:
+                    value = np.nan
+                if is_float(value):
+                    value = float(value)
+                    if value.is_integer():
+                        observables_dict[key][i] = value
+                    else:
+                        observables_dict[key][i] = float(value)
+                else:
+                    observables_dict[key][i] = value
+                    all_numeric = False
+            if all_numeric:
+                observables_categorical_dict[key] = np.asarray(config.observables_dict[key])
+            else:
+                observables_categorical_dict[key] = categorize_data(np.asarray(config.observables_dict[key]))
 
         f = open(fn_pkl, 'wb')
         pickle.dump(observables_categorical_dict, f, pickle.HIGHEST_PROTOCOL)
