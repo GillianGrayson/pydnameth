@@ -21,7 +21,8 @@ from pydnameth.routines.plot.functions.variance_histogram import process_varianc
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, pointbiserialr
+from sklearn.preprocessing import minmax_scale
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -68,8 +69,38 @@ class TableRunStrategy(RunStrategy):
 
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
+            lin_x = minmax_scale(x, feature_range=(0.0, 1.0))
+            lin_y = minmax_scale(y, feature_range=(0.0, 1.0))
+            tmp_x = minmax_scale(x, feature_range=(1.0, 10.0))
+            tmp_y = minmax_scale(y, feature_range=(1.0, 10.0))
+            log_x = np.log10(tmp_x)
+            log_y = np.log10(tmp_y)
 
-            corr_coeff, p_value = pearsonr(x, y)
+            lin_lin_corr_coeff, lin_lin_p_value = pearsonr(lin_x, lin_y)
+            config.metrics['lin_lin_corr_coeff' + f'_{config.hash[0:8]}'].append(lin_lin_corr_coeff)
+            config.metrics['lin_lin_p_value' + f'_{config.hash[0:8]}'].append(lin_lin_p_value)
+
+            lin_log_corr_coeff, lin_log_p_value = pearsonr(lin_x, log_y)
+            config.metrics['lin_log_corr_coeff' + f'_{config.hash[0:8]}'].append(lin_log_corr_coeff)
+            config.metrics['lin_log_p_value' + f'_{config.hash[0:8]}'].append(lin_log_p_value)
+
+            log_lin_corr_coeff, log_lin_p_value = pearsonr(log_x, lin_y)
+            config.metrics['log_lin_corr_coeff' + f'_{config.hash[0:8]}'].append(log_lin_corr_coeff)
+            config.metrics['log_lin_p_value' + f'_{config.hash[0:8]}'].append(log_lin_p_value)
+
+            log_log_corr_coeff, log_log_p_value = pearsonr(log_x, log_y)
+            config.metrics['log_log_corr_coeff' + f'_{config.hash[0:8]}'].append(log_log_corr_coeff)
+            config.metrics['log_log_p_value' + f'_{config.hash[0:8]}'].append(log_log_p_value)
+
+        elif config.experiment.method == Method.pbc:
+
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
+
+            if len(set(x)) != 2:
+                raise RuntimeError(f'x variable is not binary in pbc')
+
+            corr_coeff, p_value = pointbiserialr(x, y)
 
             config.metrics['corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
             config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
@@ -115,7 +146,7 @@ class TableRunStrategy(RunStrategy):
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
                 update_parent_dict_with_children(metrics_keys, item, config, config_child)
-                x = self.get_strategy.get_target(config_child, item)
+                x = self.get_strategy.get_target(config_child, item, categorical=False)
                 y = self.get_strategy.get_single_base(config_child, item)
                 x_all += list(x)
                 y_all += list(y)

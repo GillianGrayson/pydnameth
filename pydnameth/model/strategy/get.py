@@ -12,7 +12,7 @@ class GetStrategy(metaclass=abc.ABCMeta):
     def get_aux(self, config, item):
         pass
 
-    def get_target(self, config, item='any'):
+    def get_target(self, config, item='any', categorical=True):
         if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
             passed_ids = []
             for id, col in enumerate(config.attributes_indexes):
@@ -20,9 +20,15 @@ class GetStrategy(metaclass=abc.ABCMeta):
                     passed_ids.append(id)
             data = []
             for id in passed_ids:
-                data.append(config.observables_categorical_dict[config.attributes.target][id])
+                if categorical:
+                    data.append(config.observables_categorical_dict[config.attributes.target][id])
+                else:
+                    data.append(config.observables_dict[config.attributes.target][id])
         else:
-            data = config.observables_categorical_dict[config.attributes.target]
+            if categorical:
+                data = config.observables_categorical_dict[config.attributes.target]
+            else:
+                data = config.observables_dict[config.attributes.target]
         return np.array(data)
 
 

@@ -13,7 +13,8 @@ class Task(Enum):
 
 class Method(Enum):
     heteroskedasticity = 'heteroskedasticity'
-    oma = 'oma'
+    oma = 'oma'  # observable-methylation association
+    pbc = 'pbc'  # point biserial correlation
     linreg = 'linreg'
     ancova = 'ancova'
     variance = 'variance'

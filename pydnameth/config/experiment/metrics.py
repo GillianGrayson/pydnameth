@@ -92,6 +92,29 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
+                    'lin_lin_corr_coeff',
+                    'lin_lin_p_value',
+                    'lin_lin_p_value_fdr_bh',
+                    'lin_lin_p_value_bonferroni',
+                    'lin_log_corr_coeff',
+                    'lin_log_p_value',
+                    'lin_log_p_value_fdr_bh',
+                    'lin_log_p_value_bonferroni',
+                    'log_lin_corr_coeff',
+                    'log_lin_p_value',
+                    'log_lin_p_value_fdr_bh',
+                    'log_lin_p_value_bonferroni',
+                    'log_log_corr_coeff',
+                    'log_log_p_value',
+                    'log_log_p_value_fdr_bh',
+                    'log_log_p_value_bonferroni',
+                ]
+
+            elif config.experiment.method == Method.pbc:
+
+                metrics = [
+                    'item',
+                    'aux',
                     'corr_coeff',
                     'p_value',
                     'p_value_fdr_bh',
