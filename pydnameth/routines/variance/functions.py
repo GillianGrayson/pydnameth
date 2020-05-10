@@ -37,7 +37,8 @@ def process_box(targets, values, semi_window=2, box_b='left', box_t='right'):
     ts = np.zeros(len(xs), dtype=float)
     for x_id in range(0, len(xs)):
         curr_residuals = window_residuals[xs[x_id]]
-        q0, q1, q5, q25, median, q75, q95, q99, q100 = np.percentile(np.asarray(curr_residuals), [0, 1, 5, 25, 50, 75, 95, 99, 100])
+        q0, q1, q5, q25, median, q75, q95, q99, q100 = np.percentile(np.asarray(curr_residuals),
+                                                                     [0, 1, 5, 25, 50, 75, 95, 99, 100])
         iqr = q75 - q25
         ms[x_id] = median
         if box_b == 'left':
