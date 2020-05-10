@@ -211,7 +211,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     item.yaxis = y_string
 
                                     if item.mode == 'markers':
-                                        item.marker.size = 1.5
+                                        item.marker.size = 1
                                         item.marker.line.width = 0.2
                                     if item.mode == 'lines':
                                         item.line.width = 1
@@ -225,7 +225,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     items.marker.size = 1
                                     items.marker.line.width = 0.2
                                 if items.mode == 'lines':
-                                    items.line.width = 2
+                                    items.line.width = 1
 
                                 config.experiment_data['data'].append(items)
 

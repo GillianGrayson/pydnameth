@@ -32,6 +32,7 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
         coordinates = color[4:-1].split(',')
         color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
         color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
+        # color_polygon = 'rgba(' + ','.join(coordinates) + ',' + str(0.5) + ')'
 
         # Adding scatter
         scatter = go.Scatter(
@@ -40,7 +41,7 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
             name=names_all[child_id],
             mode='markers',
             marker=dict(
-                size=4,
+                size=2,
                 color=color_border,
                 line=dict(
                     width=1,
@@ -151,10 +152,13 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
 
             ys_b, ys_t = fit_variance(xs, metrics_dict, '')
 
-            scatter = go.Scatter(
-                x=xs,
-                y=ys_t,
+            poly_xs = list(xs) + list(xs)[::-1] + [xs[0]]
+            poly_ys = list(ys_t) + list(ys_b)[::-1] + [ys_t[0]]
+            poly = go.Scatter(
+                x=poly_xs,
+                y=poly_ys,
                 name=names_all[child_id],
+                fill='tozerox',
                 mode='lines',
                 line=dict(
                     width=4,
@@ -162,25 +166,13 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
                 ),
                 showlegend=False
             )
-            curr_plot_data.append(scatter)
-
-            scatter = go.Scatter(
-                x=xs,
-                y=ys_b,
-                name=names_all[child_id],
-                mode='lines',
-                line=dict(
-                    width=4,
-                    color=color_border
-                ),
-                showlegend=False
-            )
-            curr_plot_data.append(scatter)
+            curr_plot_data.append(poly)
 
         plot_data.append(curr_plot_data)
 
     # Sorting by total number of points
-    order = np.argsort(num_points)[::-1]
+    # order = np.argsort(num_points)[::-1]
+    order = list(range(0, len(num_points)))
     curr_data = []
     for index in order:
         curr_data += plot_data[index]
