@@ -19,7 +19,7 @@ def load_betas_spec(config):
         cpgs = [x.rstrip() for x in cpgs]
         f.close()
     else:
-        raise ValueError(f'File with cpgs is not exists.')
+        raise ValueError('File with cpgs is not exists.')
 
     if not os.path.isfile(fn_data_csv):
 

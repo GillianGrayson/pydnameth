@@ -18,7 +18,7 @@ def load_residuals(config):
         data_params = config.experiment.data_params
         suffix += '_' + config.experiment.get_data_params_str()
     else:
-        raise ValueError(f'Exog for residuals is empty.')
+        raise ValueError('Exog for residuals is empty.')
 
     fn_dict = get_data_base_path(config) + '/' + 'residuals_dict' + suffix + '.pkl'
     fn_missed_dict = get_data_base_path(config) + '/' + 'residuals_missed_dict' + suffix + '.pkl'
@@ -65,7 +65,7 @@ def load_residuals(config):
                         cells_dict.pop(key)
 
                 if len(list(cells_dict.keys())) != len(data_params['cells']):
-                    raise ValueError(f'Wrong number of cells types.')
+                    raise ValueError('Wrong number of cells types.')
 
                 exog_dict.update(cells_dict)
 
@@ -78,7 +78,7 @@ def load_residuals(config):
                         observables_dict.pop(key)
 
                 if len(list(observables_dict.keys())) != len(data_params['observables']):
-                    raise ValueError(f'Wrong number of observables types.')
+                    raise ValueError('Wrong number of observables types.')
 
                 exog_dict.update(observables_dict)
 

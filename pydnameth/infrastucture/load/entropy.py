@@ -15,7 +15,7 @@ def load_entropy(config):
         data_params = copy.deepcopy(config.experiment.data_params)
         suffix += '_' + config.experiment.get_data_params_str()
     else:
-        raise ValueError(f'Exog for entropy is empty.')
+        raise ValueError('Exog for entropy is empty.')
 
     fn_data = get_cache_path(config) + '/' + 'entropy' + suffix + '.npz'
 
@@ -46,7 +46,7 @@ def load_entropy(config):
             data = config.residuals_data
             data_dict = config.residuals_dict
         else:
-            raise ValueError(f'Unsupported data for entropy.')
+            raise ValueError('Unsupported data for entropy.')
 
         num_subjects = data.shape[1]
         config.entropy_data = np.zeros(num_subjects, dtype=np.float32)

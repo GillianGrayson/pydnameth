@@ -55,7 +55,7 @@ def load_observables_dict(config):
             f.close()
 
         else:
-            raise ValueError(f'No observables file')
+            raise ValueError('No observables file')
 
         f = open(fn_pkl, 'wb')
         pickle.dump(observables_dict, f, pickle.HIGHEST_PROTOCOL)
