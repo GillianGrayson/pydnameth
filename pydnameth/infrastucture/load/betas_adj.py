@@ -13,7 +13,7 @@ def load_betas_adj(config):
     if bool(config.experiment.data_params):
         suffix += '_' + config.experiment.get_data_params_str()
     else:
-        raise ValueError(f'Exog for residuals is empty.')
+        raise ValueError('Exog for residuals is empty.')
 
     fn_dict = get_data_base_path(config) + '/' + 'betas_dict' + suffix + '.pkl'
     fn_missed_dict = get_data_base_path(config) + '/' + 'betas_missed_dict' + suffix + '.pkl'

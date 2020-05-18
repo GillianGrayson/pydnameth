@@ -18,7 +18,7 @@ def load_betas_horvath_calculator(config):
         cpgs = [x.rstrip() for x in cpgs]
         f.close()
     else:
-        raise ValueError(f'No specified file with cpgs for Horvath\'s calculator.')
+        raise ValueError('No specified file with cpgs for Horvath\'s calculator.')
 
     if not os.path.isfile(fn_data_csv):
 

@@ -15,7 +15,7 @@ def load_genes(config):
         suffix_gene += '_' + str(config.experiment.get_data_params_str())
         source = config.experiment.data_params.pop('source')
     else:
-        raise ValueError(f'Data params for genes are empty')
+        raise ValueError('Data params for genes are empty')
 
     fn_list_txt = get_cache_path(config) + '/' + 'genes_list.txt'
     fn_list_pkl = get_cache_path(config) + '/' + 'genes_list.pkl'
@@ -59,7 +59,7 @@ def load_genes(config):
             source_data = config.residuals_data
             source_missed_dict = config.residuals_missed_dict
         else:
-            raise ValueError(f'Source for genes is not specified')
+            raise ValueError('Source for genes is not specified')
 
         num_subjects = config.betas_data.shape[1]
 

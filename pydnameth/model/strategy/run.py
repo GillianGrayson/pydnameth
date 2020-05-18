@@ -224,7 +224,7 @@ class ClockRunStrategy(RunStrategy):
 
                 if type == ClockExogType.all.value:
 
-                    for exog_id in tqdm(range(0, size), mininterval=60.0, desc=f'clock building'):
+                    for exog_id in tqdm(range(0, size), mininterval=60.0, desc='clock building'):
                         config.metrics['item'].append(items[exog_id])
                         aux = self.get_strategy.get_aux(config, items[exog_id])
                         config.metrics['aux'].append(aux)
@@ -246,7 +246,7 @@ class ClockRunStrategy(RunStrategy):
 
                 elif type == ClockExogType.deep.value:
 
-                    for exog_id in tqdm(range(0, size), mininterval=60.0, desc=f'clock building'):
+                    for exog_id in tqdm(range(0, size), mininterval=60.0, desc='clock building'):
                         config.metrics['item'].append(exog_id + 1)
                         config.metrics['aux'].append(exog_id + 1)
 
