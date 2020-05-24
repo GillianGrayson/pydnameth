@@ -1,6 +1,6 @@
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.table import table, table_aggregator_linreg, table_aggregator_variance,\
-    table_aggregator_approach_4
+    table_aggregator_approach_4, table_ancova
 
 
 def betas_table_linreg(
@@ -174,6 +174,25 @@ def betas_table_aggregator_linreg(
         observables_list,
         data_params,
         method_params,
+    )
+
+
+def betas_table_ancova(
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params=None,
+):
+    table_ancova(
+        data_type=DataType.betas,
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        observables_list=observables_list,
+        data_params=data_params,
+        task_params=None,
+        method_params=None
     )
 
 

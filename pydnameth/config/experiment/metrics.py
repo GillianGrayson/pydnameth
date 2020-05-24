@@ -82,9 +82,30 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
-                    'p_value',
-                    'p_value_fdr_bh',
-                    'p_value_bonferroni'
+                    'R2',
+                    'R2_adj',
+                    'f_stat',
+                    'prob(f_stat)',
+                    'intercept',
+                    'category',
+                    'x',
+                    'x:category',
+                    'intercept_std',
+                    'category_std',
+                    'x_std',
+                    'x:category_std',
+                    'intercept_pval',
+                    'category_pval',
+                    'x_pval',
+                    'x:category_pval',
+                    'intercept_pval_fdr_bh',
+                    'category_pval_fdr_bh',
+                    'x_pval_fdr_bh',
+                    'x:category_pval_fdr_bh',
+                    'intercept_pval_fdr_bon',
+                    'category_pval_fdr_bon',
+                    'x_pval_fdr_bon',
+                    'x:category_pval_fdr_bon',
                 ]
 
             elif config.experiment.method == Method.oma:

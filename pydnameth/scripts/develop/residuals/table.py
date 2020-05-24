@@ -4,7 +4,8 @@ from pydnameth.config.config import Config
 from pydnameth.config.experiment.experiment import Experiment
 from pydnameth.config.experiment.types import DataType, Method, Task
 from pydnameth.model.tree import build_tree, calc_tree
-from pydnameth.scripts.develop.table import table_aggregator_linreg, table_aggregator_variance, table
+from pydnameth.scripts.develop.table import table_aggregator_linreg, table_aggregator_variance, table, table_ancova,\
+    table_aggregator_approach_4
 
 
 def residuals_table_linreg(
@@ -155,3 +156,39 @@ def residuals_table_approach_3(
 
     build_tree(root)
     calc_tree(root)
+
+
+def residuals_table_ancova(
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params,
+):
+    table_ancova(
+        data_type=DataType.residuals,
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        observables_list=observables_list,
+        data_params=data_params,
+        task_params=None,
+        method_params=None
+    )
+
+
+def residuals_table_approach_4(
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params,
+):
+    table_aggregator_approach_4(
+        DataType.residuals,
+        data,
+        annotations,
+        attributes,
+        observables_list,
+        data_params=data_params,
+    )

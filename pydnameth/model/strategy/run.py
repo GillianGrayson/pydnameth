@@ -145,7 +145,6 @@ class TableRunStrategy(RunStrategy):
             category_all = []
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
-                update_parent_dict_with_children(metrics_keys, item, config, config_child)
                 x = self.get_strategy.get_target(config_child, item, categorical=False)
                 y = self.get_strategy.get_single_base(config_child, item)
                 x_all += list(x)
@@ -157,9 +156,28 @@ class TableRunStrategy(RunStrategy):
             formula = 'y ~ x * category'
             lm = ols(formula, df)
             results = lm.fit()
-            p_value = results.pvalues[3]
 
-            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['R2' + suffix].append(results.rsquared)
+            config.metrics['R2_adj' + suffix].append(results.rsquared_adj)
+            config.metrics['f_stat' + suffix].append(results.fvalue)
+            config.metrics['prob(f_stat)' + suffix].append(results.f_pvalue)
+
+            config.metrics['intercept' + suffix].append(results.params[0])
+            config.metrics['category' + suffix].append(results.params[1])
+            config.metrics['x' + suffix].append(results.params[2])
+            config.metrics['x:category' + suffix].append(results.params[3])
+
+            config.metrics['intercept_std' + suffix].append(results.bse[0])
+            config.metrics['category_std' + suffix].append(results.bse[1])
+            config.metrics['x_std' + suffix].append(results.bse[2])
+            config.metrics['x:category_std' + suffix].append(results.bse[3])
+
+            config.metrics['intercept_pval' + suffix].append(results.pvalues[0])
+            config.metrics['category_pval' + suffix].append(results.pvalues[1])
+            config.metrics['x_pval' + suffix].append(results.pvalues[2])
+            config.metrics['x:category_pval' + suffix].append(results.pvalues[3])
 
         elif config.experiment.method == Method.aggregator:
 

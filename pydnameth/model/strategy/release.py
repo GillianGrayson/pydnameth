@@ -27,7 +27,7 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.entropy,
                                       DataType.cells]:
 
-            if config.experiment.method in [Method.ancova, Method.pbc]:
+            if config.experiment.method in [Method.pbc]:
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
                     config.metrics['p_value' + f'_{config.hash[0:8]}'],
                     0.05,
@@ -41,6 +41,26 @@ class TableReleaseStrategy(ReleaseStrategy):
                     method='bonferroni'
                 )
                 config.metrics['p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+
+            if config.experiment.method in [Method.ancova]:
+
+                suffix = f'_{config.hash[0:8]}'
+
+                for prefix in ['intercept_pval', 'category_pval', 'x_pval', 'x:category_pval']:
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + suffix],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[prefix + '_fdr_bh' + suffix] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + suffix],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[prefix + '_fdr_bon' + suffix] = pvals_corr
 
             if config.experiment.method in [Method.oma]:
                 for prefix in ['lin_lin_', 'log_lin_', 'lin_log_', 'log_log_']:
