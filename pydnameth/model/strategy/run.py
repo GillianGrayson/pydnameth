@@ -98,7 +98,7 @@ class TableRunStrategy(RunStrategy):
             y = self.get_strategy.get_single_base(config, item)
 
             if len(set(x)) != 2:
-                raise RuntimeError(f'x variable is not binary in pbc')
+                raise RuntimeError('x variable is not binary in pbc')
 
             corr_coeff, p_value = pointbiserialr(x, y)
 
