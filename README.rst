@@ -38,9 +38,11 @@ pydnameth
 
 DNA Methylation Analysis Package
 
-This package provides some pipelines for analysis methylation data.
+Authors: Yusipov Igor, Kalyakulina Alena, Timakin Nikita, Soluyanov Alexey
+
+This package provides some pipelines for analysis of methylation data.
 The main goal is to find correlations between methylation on the one hand,
-and age, sex, disease, and other characteristics of subjects on the other.
+and age, sex, disease, and other characteristics of subjects on the other hand.
 
 Examples of free-access methylation datasets:
 
