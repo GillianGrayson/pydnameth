@@ -7,7 +7,7 @@ from pydnameth.routines.variance.functions import \
     process_box, init_variance_metrics_dict, process_variance, fit_variance
 
 
-def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
+def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all, reverse='no'):
 
     line = method_params['line']
     add = method_params['add']
@@ -172,7 +172,10 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
 
     # Sorting by total number of points
     # order = np.argsort(num_points)[::-1]
-    order = list(range(0, len(num_points)))
+    if reverse == 'yes':
+        order = list(range(0, len(num_points)))[::-1]
+    else:
+        order = list(range(0, len(num_points)))
     curr_data = []
     for index in order:
         curr_data += plot_data[index]

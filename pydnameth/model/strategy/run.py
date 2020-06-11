@@ -337,7 +337,7 @@ class ClockRunStrategy(RunStrategy):
 
 class PlotRunStrategy(RunStrategy):
 
-    def single(self, item, config, configs_child):
+    def single(self, item, config, configs_child, reverse='no'):
 
         xs = []
         ys = []
@@ -348,7 +348,7 @@ class PlotRunStrategy(RunStrategy):
             names.append(get_names(config_child, config.experiment.method_params))
 
         if config.experiment.method == Method.scatter:
-            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
+            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names, reverse)
 
         elif config.experiment.method == Method.range:
             process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
@@ -358,11 +358,12 @@ class PlotRunStrategy(RunStrategy):
 
     def iterate(self, config, configs_child):
         items = config.experiment.method_params['items']
-        for item in items:
+        reverses = config.experiment.method_params['reverses']
+        for item_id, item in enumerate(items):
             if item in config.base_dict:
                 print(item)
                 config.experiment_data['item'].append(item)
-                self.single(item, config, configs_child)
+                self.single(item, config, configs_child, reverses[item_id])
             else:
                 if 'type' in config.experiment.task_params:
                     if config.experiment.task_params['type'] == 'prepare':

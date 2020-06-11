@@ -45,6 +45,7 @@ def get_default_method_params(config):
             if config.experiment.method == Method.scatter:
                 params = {
                     'items': ['cg01620164'],
+                    'reverses': ['no'],
                     'x_ranges': ['auto'],
                     'y_ranges': ['auto'],
                     'line': 'yes',
