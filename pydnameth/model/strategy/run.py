@@ -153,7 +153,7 @@ class TableRunStrategy(RunStrategy):
 
             data = {'x': x_all, 'y': y_all, 'category': category_all}
             df = pd.DataFrame(data)
-            formula = 'y ~ x * category'
+            formula = 'y ~ x * C(category)'
             lm = ols(formula, df)
             results = lm.fit()
 
