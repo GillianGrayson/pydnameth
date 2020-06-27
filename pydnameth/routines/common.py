@@ -9,7 +9,7 @@ def categorize_data(data):
     if can_cast:
         data = data.astype(float)
     else:
-        data = pandas.factorize(data)[0]
+        data = pandas.factorize(data, sort=True)[0]
         data = np.array(data, dtype=float)
 
     return data

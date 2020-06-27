@@ -51,50 +51,52 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all, r
         )
         curr_plot_data.append(scatter)
 
-        # Linear regression
-        x = sm.add_constant(targets)
-        y = data
-        results = sm.OLS(y, x).fit()
-        intercept = results.params[0]
-        slope = results.params[1]
-        intercept_std = results.bse[0]
-        slope_std = results.bse[1]
+        if line == 'yes' or add == 'polygon':
 
-        # Adding regression line
-        if line == 'yes':
-            x_min = np.min(targets)
-            x_max = np.max(targets)
-            y_min = slope * x_min + intercept
-            y_max = slope * x_max + intercept
-            scatter = go.Scatter(
-                x=[x_min, x_max],
-                y=[y_min, y_max],
-                mode='lines',
-                marker=dict(
-                    color=color
-                ),
-                line=dict(
-                    width=6,
-                    color=color
-                ),
-                showlegend=False
-            )
-            curr_plot_data.append(scatter)
+            # Linear regression
+            x = sm.add_constant(targets)
+            y = data
+            results = sm.OLS(y, x).fit()
+            intercept = results.params[0]
+            slope = results.params[1]
+            intercept_std = results.bse[0]
+            slope_std = results.bse[1]
 
-        # Adding polygon area
-        if add == 'polygon':
-            pr = PolygonRoutines(
-                x=targets,
-                metrics_dict={
-                    'intercept': [intercept],
-                    'slope': [slope],
-                    'intercept_std': [intercept_std],
-                    'slope_std': [slope_std]
-                },
-                suffix=''
-            )
-            scatter = pr.get_scatter(color_transparent)
-            curr_plot_data.append(scatter)
+            # Adding regression line
+            if line == 'yes':
+                x_min = np.min(targets)
+                x_max = np.max(targets)
+                y_min = slope * x_min + intercept
+                y_max = slope * x_max + intercept
+                scatter = go.Scatter(
+                    x=[x_min, x_max],
+                    y=[y_min, y_max],
+                    mode='lines',
+                    marker=dict(
+                        color=color
+                    ),
+                    line=dict(
+                        width=6,
+                        color=color
+                    ),
+                    showlegend=False
+                )
+                curr_plot_data.append(scatter)
+
+            # Adding polygon area
+            if add == 'polygon':
+                pr = PolygonRoutines(
+                    x=targets,
+                    metrics_dict={
+                        'intercept': [intercept],
+                        'slope': [slope],
+                        'intercept_std': [intercept_std],
+                        'slope_std': [slope_std]
+                    },
+                    suffix=''
+                )
+                scatter = pr.get_scatter(color_transparent)
+                curr_plot_data.append(scatter)
 
         # Adding box curve
         if fit == 'no' and semi_window != 'none':
