@@ -9,7 +9,8 @@ from pydnameth.model.tree import build_tree, calc_tree
 
 
 def betas_horvath_calculator_create_regular(
-    data
+    data,
+    data_params
 ):
     annotations = Annotations(
         name='annotations',
@@ -39,7 +40,8 @@ def betas_horvath_calculator_create_regular(
         experiment=Experiment(
             data=DataType.betas_horvath_calculator,
             task=Task.create,
-            method=Method.regular
+            method=Method.regular,
+            data_params=copy.deepcopy(data_params)
         ),
         annotations=copy.deepcopy(annotations),
         attributes=copy.deepcopy(attributes),

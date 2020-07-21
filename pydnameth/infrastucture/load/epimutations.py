@@ -4,6 +4,7 @@ import numpy as np
 import os.path
 from tqdm import tqdm
 import math
+import copy
 
 
 def load_epimutations(config):
@@ -18,7 +19,12 @@ def load_epimutations(config):
     config.epimutations_dict = {'epimutations': 0}
     config.epimutations_missed_dict = {'epimutations': []}
 
+    data_params_copy = copy.deepcopy(config.experiment.data_params)
+    common_keys = ['part', 'norm']
     config.experiment.data_params = {}
+    for key in common_keys:
+        if key in data_params_copy:
+            config.experiment.data_params[key] = data_params_copy[key]
     load_betas(config)
 
     if os.path.isfile(fn_data + '.npz'):

@@ -67,7 +67,7 @@ class PlotSaveStrategy(SaveStrategy):
                         config.experiment.method_params.pop('y_ranges', None)
                         config.experiment.method_params['item'] = item
 
-                    file_name = 'regular'
+                    file_name = config.experiment_data['item'][fig_id]
                     fn = get_save_path(config) + '/' + file_name
                     save_figure(fn, fig)
             else:

@@ -38,7 +38,13 @@ def load_resid_old(config):
 
     else:
 
+        data_params_copy = copy.deepcopy(config.experiment.data_params)
+        common_keys = ['norm']
         config.experiment.data_params = {}
+        for key in common_keys:
+            if key in data_params_copy:
+                config.experiment.data_params[key] = data_params_copy[key]
+
         load_betas(config)
 
         config.resid_old_dict = config.betas_dict
