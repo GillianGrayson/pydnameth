@@ -22,6 +22,7 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_variance,\
     betas_table_aggregator_approach_4,\
     betas_table_linreg, \
+    betas_table_formula, \
     betas_table_heteroscedasticity, \
     betas_table_oma, \
     betas_table_cluster, \

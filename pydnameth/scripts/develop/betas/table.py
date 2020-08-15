@@ -113,6 +113,22 @@ def betas_table_cluster(
     )
 
 
+def betas_table_formula(
+    data,
+    annotations,
+    attributes,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.formula,
+        method_params=method_params,
+    )
+
+
 def betas_table_aggregator_linreg(
     data,
     annotations,

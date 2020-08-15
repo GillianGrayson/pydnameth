@@ -44,7 +44,27 @@ def get_method_metrics_keys(config):
                     'gq_type'
                 ]
 
-            if config.experiment.method == Method.linreg:
+            elif config.experiment.method == Method.formula:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'R2',
+                    'R2_adj',
+                    'mean',
+                    'intercept',
+                    'intercept_std',
+                    'intercept_p_value'
+                ]
+
+                method_params = config.experiment.method_params
+                for key, values in method_params.items():
+                    for val in values:
+                        metrics.append(val)
+                        metrics.append(val + '_std')
+                        metrics.append(val + '_p_value')
+
+            elif config.experiment.method == Method.linreg:
 
                 metrics = [
                     'item',

@@ -16,7 +16,14 @@ def categorize_data(data):
 
 
 def is_categorical(data):
-    return not np.can_cast(np.asarray(data), float)
+    is_can_cast_to_float = np.can_cast(np.asarray(data), float)
+    if not is_can_cast_to_float:
+        return True
+    len_set = len(set(data))
+    if len_set < 10:
+        return True
+    else:
+        return False
 
 
 def is_float(value):

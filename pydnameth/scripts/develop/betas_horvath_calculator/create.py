@@ -25,7 +25,7 @@ def betas_horvath_calculator_create_regular(
     )
 
     observables = Observables(
-        name='observables',
+        name='observables_part(control)',
         types={}
     )
 

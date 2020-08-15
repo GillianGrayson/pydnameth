@@ -1,6 +1,7 @@
 from pydnameth.infrastucture.load.annotations import load_annotations_dict
 from pydnameth.infrastucture.load.excluded import load_excluded
-from pydnameth.infrastucture.load.attributes import load_observables_dict, load_observables_categorical_dict
+from pydnameth.infrastucture.load.attributes import load_observables_dict,\
+    get_is_observables_categorical, load_observables_categorical_dict
 from pydnameth.infrastucture.load.attributes import load_cells_dict
 from pydnameth.config.annotations.subset import subset_annotations
 from pydnameth.config.attributes.subset import subset_observables
@@ -107,6 +108,7 @@ class Config:
 
             self.observables_dict = load_observables_dict(self)
             self.observables_categorical_dict = load_observables_categorical_dict(self)
+            self.is_observables_categorical = get_is_observables_categorical(self)
             self.attributes_indexes = get_indexes(self)
             subset_observables(self)
 

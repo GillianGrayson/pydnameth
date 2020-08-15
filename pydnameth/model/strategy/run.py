@@ -23,6 +23,7 @@ import pandas as pd
 from statsmodels.formula.api import ols
 from scipy.stats import pearsonr, pointbiserialr
 from sklearn.preprocessing import minmax_scale
+import statsmodels.formula.api as smf
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -64,6 +65,52 @@ class TableRunStrategy(RunStrategy):
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
             process_cluster(x, y, config.experiment.method_params, config.metrics, f'_{config.hash[0:8]}')
+
+        elif config.experiment.method == Method.formula:
+
+            y = self.get_strategy.get_single_base(config, item)
+            method_params = config.experiment.method_params
+
+            exog_dict = {}
+            for key, values in method_params.items():
+                if key == 'cells':
+                    for val in values:
+                        if val in config.cells_dict:
+                            exog_dict[val] = self.get_strategy.get_cell(config, key=val, item=item)
+                        else:
+                            raise ValueError(f'Wrong cell type in formula: {val}')
+                if key == 'observables':
+                    for val in values:
+                        if val in config.observables_dict:
+                            exog_dict[val] = self.get_strategy.get_observalbe(config, key=val, item=item)
+                        else:
+                            raise ValueError(f'Wrong observable in formula: {val}')
+
+            exog_keys = []
+            for exog_type, exog_data in exog_dict.items():
+                if config.is_observables_categorical.get(exog_type, False):
+                    exog_keys.append('C(' + exog_type + ')')
+                else:
+                    exog_keys.append(exog_type)
+            formula = 'cpg ~ ' + ' + '.join(exog_keys)
+            target_keys = list(exog_dict.keys())
+
+            exog_dict['cpg'] = y
+            data_df = pd.DataFrame(exog_dict)
+            reg_res = smf.ols(formula=formula, data=data_df).fit()
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['mean' + suffix].append(np.mean(y))
+            config.metrics['R2' + suffix].append(reg_res.rsquared)
+            config.metrics['R2_adj' + suffix].append(reg_res.rsquared_adj)
+            config.metrics['intercept' + suffix].append(reg_res.params[0])
+            config.metrics['intercept_std' + suffix].append(reg_res.bse[0])
+            config.metrics['intercept_p_value' + suffix].append(reg_res.pvalues[0])
+            for key_id, key in enumerate(target_keys):
+                config.metrics[key + suffix].append(reg_res.params[key_id + 1])
+                config.metrics[key + '_std' + suffix].append(reg_res.bse[key_id + 1])
+                config.metrics[key + '_p_value' + suffix].append(reg_res.pvalues[key_id + 1])
 
         elif config.experiment.method == Method.oma:
 

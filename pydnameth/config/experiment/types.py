@@ -15,6 +15,7 @@ class Method(Enum):
     heteroskedasticity = 'heteroskedasticity'
     oma = 'oma'  # observable-methylation association
     pbc = 'pbc'  # point biserial correlation
+    formula = 'formula'
     linreg = 'linreg'
     ancova = 'ancova'
     variance = 'variance'

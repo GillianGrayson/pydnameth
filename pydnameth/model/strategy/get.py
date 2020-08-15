@@ -13,6 +13,10 @@ class GetStrategy(metaclass=abc.ABCMeta):
         pass
 
     def get_target(self, config, item='any', categorical=True):
+        tmp = np.array(self.get_observalbe(config, key=config.attributes.target, item='any', categorical=True))
+        return tmp
+
+    def get_observalbe(self, config, key, item='any', categorical=True):
         if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
             passed_ids = []
             for id, col in enumerate(config.attributes_indexes):
@@ -21,15 +25,28 @@ class GetStrategy(metaclass=abc.ABCMeta):
             data = []
             for id in passed_ids:
                 if categorical:
-                    data.append(config.observables_categorical_dict[config.attributes.target][id])
+                    data.append(config.observables_categorical_dict[key][id])
                 else:
-                    data.append(config.observables_dict[config.attributes.target][id])
+                    data.append(config.observables_dict[key][id])
         else:
             if categorical:
-                data = config.observables_categorical_dict[config.attributes.target]
+                data = config.observables_categorical_dict[key]
             else:
-                data = config.observables_dict[config.attributes.target]
-        return np.array(data)
+                data = config.observables_dict[key]
+        return data
+
+    def get_cell(self, config, key, item='any'):
+        if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
+            passed_ids = []
+            for id, col in enumerate(config.attributes_indexes):
+                if col not in config.base_missed_dict[item]:
+                    passed_ids.append(id)
+            data = []
+            for id in passed_ids:
+                data.append(config.cells_dict[key][id])
+        else:
+            data = config.cells_dict[key]
+        return data
 
 
 class BetasGetStrategy(GetStrategy):

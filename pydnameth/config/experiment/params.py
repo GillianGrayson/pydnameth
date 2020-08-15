@@ -30,6 +30,9 @@ def get_default_method_params(config):
                     'method': Method.linreg
                 }
 
+            elif config.experiment.method == Method.formula:
+                params = {}
+
         elif config.experiment.task == Task.clock:
 
             if config.experiment.method == Method.linreg:
