@@ -1,4 +1,7 @@
 from pydnameth import DataType, Task, Method
+import statsmodels.formula.api as smf
+import pandas as pd
+import numpy as np
 
 
 def get_method_metrics_keys(config):
@@ -51,18 +54,43 @@ def get_method_metrics_keys(config):
                     'aux',
                     'R2',
                     'R2_adj',
-                    'mean',
-                    'intercept',
-                    'intercept_std',
-                    'intercept_p_value'
+                    'mean'
                 ]
 
                 method_params = config.experiment.method_params
+
+                exog_dict = {}
                 for key, values in method_params.items():
-                    for val in values:
-                        metrics.append(val)
-                        metrics.append(val + '_std')
-                        metrics.append(val + '_p_value')
+                    if key == 'cells':
+                        for val in values:
+                            if val in config.cells_dict:
+                                exog_dict[val] = config.cells_dict[val]
+                            else:
+                                raise ValueError(f'Wrong cell type in formula: {val}')
+                    if key == 'observables':
+                        for val in values:
+                            if val in config.observables_categorical_dict:
+                                exog_dict[val] = config.observables_categorical_dict[val]
+                            else:
+                                raise ValueError(f'Wrong observable in formula: {val}')
+
+                exog_keys = []
+                for exog_type, exog_data in exog_dict.items():
+                    if config.is_observables_categorical.get(exog_type, False):
+                        exog_keys.append('C(' + exog_type + ')')
+                    else:
+                        exog_keys.append(exog_type)
+                formula = 'cpg ~ ' + ' + '.join(exog_keys)
+
+                exog_dict['cpg'] = np.random.rand(len(config.attributes_indexes))
+                data_df = pd.DataFrame(exog_dict)
+                reg_res = smf.ols(formula=formula, data=data_df).fit()
+                params = dict(reg_res.params)
+
+                for key in params:
+                    metrics.append(key)
+                    metrics.append(key + '_std')
+                    metrics.append(key + '_p_value')
 
             elif config.experiment.method == Method.linreg:
 

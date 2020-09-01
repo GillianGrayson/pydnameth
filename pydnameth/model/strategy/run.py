@@ -93,24 +93,23 @@ class TableRunStrategy(RunStrategy):
                 else:
                     exog_keys.append(exog_type)
             formula = 'cpg ~ ' + ' + '.join(exog_keys)
-            target_keys = list(exog_dict.keys())
 
             exog_dict['cpg'] = y
             data_df = pd.DataFrame(exog_dict)
             reg_res = smf.ols(formula=formula, data=data_df).fit()
+            params = dict(reg_res.params)
+            bse = dict(reg_res.bse)
+            pvalues = dict(reg_res.pvalues)
 
             suffix = f'_{config.hash[0:8]}'
 
             config.metrics['mean' + suffix].append(np.mean(y))
             config.metrics['R2' + suffix].append(reg_res.rsquared)
             config.metrics['R2_adj' + suffix].append(reg_res.rsquared_adj)
-            config.metrics['intercept' + suffix].append(reg_res.params[0])
-            config.metrics['intercept_std' + suffix].append(reg_res.bse[0])
-            config.metrics['intercept_p_value' + suffix].append(reg_res.pvalues[0])
-            for key_id, key in enumerate(target_keys):
-                config.metrics[key + suffix].append(reg_res.params[key_id + 1])
-                config.metrics[key + '_std' + suffix].append(reg_res.bse[key_id + 1])
-                config.metrics[key + '_p_value' + suffix].append(reg_res.pvalues[key_id + 1])
+            for key in params:
+                config.metrics[key + suffix].append(params[key])
+                config.metrics[key + '_std' + suffix].append(bse[key])
+                config.metrics[key + '_p_value' + suffix].append(pvalues[key])
 
         elif config.experiment.method == Method.oma:
 

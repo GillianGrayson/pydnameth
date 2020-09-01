@@ -7,7 +7,8 @@ def betas_table_linreg(
     data,
     annotations,
     attributes,
-    method_params=None
+    method_params=None,
+    data_params=None
 ):
     """
        Producing table with information for linear regression between beta values
@@ -45,6 +46,7 @@ def betas_table_linreg(
         data_type=DataType.betas,
         method=Method.linreg,
         method_params=method_params,
+        data_params=data_params
     )
 
 
@@ -117,6 +119,7 @@ def betas_table_formula(
     data,
     annotations,
     attributes,
+    data_params,
     method_params
 ):
     table(
@@ -126,6 +129,7 @@ def betas_table_formula(
         data_type=DataType.betas,
         method=Method.formula,
         method_params=method_params,
+        data_params=data_params,
     )
 
 

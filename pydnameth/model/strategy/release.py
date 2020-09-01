@@ -78,6 +78,29 @@ class TableReleaseStrategy(ReleaseStrategy):
                     )
                     config.metrics[prefix + 'p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
+            if config.experiment.method in [Method.formula]:
+                target_keys = []
+                for key in config.metrics:
+                    if 'p_value' in key:
+                        target_keys.append(key)
+
+                for key in target_keys:
+                    fixes = key.split('p_value')
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[fixes[0] + 'p_value_fdr_bh' + fixes[1]] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[fixes[0] + 'p_value_bonferroni' + fixes[1]] = pvals_corr
+
             if config.experiment.method == Method.heteroskedasticity:
 
                 keys = ['bp_lm_pvalue', 'bp_f_pvalue', 'w_lm_pvalue', 'w_f_pvalue', 'gq_f_pvalue']
