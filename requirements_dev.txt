@@ -7,7 +7,7 @@ tox==3.20.0
 coverage==5.2.1
 Sphinx==3.2.1
 twine==3.2.0
-numpy==1.19.1
+numpy==1.19.2
 pandas==1.1.2
 plotly==4.9.0
 statsmodels==0.12.0
