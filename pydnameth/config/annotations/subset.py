@@ -113,6 +113,71 @@ def subset_annotations(config):
             pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
+    elif config.annotations.type == '850k':
+
+        if os.path.isfile(aux_data_fn):
+            f = open(aux_data_fn, 'rb')
+            aux_data = pickle.load(f)
+            f.close()
+            config.cpg_list = aux_data['cpg_list']
+            config.cpg_gene_dict = aux_data['cpg_gene_dict']
+            config.gene_cpg_dict = aux_data['gene_cpg_dict']
+            config.cpg_map_info_dict = aux_data['cpg_map_info_dict']
+        else:
+            config.cpg_list = []
+            config.cpg_gene_dict = {}
+            config.gene_cpg_dict = {}
+            config.cpg_map_info_dict = {}
+
+            cpgs_all = config.annotations_dict[config.annotations.id_name]
+            genes_all = config.annotations_dict['UCSC_RefGene_Name']
+            map_infos_all = config.annotations_dict['MAPINFO']
+
+            for index, cpg in enumerate(cpgs_all):
+
+                if global_check(config, index):
+
+                    cpg = cpgs_all[index][0]
+                    config.cpg_list.append(cpg)
+
+                    map_info = map_infos_all[index]
+                    if len(map_info) > 0:
+                        map_info = map_info[0]
+                        if map_info == 'NA':
+                            map_info = '0'
+                    else:
+                        map_info = 0
+                    config.cpg_map_info_dict[cpg] = int(map_info)
+
+                    genes = genes_all[index]
+                    if len(genes) > 0:
+                        config.cpg_gene_dict[cpg] = genes
+                        for gene in genes:
+                            if gene in config.gene_cpg_dict:
+                                config.gene_cpg_dict[gene].append(cpg)
+                            else:
+                                config.gene_cpg_dict[gene] = [cpg]
+
+            # Sorting cpgs by map_info in gene dict
+            for gene, cpgs in config.gene_cpg_dict.items():
+                map_infos = []
+                for cpg in cpgs:
+                    map_infos.append(int(config.cpg_map_info_dict[cpg]))
+                order = np.argsort(map_infos)
+                cpgs_sorted = list(np.array(cpgs)[order])
+                config.gene_cpg_dict[gene] = cpgs_sorted
+
+            aux_data = {
+                'cpg_list': config.cpg_list,
+                'cpg_gene_dict': config.cpg_gene_dict,
+                'gene_cpg_dict': config.gene_cpg_dict,
+                'cpg_map_info_dict': config.cpg_map_info_dict
+            }
+
+            f = open(aux_data_fn, 'wb')
+            pickle.dump(aux_data, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
     elif config.annotations.type == 'epityper':
 
         if os.path.isfile(aux_data_fn):

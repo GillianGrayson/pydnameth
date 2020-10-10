@@ -45,6 +45,8 @@ class Annotations:
             self.id_name = 'PROBE_ID'
         elif self.type == 'epityper':
             self.id_name = 'ID_REF'
+        elif self.type == '850k':
+            self.id_name = 'IlmnID'
         else:
             raise ValueError('Unsupported annotations type')
 
