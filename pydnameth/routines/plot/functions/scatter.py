@@ -34,6 +34,11 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all, r
         color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
         # color_polygon = 'rgba(' + ','.join(coordinates) + ',' + str(0.5) + ')'
 
+        if fit == 'yes' and semi_window != 'none':
+            scatter_size = 2
+        else:
+            scatter_size = 7
+
         # Adding scatter
         scatter = go.Scatter(
             x=targets,
@@ -41,7 +46,7 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all, r
             name=names_all[child_id],
             mode='markers',
             marker=dict(
-                size=2,
+                size=scatter_size,
                 color=color_border,
                 line=dict(
                     width=1,
