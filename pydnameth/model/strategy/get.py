@@ -13,7 +13,7 @@ class GetStrategy(metaclass=abc.ABCMeta):
         pass
 
     def get_target(self, config, item='any', categorical=True):
-        tmp = np.array(self.get_observalbe(config, key=config.attributes.target, item='any', categorical=True))
+        tmp = np.array(self.get_observalbe(config, key=config.attributes.target, item=item, categorical=categorical))
         return tmp
 
     def get_observalbe(self, config, key, item='any', categorical=True):

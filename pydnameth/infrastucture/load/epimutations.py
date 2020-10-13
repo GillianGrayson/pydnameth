@@ -56,7 +56,7 @@ def load_epimutations(config):
 
             curr_row = np.zeros(num_subjects, dtype=np.int)
             for subject_id in range(0, num_subjects):
-                curr_point = betas_raw[subject_id]
+                curr_point = betas[subject_id]
                 if not math.isnan(curr_point):
                     if curr_point < left or curr_point > right:
                         curr_row[subject_id] = 1
