@@ -148,6 +148,10 @@ class TableRunStrategy(RunStrategy):
 
             corr_coeff, p_value = pointbiserialr(x, y)
 
+            if np.isnan(corr_coeff) or np.isnan(p_value):
+                corr_coeff = 0.0
+                p_value = 1.0
+
             config.metrics['corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
             config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
 

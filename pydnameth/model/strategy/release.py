@@ -6,6 +6,7 @@ import plotly.figure_factory as ff
 from pydnameth.routines.plot.functions.layout import get_layout
 from pydnameth.routines.common import get_axis, is_float
 import math
+import numpy as np
 
 
 class ReleaseStrategy(metaclass=abc.ABCMeta):
@@ -28,15 +29,16 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.cells]:
 
             if config.experiment.method in [Method.pbc]:
+                pvals = np.asarray(config.metrics['p_value' + f'_{config.hash[0:8]}'])
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
+                    pvals,
                     0.05,
                     method='fdr_bh'
                 )
                 config.metrics['p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
 
                 reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
+                    pvals,
                     0.05,
                     method='bonferroni'
                 )

@@ -10,22 +10,22 @@ from pydnameth.model.tree import build_tree, calc_tree
 
 def betas_horvath_calculator_create_regular(
     data,
-    data_params
+    data_params,
 ):
     annotations = Annotations(
         name='annotations',
-        type='450k',
+        type='850k',
         exclude='none',
         select_dict={}
     )
 
     cells = Cells(
-        name='cells',
+        name='cell_typess',
         types='any'
     )
 
     observables = Observables(
-        name='observables_part(control)',
+        name='observables',
         types={}
     )
 

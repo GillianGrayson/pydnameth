@@ -15,8 +15,6 @@ def load_betas_horvath_calculator(config):
     suffix = ''
     if bool(config.experiment.data_params):
         suffix += '_' + config.experiment.get_data_params_str()
-    else:
-        raise ValueError('Exog for residuals is empty.')
 
     if os.path.isfile(fn_list):
         f = open(fn_list)

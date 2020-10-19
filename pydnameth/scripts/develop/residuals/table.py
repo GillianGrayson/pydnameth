@@ -192,3 +192,21 @@ def residuals_table_approach_4(
         observables_list,
         data_params=data_params,
     )
+
+
+def residuals_table_formula(
+    data,
+    annotations,
+    attributes,
+    data_params,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.residuals,
+        method=Method.formula,
+        method_params=method_params,
+        data_params=data_params,
+    )

@@ -27,7 +27,8 @@ from pydnameth.scripts.develop.betas.table import \
     betas_table_oma, \
     betas_table_cluster, \
     betas_table_variance, \
-    betas_table_ancova
+    betas_table_ancova, \
+    betas_table_pbc
 from pydnameth.scripts.develop.betas.clock import \
     betas_clock_linreg,\
     betas_clock_special
@@ -79,6 +80,7 @@ from pydnameth.scripts.develop.residuals.plot import \
     residuals_plot_scatter, \
     residuals_plot_scatter_comparison
 from pydnameth.scripts.develop.residuals.table import \
+    residuals_table_formula, \
     residuals_table_linreg, \
     residuals_table_ancova, \
     residuals_table_aggregator_linreg, \

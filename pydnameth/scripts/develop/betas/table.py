@@ -82,6 +82,24 @@ def betas_table_oma(
     )
 
 
+def betas_table_pbc(
+    data,
+    annotations,
+    attributes,
+    data_params=None,
+    method_params=None
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.pbc,
+        data_params=data_params,
+        method_params=method_params,
+    )
+
+
 def betas_table_variance(
     data,
     annotations,
