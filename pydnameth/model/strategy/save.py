@@ -103,3 +103,12 @@ class CreateSaveStrategy(SaveStrategy):
 
     def is_result_exist(self, config, configs_child):
         pass
+
+
+class LoadSaveStrategy(SaveStrategy):
+
+    def save(self, config, configs_child):
+        pass
+
+    def is_result_exist(self, config, configs_child):
+        pass

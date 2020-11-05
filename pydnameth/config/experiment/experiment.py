@@ -32,12 +32,19 @@ class Experiment:
         return name
 
     def get_params_str(self, params):
+        forbidden = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+
         params_str = ''
         if bool(params):
             params_keys = list(params.keys())
             if len(params_keys) > 0:
                 params_keys.sort()
                 params_str += '_'.join([key + '(' + str(params[key]) + ')' for key in params_keys])
+
+        for f in forbidden:
+            if f in params_str:
+                params_str = params_str.replace(f, '_')
+
         return params_str
 
     def get_data_params_str(self):

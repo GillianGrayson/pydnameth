@@ -111,6 +111,34 @@ class TableRunStrategy(RunStrategy):
                 config.metrics[key + '_std' + suffix].append(bse[key])
                 config.metrics[key + '_p_value' + suffix].append(pvalues[key])
 
+        elif config.experiment.method == Method.formula_new:
+
+            y = self.get_strategy.get_single_base(config, item)
+            method_params = config.experiment.method_params
+            formula = method_params['formula']
+
+            dict_global = {}
+            dict_global.update(config.observables_dict.items())
+            if len(config.cells_dict) > 0:
+                dict_global.update(config.cells_dict.items())
+            dict_global['cpg'] = y
+
+            data_df = pd.DataFrame(dict_global)
+            reg_res = smf.ols(formula=formula, data=data_df).fit()
+            params = dict(reg_res.params)
+            bse = dict(reg_res.bse)
+            pvalues = dict(reg_res.pvalues)
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['mean' + suffix].append(np.mean(y))
+            config.metrics['R2' + suffix].append(reg_res.rsquared)
+            config.metrics['R2_adj' + suffix].append(reg_res.rsquared_adj)
+            for key in params:
+                config.metrics[key + suffix].append(params[key])
+                config.metrics[key + '_std' + suffix].append(bse[key])
+                config.metrics[key + '_p_value' + suffix].append(pvalues[key])
+
         elif config.experiment.method == Method.oma:
 
             x = self.get_strategy.get_target(config, item)
@@ -529,6 +557,18 @@ class PlotRunStrategy(RunStrategy):
 
 
 class CreateRunStrategy(RunStrategy):
+
+    def single(self, item, config_child, configs_child):
+        pass
+
+    def iterate(self, config, configs_child):
+        pass
+
+    def run(self, config, configs_child):
+        pass
+
+
+class LoadRunStrategy(RunStrategy):
 
     def single(self, item, config_child, configs_child):
         pass

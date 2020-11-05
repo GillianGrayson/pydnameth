@@ -151,6 +151,24 @@ def betas_table_formula(
     )
 
 
+def betas_table_formula_new(
+    data,
+    annotations,
+    attributes,
+    data_params,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.formula_new,
+        method_params=method_params,
+        data_params=data_params,
+    )
+
+
 def betas_table_aggregator_linreg(
     data,
     annotations,

@@ -20,7 +20,7 @@ def betas_horvath_calculator_create_regular(
     )
 
     cells = Cells(
-        name='cell_typess',
+        name='cell_counts',
         types='any'
     )
 

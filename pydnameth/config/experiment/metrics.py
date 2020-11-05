@@ -92,6 +92,35 @@ def get_method_metrics_keys(config):
                     metrics.append(key + '_std')
                     metrics.append(key + '_p_value')
 
+            elif config.experiment.method == Method.formula_new:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'R2',
+                    'R2_adj',
+                    'mean'
+                ]
+
+                method_params = config.experiment.method_params
+                formula = method_params['formula']
+
+                dict_global = {}
+                dict_global.update(config.observables_dict.items())
+                if len(config.cells_dict) > 0:
+                    dict_global.update(config.cells_dict.items())
+
+                dict_global['cpg'] = np.random.rand(len(config.attributes_indexes))
+
+                data_df = pd.DataFrame(dict_global)
+                reg_res = smf.ols(formula=formula, data=data_df).fit()
+                params = dict(reg_res.params)
+
+                for key in params:
+                    metrics.append(key)
+                    metrics.append(key + '_std')
+                    metrics.append(key + '_p_value')
+
             elif config.experiment.method == Method.linreg:
 
                 metrics = [

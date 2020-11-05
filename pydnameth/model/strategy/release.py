@@ -80,7 +80,7 @@ class TableReleaseStrategy(ReleaseStrategy):
                     )
                     config.metrics[prefix + 'p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
-            if config.experiment.method in [Method.formula]:
+            if config.experiment.method in [Method.formula, Method.formula_new]:
                 target_keys = []
                 for key in config.metrics:
                     if 'p_value' in key:
@@ -415,6 +415,12 @@ class PlotReleaseStrategy(ReleaseStrategy):
 
 
 class CreateReleaseStrategy(ReleaseStrategy):
+
+    def release(self, config, configs_child):
+        pass
+
+
+class LoadReleaseStrategy(ReleaseStrategy):
 
     def release(self, config, configs_child):
         pass

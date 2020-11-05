@@ -6,6 +6,7 @@ class Task(Enum):
     clock = 'clock'
     plot = 'plot'
     create = 'create'
+    load = 'load'
 
     def __str__(self):
         return str(self.value)
@@ -16,6 +17,7 @@ class Method(Enum):
     oma = 'oma'  # observable-methylation association
     pbc = 'pbc'  # point biserial correlation
     formula = 'formula'
+    formula_new = 'formula_new'
     linreg = 'linreg'
     ancova = 'ancova'
     variance = 'variance'
