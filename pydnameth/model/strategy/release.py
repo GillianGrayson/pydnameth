@@ -29,20 +29,23 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.cells]:
 
             if config.experiment.method in [Method.pbc]:
-                pvals = np.asarray(config.metrics['p_value' + f'_{config.hash[0:8]}'])
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    pvals,
-                    0.05,
-                    method='fdr_bh'
-                )
-                config.metrics['p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
 
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    pvals,
-                    0.05,
-                    method='bonferroni'
-                )
-                config.metrics['p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+                for prefix in ['pbc', 'anova', 'kw']:
+                    key = prefix + '_p_value' + f'_{config.hash[0:8]}'
+                    pvals = np.asarray(config.metrics[key])
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[prefix + '_p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[prefix + '_p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
             if config.experiment.method in [Method.ancova]:
 

@@ -213,10 +213,16 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
-                    'corr_coeff',
-                    'p_value',
-                    'p_value_fdr_bh',
-                    'p_value_bonferroni'
+                    'pbc_corr_coeff',
+                    'pbc_p_value',
+                    'pbc_p_value_fdr_bh',
+                    'pbc_p_value_bonferroni',
+                    'anova_p_value',
+                    'anova_p_value_fdr_bh',
+                    'anova_p_value_bonferroni',
+                    'kw_p_value',
+                    'kw_p_value_fdr_bh',
+                    'kw_p_value_bonferroni'
                 ]
 
             elif config.experiment.method == Method.variance:

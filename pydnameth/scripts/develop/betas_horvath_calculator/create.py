@@ -9,6 +9,7 @@ from pydnameth.model.tree import build_tree, calc_tree
 
 
 def betas_horvath_calculator_create_regular(
+    observables_fn,
     data,
     data_params,
 ):
@@ -25,12 +26,12 @@ def betas_horvath_calculator_create_regular(
     )
 
     observables = Observables(
-        name='observables',
+        name=observables_fn,
         types={}
     )
 
     attributes = Attributes(
-        target='age',
+        target='Age',
         observables=observables,
         cells=cells
     )

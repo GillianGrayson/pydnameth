@@ -24,6 +24,7 @@ from statsmodels.formula.api import ols
 from scipy.stats import pearsonr, pointbiserialr
 from sklearn.preprocessing import minmax_scale
 import statsmodels.formula.api as smf
+from scipy.stats import f_oneway, kruskal
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -174,14 +175,26 @@ class TableRunStrategy(RunStrategy):
             if len(set(x)) != 2:
                 raise RuntimeError('x variable is not binary in pbc')
 
+            keys = list(set(x))
+            d = {k: [] for k in keys}
+            for x_id, x_val in enumerate(x):
+                d[x_val].append(y[x_id])
+
             corr_coeff, p_value = pointbiserialr(x, y)
 
             if np.isnan(corr_coeff) or np.isnan(p_value):
                 corr_coeff = 0.0
                 p_value = 1.0
+                anova_p_value = 1.0
+                kw_p_value = 1.0
+            else:
+                _, anova_p_value = f_oneway(d[keys[0]], d[keys[1]])
+                _, kw_p_value = kruskal(d[keys[0]], d[keys[1]])
 
-            config.metrics['corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
-            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            config.metrics['pbc_corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
+            config.metrics['pbc_p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            config.metrics['anova_p_value' + f'_{config.hash[0:8]}'].append(anova_p_value)
+            config.metrics['kw_p_value' + f'_{config.hash[0:8]}'].append(kw_p_value)
 
         elif config.experiment.method == Method.polygon:
 
