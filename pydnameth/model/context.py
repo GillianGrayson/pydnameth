@@ -9,6 +9,7 @@ from pydnameth.model.strategy.load import ResidOldLoadStrategy
 from pydnameth.model.strategy.load import EpimutationsLoadStrategy
 from pydnameth.model.strategy.load import EntropyLoadStrategy
 from pydnameth.model.strategy.load import GenesLoadStrategy
+from pydnameth.model.strategy.load import BOPsLoadStrategy
 from pydnameth.model.strategy.get import BetasGetStrategy
 from pydnameth.model.strategy.get import BetasAdjGetStrategy
 from pydnameth.model.strategy.get import BetasHorvathCalculatorGetStrategy
@@ -20,6 +21,7 @@ from pydnameth.model.strategy.get import ResidOldGetStrategy
 from pydnameth.model.strategy.get import EpimutationsGetStrategy
 from pydnameth.model.strategy.get import EntropyGetStrategy
 from pydnameth.model.strategy.get import GenesGetStrategy
+from pydnameth.model.strategy.get import BOPsGetStrategy
 from pydnameth.model.strategy.setup import TableSetUpStrategy
 from pydnameth.model.strategy.setup import ClockSetUpStrategy
 from pydnameth.model.strategy.setup import PlotSetUpStrategy
@@ -70,6 +72,8 @@ class Context:
             self.load_strategy = CellsLoadStrategy()
         elif config.experiment.data == DataType.genes:
             self.load_strategy = GenesLoadStrategy()
+        elif config.experiment.data == DataType.bop:
+            self.load_strategy = BOPsLoadStrategy()
 
         if config.experiment.data == DataType.betas:
             self.get_strategy = BetasGetStrategy()
@@ -93,6 +97,8 @@ class Context:
             self.get_strategy = CellsGetStrategy()
         elif config.experiment.data == DataType.genes:
             self.get_strategy = GenesGetStrategy()
+        elif config.experiment.data == DataType.bop:
+            self.get_strategy = BOPsGetStrategy()
 
         if config.experiment.task == Task.table:
             self.setup_strategy = TableSetUpStrategy(self.get_strategy)

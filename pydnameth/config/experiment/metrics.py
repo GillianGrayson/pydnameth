@@ -14,7 +14,8 @@ def get_method_metrics_keys(config):
                                   DataType.residuals,
                                   DataType.resid_old,
                                   DataType.cells,
-                                  DataType.genes]:
+                                  DataType.genes,
+                                  DataType.bop]:
 
         if config.experiment.task == Task.table:
 
@@ -45,6 +46,19 @@ def get_method_metrics_keys(config):
                     'gq_f_pvalue_fdr_bh',
                     'gq_f_pvalue_bonferroni',
                     'gq_type'
+                ]
+
+            elif config.experiment.method == Method.manova:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'class',
+                    'genes',
+                    'p_value_wilks',
+                    'p_value_pillai_bartlett',
+                    'p_value_lawley_hotelling',
+                    'p_value_roy',
                 ]
 
             elif config.experiment.method == Method.formula:

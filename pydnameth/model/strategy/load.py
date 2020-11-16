@@ -64,6 +64,32 @@ class BetasLoadStrategy(LoadStrategy):
                 self.load_child(config_child)
 
 
+class BOPsLoadStrategy(LoadStrategy):
+
+    def load(self, config, configs_child):
+        if config.is_init:
+            source = config.experiment.data_params.pop('source')
+            if source == 'betas':
+                load_betas(config)
+                config.base_missed_dict = config.betas_missed_dict
+                config.base_data = config.betas_data
+                config.target_dict = config.betas_dict
+            elif source == 'residuals':
+                load_residuals(config)
+                config.base_missed_dict = config.residuals_missed_dict
+                config.base_data = config.residuals_data
+                config.target_dict = config.residuals_dict
+            config.base_list = list(config.bops.keys())
+            config.base_dict = config.bops
+
+            self.inherit_childs(config, configs_child)
+
+        if config.is_load_child:
+
+            for config_child in configs_child:
+                self.load_child(config_child)
+
+
 class BetasAdjLoadStrategy(LoadStrategy):
 
     def load(self, config, configs_child):

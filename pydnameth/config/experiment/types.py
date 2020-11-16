@@ -20,6 +20,7 @@ class Method(Enum):
     formula_new = 'formula_new'
     linreg = 'linreg'
     ancova = 'ancova'
+    manova = 'manova'
     variance = 'variance'
     cluster = 'cluster'
     histogram = 'histogram'
@@ -53,6 +54,7 @@ class DataType(Enum):
     genes = 'genes'
     suppl = 'suppl'
     cache = 'cache'
+    bop = 'bop'
 
     def __str__(self):
         return str(self.value)

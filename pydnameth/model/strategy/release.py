@@ -26,7 +26,8 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
-                                      DataType.cells]:
+                                      DataType.cells,
+                                      DataType.bop]:
 
             if config.experiment.method in [Method.pbc]:
 
@@ -46,6 +47,25 @@ class TableReleaseStrategy(ReleaseStrategy):
                         method='bonferroni'
                     )
                     config.metrics[prefix + '_p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+
+            elif config.experiment.method in [Method.manova]:
+
+                for suffix in ['wilks', 'pillai_bartlett', 'lawley_hotelling', 'roy']:
+                    key = 'p_value_' + suffix + f'_{config.hash[0:8]}'
+                    pvals = np.asarray(config.metrics[key])
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics['p_value_fdr_bh_' + suffix + f'_{config.hash[0:8]}'] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics['p_value_bonferroni_' + suffix + f'_{config.hash[0:8]}'] = pvals_corr
 
             if config.experiment.method in [Method.ancova]:
 

@@ -70,6 +70,26 @@ class BetasGetStrategy(GetStrategy):
         return aux
 
 
+class BOPsGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, item):
+        row = config.target_dict[item]
+        if len(config.base_missed_dict[item]) > 0:
+            cols = []
+            for col in config.attributes_indexes:
+                if col not in config.base_missed_dict[item]:
+                    cols.append(col)
+            data = config.base_data[row, cols]
+        else:
+            data = config.base_data[row, config.attributes_indexes]
+        return data
+
+    def get_aux(self, config, item):
+        cpgs = config.bops[item]['cpg']
+        aux = ';'.join(cpgs)
+        return aux
+
+
 class BetasAdjGetStrategy(GetStrategy):
 
     def get_single_base(self, config, item):

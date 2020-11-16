@@ -17,6 +17,9 @@ from .config.data.types import DataPath, DataBase
 from .config.experiment.experiment import Experiment
 from .config.experiment.types import DataType, Task, Method
 
+from pydnameth.scripts.develop.bop.table import \
+    bop_table_manova
+
 from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
@@ -82,6 +85,8 @@ from pydnameth.scripts.develop.cells.table import \
 from pydnameth.scripts.develop.residuals.plot import \
     residuals_plot_scatter, \
     residuals_plot_scatter_comparison
+from pydnameth.scripts.develop.residuals.load import \
+    load_residuals_config
 from pydnameth.scripts.develop.residuals.table import \
     residuals_table_pbc, \
     residuals_table_formula, \

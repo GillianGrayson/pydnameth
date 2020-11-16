@@ -25,6 +25,8 @@ from scipy.stats import pearsonr, pointbiserialr
 from sklearn.preprocessing import minmax_scale
 import statsmodels.formula.api as smf
 from scipy.stats import f_oneway, kruskal
+from statsmodels.multivariate.manova import MANOVA
+import statsmodels.api as sm
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -54,6 +56,81 @@ class TableRunStrategy(RunStrategy):
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
             process_heteroscedasticity(x, y, config.metrics, f'_{config.hash[0:8]}')
+
+        elif config.experiment.method == Method.manova:
+
+            bop_data = config.base_dict[item]
+            cpgs = bop_data['cpg']
+            passed_cpgs = [cpg for cpg in cpgs if cpg in config.target_dict]
+            genes = list(bop_data['gene'])
+            cl = bop_data['class']
+
+            x = self.get_strategy.get_target(config, categorical=False)
+
+            manova_dict = {'target': x}
+            for cpg_id in range(0, len(passed_cpgs)):
+                y = self.get_strategy.get_single_base(config, cpgs[cpg_id])
+                manova_dict[f'cpg{cpg_id}'] = y
+            df = pd.DataFrame(manova_dict)
+
+            if len(passed_cpgs) > 0:
+
+                if len(passed_cpgs) > 2:
+
+                    p_values_wilks = []
+                    p_values_pillai_bartlett = []
+                    p_values_lawley_hotelling = []
+                    p_values_roy = []
+
+                    for w_id in range(0, len(cpgs) - 2):
+                        cpg_keys = []
+                        for cpg_id in range(0, 3):
+                            cpg_keys.append(f'cpg{w_id + cpg_id}')
+                        formula = ' + '.join(cpg_keys) + ' ~ target'
+                        manova = MANOVA.from_formula(formula, df)
+                        mv_test_res = manova.mv_test()
+                        pvals = mv_test_res.results['target']['stat'].values[0:4, 4]
+                        p_values_wilks.append(pvals[0])
+                        p_values_pillai_bartlett.append(pvals[1])
+                        p_values_lawley_hotelling.append(pvals[2])
+                        p_values_roy.append(pvals[3])
+
+                    p_value_wilks = min(p_values_wilks)
+                    p_value_pillai_bartlett = min(p_values_pillai_bartlett)
+                    p_value_lawley_hotelling = min(p_values_lawley_hotelling)
+                    p_value_roy = min(p_values_roy)
+
+                else:
+
+                    p_values = []
+
+                    for cpg_id in range(0, len(passed_cpgs)):
+                        formula = f'cpg{cpg_id} ~ target'
+                        anova = ols(formula, df).fit()
+                        anova_table = sm.stats.anova_lm(anova)
+                        p_value = anova_table.values[0, 4]
+                        p_values.append(p_value)
+
+                    best_p_value = min(p_values)
+
+                    p_value_wilks = best_p_value
+                    p_value_pillai_bartlett = best_p_value
+                    p_value_lawley_hotelling = best_p_value
+                    p_value_roy = best_p_value
+            else:
+                p_value_wilks = 1
+                p_value_pillai_bartlett = 1
+                p_value_lawley_hotelling = 1
+                p_value_roy = 1
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['class' + suffix].append(cl)
+            config.metrics['genes' + suffix].append(';'.join(genes))
+            config.metrics['p_value_wilks' + suffix].append(p_value_wilks)
+            config.metrics['p_value_pillai_bartlett' + suffix].append(p_value_pillai_bartlett)
+            config.metrics['p_value_lawley_hotelling' + suffix].append(p_value_lawley_hotelling)
+            config.metrics['p_value_roy' + suffix].append(p_value_roy)
 
         elif config.experiment.method == Method.linreg:
 
@@ -328,7 +405,8 @@ class TableRunStrategy(RunStrategy):
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,
-                                      DataType.genes]:
+                                      DataType.genes,
+                                      DataType.bop]:
 
             self.iterate(config, configs_child)
 
