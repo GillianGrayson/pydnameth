@@ -1,4 +1,5 @@
 import abc
+import copy
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.config.experiment.metrics import get_method_metrics_keys
 import numpy as np
@@ -60,16 +61,24 @@ class TableRunStrategy(RunStrategy):
         elif config.experiment.method == Method.manova:
 
             bop_data = config.base_dict[item]
-            cpgs = bop_data['cpg']
-            passed_cpgs = [cpg for cpg in cpgs if cpg in config.target_dict]
+            raw_cpgs = bop_data['cpg']
+            passed_cpgs = [cpg for cpg in raw_cpgs if cpg in config.target_dict]
             genes = list(bop_data['gene'])
             cl = bop_data['class']
 
-            x = self.get_strategy.get_target(config, categorical=False)
+            method_params = config.experiment.method_params
+            covariates = []
+            for key, values in method_params.items():
+                for val in values:
+                    covariates.append(val)
 
-            manova_dict = {'target': x}
+            manova_dict = {}
+            manova_dict.update(config.observables_dict.items())
+            if len(config.cells_dict) > 0:
+                manova_dict.update(config.cells_dict.items())
+
             for cpg_id in range(0, len(passed_cpgs)):
-                y = self.get_strategy.get_single_base(config, cpgs[cpg_id])
+                y = self.get_strategy.get_single_base(config, passed_cpgs[cpg_id])
                 manova_dict[f'cpg{cpg_id}'] = y
             df = pd.DataFrame(manova_dict)
 
@@ -77,60 +86,66 @@ class TableRunStrategy(RunStrategy):
 
                 if len(passed_cpgs) > 2:
 
-                    p_values_wilks = []
-                    p_values_pillai_bartlett = []
-                    p_values_lawley_hotelling = []
-                    p_values_roy = []
+                    p_values = {}
+                    for cov in covariates:
+                        p_values[cov] = 1
+                    p_values_wilks = copy.deepcopy(p_values)
+                    p_values_pillai_bartlett = copy.deepcopy(p_values)
+                    p_values_lawley_hotelling = copy.deepcopy(p_values)
+                    p_values_roy = copy.deepcopy(p_values)
 
-                    for w_id in range(0, len(cpgs) - 2):
+                    for w_id in range(0, len(passed_cpgs) - 2):
                         cpg_keys = []
                         for cpg_id in range(0, 3):
                             cpg_keys.append(f'cpg{w_id + cpg_id}')
-                        formula = ' + '.join(cpg_keys) + ' ~ target'
+                        formula = ' + '.join(cpg_keys) + ' ~ ' + ' + '.join(covariates)
                         manova = MANOVA.from_formula(formula, df)
                         mv_test_res = manova.mv_test()
-                        pvals = mv_test_res.results['target']['stat'].values[0:4, 4]
-                        p_values_wilks.append(pvals[0])
-                        p_values_pillai_bartlett.append(pvals[1])
-                        p_values_lawley_hotelling.append(pvals[2])
-                        p_values_roy.append(pvals[3])
+                        for cov in covariates:
+                            pvals = mv_test_res.results[cov]['stat'].values[0:4, 4]
 
-                    p_value_wilks = min(p_values_wilks)
-                    p_value_pillai_bartlett = min(p_values_pillai_bartlett)
-                    p_value_lawley_hotelling = min(p_values_lawley_hotelling)
-                    p_value_roy = min(p_values_roy)
+                            p_values_wilks[cov] = min(pvals[0], p_values_wilks[cov])
+                            p_values_pillai_bartlett[cov] = min(pvals[1], p_values_pillai_bartlett[cov])
+                            p_values_lawley_hotelling[cov] = min(pvals[2], p_values_lawley_hotelling[cov])
+                            p_values_roy[cov] = min(pvals[3], p_values_roy[cov])
 
                 else:
 
-                    p_values = []
+                    p_values = {}
+                    for cov in covariates:
+                        p_values[cov] = 1
 
                     for cpg_id in range(0, len(passed_cpgs)):
-                        formula = f'cpg{cpg_id} ~ target'
+                        formula = f'cpg{cpg_id}' + ' ~ ' + ' + '.join(covariates)
                         anova = ols(formula, df).fit()
                         anova_table = sm.stats.anova_lm(anova)
-                        p_value = anova_table.values[0, 4]
-                        p_values.append(p_value)
+                        for cov_id, cov in enumerate(covariates):
+                            p_value = anova_table.values[cov_id, 4]
+                            p_values[cov] = min(p_values[cov], p_value)
 
-                    best_p_value = min(p_values)
-
-                    p_value_wilks = best_p_value
-                    p_value_pillai_bartlett = best_p_value
-                    p_value_lawley_hotelling = best_p_value
-                    p_value_roy = best_p_value
+                    p_values_wilks = copy.deepcopy(p_values)
+                    p_values_pillai_bartlett = copy.deepcopy(p_values)
+                    p_values_lawley_hotelling = copy.deepcopy(p_values)
+                    p_values_roy = copy.deepcopy(p_values)
             else:
-                p_value_wilks = 1
-                p_value_pillai_bartlett = 1
-                p_value_lawley_hotelling = 1
-                p_value_roy = 1
+                p_values = {}
+                for cov in covariates:
+                    p_values[cov] = 1
+                p_values_wilks = copy.deepcopy(p_values)
+                p_values_pillai_bartlett = copy.deepcopy(p_values)
+                p_values_lawley_hotelling = copy.deepcopy(p_values)
+                p_values_roy = copy.deepcopy(p_values)
 
             suffix = f'_{config.hash[0:8]}'
 
             config.metrics['class' + suffix].append(cl)
             config.metrics['genes' + suffix].append(';'.join(genes))
-            config.metrics['p_value_wilks' + suffix].append(p_value_wilks)
-            config.metrics['p_value_pillai_bartlett' + suffix].append(p_value_pillai_bartlett)
-            config.metrics['p_value_lawley_hotelling' + suffix].append(p_value_lawley_hotelling)
-            config.metrics['p_value_roy' + suffix].append(p_value_roy)
+
+            for cov in covariates:
+                config.metrics[f'{cov}_p_value_wilks' + suffix].append(p_values_wilks[cov])
+                config.metrics[f'{cov}_p_value_pillai_bartlett' + suffix].append(p_values_pillai_bartlett[cov])
+                config.metrics[f'{cov}_p_value_lawley_hotelling' + suffix].append(p_values_lawley_hotelling[cov])
+                config.metrics[f'{cov}_p_value_roy' + suffix].append(p_values_roy[cov])
 
         elif config.experiment.method == Method.linreg:
 

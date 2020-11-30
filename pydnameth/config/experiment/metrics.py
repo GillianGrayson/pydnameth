@@ -55,11 +55,16 @@ def get_method_metrics_keys(config):
                     'aux',
                     'class',
                     'genes',
-                    'p_value_wilks',
-                    'p_value_pillai_bartlett',
-                    'p_value_lawley_hotelling',
-                    'p_value_roy',
                 ]
+
+                method_params = config.experiment.method_params
+
+                for key, values in method_params.items():
+                    for val in values:
+                        metrics.append(f'{val}_p_value_wilks')
+                        metrics.append(f'{val}_p_value_pillai_bartlett')
+                        metrics.append(f'{val}_p_value_lawley_hotelling')
+                        metrics.append(f'{val}_p_value_roy')
 
             elif config.experiment.method == Method.formula:
 

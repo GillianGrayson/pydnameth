@@ -7,6 +7,7 @@ def bop_table_manova(
     annotations,
     attributes,
     data_params,
+    method_params
 ):
     table(
         data=data,
@@ -16,5 +17,5 @@ def bop_table_manova(
         method=Method.manova,
         data_params=data_params,
         task_params=None,
-        method_params=None
+        method_params=method_params
     )

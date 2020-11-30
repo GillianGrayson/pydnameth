@@ -48,25 +48,6 @@ class TableReleaseStrategy(ReleaseStrategy):
                     )
                     config.metrics[prefix + '_p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
-            elif config.experiment.method in [Method.manova]:
-
-                for suffix in ['wilks', 'pillai_bartlett', 'lawley_hotelling', 'roy']:
-                    key = 'p_value_' + suffix + f'_{config.hash[0:8]}'
-                    pvals = np.asarray(config.metrics[key])
-                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                        pvals,
-                        0.05,
-                        method='fdr_bh'
-                    )
-                    config.metrics['p_value_fdr_bh_' + suffix + f'_{config.hash[0:8]}'] = pvals_corr
-
-                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                        pvals,
-                        0.05,
-                        method='bonferroni'
-                    )
-                    config.metrics['p_value_bonferroni_' + suffix + f'_{config.hash[0:8]}'] = pvals_corr
-
             if config.experiment.method in [Method.ancova]:
 
                 suffix = f'_{config.hash[0:8]}'
@@ -103,7 +84,7 @@ class TableReleaseStrategy(ReleaseStrategy):
                     )
                     config.metrics[prefix + 'p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
 
-            if config.experiment.method in [Method.formula, Method.formula_new]:
+            if config.experiment.method in [Method.formula, Method.formula_new, Method.manova]:
                 target_keys = []
                 for key in config.metrics:
                     if 'p_value' in key:
