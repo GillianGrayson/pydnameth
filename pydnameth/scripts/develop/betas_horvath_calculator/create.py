@@ -9,13 +9,14 @@ from pydnameth.model.tree import build_tree, calc_tree
 
 
 def betas_horvath_calculator_create_regular(
+    chip_type,
     observables_fn,
     data,
     data_params,
 ):
     annotations = Annotations(
         name='annotations',
-        type='850k',
+        type=chip_type,
         exclude='none',
         select_dict={}
     )
