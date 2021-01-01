@@ -1,6 +1,7 @@
 from pydnameth.routines.common import is_float
 from pydnameth.infrastucture.path import get_data_base_path
 from pydnameth.routines.common import categorize_data
+from pydnameth.routines.common import is_categorical
 import numpy as np
 import os.path
 import pickle
@@ -111,6 +112,24 @@ def load_observables_categorical_dict(config):
         f.close()
 
     return observables_categorical_dict
+
+
+def get_is_observables_categorical(config):
+
+    is_observables_categorical = {}
+
+    if config.observables_dict is not None:
+        observables_dict = config.observables_dict
+    else:
+        observables_dict = load_observables_dict(config)
+
+    for key, values in observables_dict.items():
+        if is_categorical(values):
+            is_observables_categorical[key] = True
+        else:
+            is_observables_categorical[key] = False
+
+    return is_observables_categorical
 
 
 def load_cells_dict(config):

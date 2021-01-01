@@ -17,15 +17,24 @@ from .config.data.types import DataPath, DataBase
 from .config.experiment.experiment import Experiment
 from .config.experiment.types import DataType, Task, Method
 
+from pydnameth.scripts.develop.bop.table import \
+    bop_table_manova
+
 from pydnameth.scripts.develop.betas.table import \
     betas_table_aggregator_linreg,\
     betas_table_aggregator_variance,\
     betas_table_aggregator_approach_4,\
     betas_table_linreg, \
+    betas_table_formula, \
+    betas_table_formula_new, \
     betas_table_heteroscedasticity, \
     betas_table_oma, \
     betas_table_cluster, \
-    betas_table_variance
+    betas_table_variance, \
+    betas_table_ancova, \
+    betas_table_pbc
+from pydnameth.scripts.develop.betas.load import \
+    load_beta_config
 from pydnameth.scripts.develop.betas.clock import \
     betas_clock_linreg,\
     betas_clock_special
@@ -76,12 +85,18 @@ from pydnameth.scripts.develop.cells.table import \
 from pydnameth.scripts.develop.residuals.plot import \
     residuals_plot_scatter, \
     residuals_plot_scatter_comparison
+from pydnameth.scripts.develop.residuals.load import \
+    load_residuals_config
 from pydnameth.scripts.develop.residuals.table import \
+    residuals_table_pbc, \
+    residuals_table_formula, \
     residuals_table_linreg, \
+    residuals_table_ancova, \
     residuals_table_aggregator_linreg, \
     residuals_table_aggregator_variance, \
     residuals_table_oma, \
-    residuals_table_approach_3
+    residuals_table_approach_3, \
+    residuals_table_approach_4
 
 from pydnameth.scripts.develop.resid_old.table import \
     resid_old_table_linreg

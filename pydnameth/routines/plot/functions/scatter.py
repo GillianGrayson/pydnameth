@@ -7,7 +7,7 @@ from pydnameth.routines.variance.functions import \
     process_box, init_variance_metrics_dict, process_variance, fit_variance
 
 
-def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
+def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all, reverse='no'):
 
     line = method_params['line']
     add = method_params['add']
@@ -32,6 +32,12 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
         coordinates = color[4:-1].split(',')
         color_transparent = 'rgba(' + ','.join(coordinates) + ',' + str(0.1) + ')'
         color_border = 'rgba(' + ','.join(coordinates) + ',' + str(0.8) + ')'
+        # color_polygon = 'rgba(' + ','.join(coordinates) + ',' + str(0.5) + ')'
+
+        if fit == 'yes' and semi_window != 'none':
+            scatter_size = 2
+        else:
+            scatter_size = 7
 
         # Adding scatter
         scatter = go.Scatter(
@@ -40,7 +46,7 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
             name=names_all[child_id],
             mode='markers',
             marker=dict(
-                size=4,
+                size=scatter_size,
                 color=color_border,
                 line=dict(
                     width=1,
@@ -50,50 +56,52 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
         )
         curr_plot_data.append(scatter)
 
-        # Linear regression
-        x = sm.add_constant(targets)
-        y = data
-        results = sm.OLS(y, x).fit()
-        intercept = results.params[0]
-        slope = results.params[1]
-        intercept_std = results.bse[0]
-        slope_std = results.bse[1]
+        if line == 'yes' or add == 'polygon':
 
-        # Adding regression line
-        if line == 'yes':
-            x_min = np.min(targets)
-            x_max = np.max(targets)
-            y_min = slope * x_min + intercept
-            y_max = slope * x_max + intercept
-            scatter = go.Scatter(
-                x=[x_min, x_max],
-                y=[y_min, y_max],
-                mode='lines',
-                marker=dict(
-                    color=color
-                ),
-                line=dict(
-                    width=6,
-                    color=color
-                ),
-                showlegend=False
-            )
-            curr_plot_data.append(scatter)
+            # Linear regression
+            x = sm.add_constant(targets)
+            y = data
+            results = sm.OLS(y, x).fit()
+            intercept = results.params[0]
+            slope = results.params[1]
+            intercept_std = results.bse[0]
+            slope_std = results.bse[1]
 
-        # Adding polygon area
-        if add == 'polygon':
-            pr = PolygonRoutines(
-                x=targets,
-                metrics_dict={
-                    'intercept': [intercept],
-                    'slope': [slope],
-                    'intercept_std': [intercept_std],
-                    'slope_std': [slope_std]
-                },
-                suffix=''
-            )
-            scatter = pr.get_scatter(color_transparent)
-            curr_plot_data.append(scatter)
+            # Adding regression line
+            if line == 'yes':
+                x_min = np.min(targets)
+                x_max = np.max(targets)
+                y_min = slope * x_min + intercept
+                y_max = slope * x_max + intercept
+                scatter = go.Scatter(
+                    x=[x_min, x_max],
+                    y=[y_min, y_max],
+                    mode='lines',
+                    marker=dict(
+                        color=color
+                    ),
+                    line=dict(
+                        width=6,
+                        color=color
+                    ),
+                    showlegend=False
+                )
+                curr_plot_data.append(scatter)
+
+            # Adding polygon area
+            if add == 'polygon':
+                pr = PolygonRoutines(
+                    x=targets,
+                    metrics_dict={
+                        'intercept': [intercept],
+                        'slope': [slope],
+                        'intercept_std': [intercept_std],
+                        'slope_std': [slope_std]
+                    },
+                    suffix=''
+                )
+                scatter = pr.get_scatter(color_transparent)
+                curr_plot_data.append(scatter)
 
         # Adding box curve
         if fit == 'no' and semi_window != 'none':
@@ -151,10 +159,13 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
 
             ys_b, ys_t = fit_variance(xs, metrics_dict, '')
 
-            scatter = go.Scatter(
-                x=xs,
-                y=ys_t,
+            poly_xs = list(xs) + list(xs)[::-1] + [xs[0]]
+            poly_ys = list(ys_t) + list(ys_b)[::-1] + [ys_t[0]]
+            poly = go.Scatter(
+                x=poly_xs,
+                y=poly_ys,
                 name=names_all[child_id],
+                fill='tozerox',
                 mode='lines',
                 line=dict(
                     width=4,
@@ -162,25 +173,16 @@ def process_scatter(experiment_data, method_params, xs_all, ys_all, names_all):
                 ),
                 showlegend=False
             )
-            curr_plot_data.append(scatter)
-
-            scatter = go.Scatter(
-                x=xs,
-                y=ys_b,
-                name=names_all[child_id],
-                mode='lines',
-                line=dict(
-                    width=4,
-                    color=color_border
-                ),
-                showlegend=False
-            )
-            curr_plot_data.append(scatter)
+            curr_plot_data.append(poly)
 
         plot_data.append(curr_plot_data)
 
     # Sorting by total number of points
-    order = np.argsort(num_points)[::-1]
+    # order = np.argsort(num_points)[::-1]
+    if reverse == 'yes':
+        order = list(range(0, len(num_points)))[::-1]
+    else:
+        order = list(range(0, len(num_points)))
     curr_data = []
     for index in order:
         curr_data += plot_data[index]

@@ -4,6 +4,7 @@ import numpy as np
 import os.path
 from tqdm import tqdm
 import math
+import copy
 
 
 def load_epimutations(config):
@@ -18,7 +19,12 @@ def load_epimutations(config):
     config.epimutations_dict = {'epimutations': 0}
     config.epimutations_missed_dict = {'epimutations': []}
 
+    data_params_copy = copy.deepcopy(config.experiment.data_params)
+    common_keys = ['part', 'norm']
     config.experiment.data_params = {}
+    for key in common_keys:
+        if key in data_params_copy:
+            config.experiment.data_params[key] = data_params_copy[key]
     load_betas(config)
 
     if os.path.isfile(fn_data + '.npz'):
@@ -50,7 +56,7 @@ def load_epimutations(config):
 
             curr_row = np.zeros(num_subjects, dtype=np.int)
             for subject_id in range(0, num_subjects):
-                curr_point = betas_raw[subject_id]
+                curr_point = betas[subject_id]
                 if not math.isnan(curr_point):
                     if curr_point < left or curr_point > right:
                         curr_row[subject_id] = 1

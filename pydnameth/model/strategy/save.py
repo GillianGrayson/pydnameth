@@ -67,7 +67,8 @@ class PlotSaveStrategy(SaveStrategy):
                         config.experiment.method_params.pop('y_ranges', None)
                         config.experiment.method_params['item'] = item
 
-                    fn = get_save_path(config) + '/' + get_file_name(config)
+                    file_name = config.experiment_data['item'][fig_id]
+                    fn = get_save_path(config) + '/' + file_name
                     save_figure(fn, fig)
             else:
 
@@ -78,15 +79,17 @@ class PlotSaveStrategy(SaveStrategy):
                     config.experiment.method_params.pop('x_ranges', None)
                     config.experiment.method_params.pop('y_ranges', None)
 
-                fn = get_save_path(config) + '/' + get_file_name(config)
+                file_name = 'regular'
+                fn = get_save_path(config) + '/' + file_name
                 save_figure(fn, config.experiment_data['fig'])
 
         elif config.experiment.task_params['type'] == 'prepare':
             pass
 
     def is_result_exist(self, config, configs_child):
+        file_name = 'regular'
         fn = get_save_path(config) + '/' + \
-            get_file_name(config) + '.pdf'
+            file_name + '.pdf'
         if Path(fn).is_file():
             return True
         else:
@@ -94,6 +97,15 @@ class PlotSaveStrategy(SaveStrategy):
 
 
 class CreateSaveStrategy(SaveStrategy):
+
+    def save(self, config, configs_child):
+        pass
+
+    def is_result_exist(self, config, configs_child):
+        pass
+
+
+class LoadSaveStrategy(SaveStrategy):
 
     def save(self, config, configs_child):
         pass

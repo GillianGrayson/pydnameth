@@ -1,13 +1,14 @@
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.scripts.develop.table import table, table_aggregator_linreg, table_aggregator_variance,\
-    table_aggregator_approach_4
+    table_aggregator_approach_4, table_ancova
 
 
 def betas_table_linreg(
     data,
     annotations,
     attributes,
-    method_params=None
+    method_params=None,
+    data_params=None
 ):
     """
        Producing table with information for linear regression between beta values
@@ -45,6 +46,7 @@ def betas_table_linreg(
         data_type=DataType.betas,
         method=Method.linreg,
         method_params=method_params,
+        data_params=data_params
     )
 
 
@@ -80,6 +82,24 @@ def betas_table_oma(
     )
 
 
+def betas_table_pbc(
+    data,
+    annotations,
+    attributes,
+    data_params=None,
+    method_params=None
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.pbc,
+        data_params=data_params,
+        method_params=method_params,
+    )
+
+
 def betas_table_variance(
     data,
     annotations,
@@ -110,6 +130,42 @@ def betas_table_cluster(
         data_type=DataType.betas,
         method=Method.cluster,
         method_params=method_params,
+    )
+
+
+def betas_table_formula(
+    data,
+    annotations,
+    attributes,
+    data_params,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.formula,
+        method_params=method_params,
+        data_params=data_params,
+    )
+
+
+def betas_table_formula_new(
+    data,
+    annotations,
+    attributes,
+    data_params,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.betas,
+        method=Method.formula_new,
+        method_params=method_params,
+        data_params=data_params,
     )
 
 
@@ -174,6 +230,25 @@ def betas_table_aggregator_linreg(
         observables_list,
         data_params,
         method_params,
+    )
+
+
+def betas_table_ancova(
+    data,
+    annotations,
+    attributes,
+    observables_list,
+    data_params=None,
+):
+    table_ancova(
+        data_type=DataType.betas,
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        observables_list=observables_list,
+        data_params=data_params,
+        task_params=None,
+        method_params=None
     )
 
 

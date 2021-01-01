@@ -24,7 +24,8 @@ def epimutations_table_ancova(
     data,
     annotations,
     attributes,
-    observables_list
+    observables_list,
+    data_params
 ):
     table_ancova(
         data_type=DataType.epimutations,
@@ -32,7 +33,7 @@ def epimutations_table_ancova(
         annotations=annotations,
         attributes=attributes,
         observables_list=observables_list,
-        data_params=None,
+        data_params=data_params,
         task_params=None,
         method_params=None
     )

@@ -30,6 +30,9 @@ def get_default_method_params(config):
                     'method': Method.linreg
                 }
 
+            elif config.experiment.method == Method.formula:
+                params = {}
+
         elif config.experiment.task == Task.clock:
 
             if config.experiment.method == Method.linreg:
@@ -45,6 +48,7 @@ def get_default_method_params(config):
             if config.experiment.method == Method.scatter:
                 params = {
                     'items': ['cg01620164'],
+                    'reverses': ['no'],
                     'x_ranges': ['auto'],
                     'y_ranges': ['auto'],
                     'line': 'yes',

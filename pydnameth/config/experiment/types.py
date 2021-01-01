@@ -6,6 +6,7 @@ class Task(Enum):
     clock = 'clock'
     plot = 'plot'
     create = 'create'
+    load = 'load'
 
     def __str__(self):
         return str(self.value)
@@ -13,9 +14,13 @@ class Task(Enum):
 
 class Method(Enum):
     heteroskedasticity = 'heteroskedasticity'
-    oma = 'oma'
+    oma = 'oma'  # observable-methylation association
+    pbc = 'pbc'  # point biserial correlation
+    formula = 'formula'
+    formula_new = 'formula_new'
     linreg = 'linreg'
     ancova = 'ancova'
+    manova = 'manova'
     variance = 'variance'
     cluster = 'cluster'
     histogram = 'histogram'
@@ -49,6 +54,7 @@ class DataType(Enum):
     genes = 'genes'
     suppl = 'suppl'
     cache = 'cache'
+    bop = 'bop'
 
     def __str__(self):
         return str(self.value)

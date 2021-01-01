@@ -37,24 +37,33 @@ def process_box(targets, values, semi_window=2, box_b='left', box_t='right'):
     ts = np.zeros(len(xs), dtype=float)
     for x_id in range(0, len(xs)):
         curr_residuals = window_residuals[xs[x_id]]
-        q5, q1, median, q3, q95 = np.percentile(np.asarray(curr_residuals), [5, 25, 50, 75, 95])
-        iqr = q3 - q1
+        q0, q1, q5, q25, median, q75, q95, q99, q100 = np.percentile(np.asarray(curr_residuals),
+                                                                     [0, 1, 5, 25, 50, 75, 95, 99, 100])
+        iqr = q75 - q25
         ms[x_id] = median
         if box_b == 'left':
-            bs[x_id] = q1 - 1.5 * iqr
-        elif box_b == 'Q1':
-            bs[x_id] = q1
+            bs[x_id] = q25 - 1.5 * iqr
+        elif box_b == 'Q25':
+            bs[x_id] = q25
         elif box_b == 'Q5':
             bs[x_id] = q5
+        elif box_b == 'Q1':
+            bs[x_id] = q1
+        elif box_b == 'Q0':
+            bs[x_id] = q0
         else:
             raise ValueError('Unknown box_b type')
 
         if box_t == 'right':
-            ts[x_id] = q3 + 1.5 * iqr
-        elif box_t == 'Q3':
-            ts[x_id] = q3
+            ts[x_id] = q75 + 1.5 * iqr
+        elif box_t == 'Q75':
+            ts[x_id] = q75
         elif box_t == 'Q95':
             ts[x_id] = q95
+        elif box_t == 'Q99':
+            ts[x_id] = q99
+        elif box_t == 'Q100':
+            ts[x_id] = q100
         else:
             raise ValueError('Unknown box_t type')
 

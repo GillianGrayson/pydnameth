@@ -12,6 +12,10 @@ def load_betas_horvath_calculator(config):
 
     fn_data_csv = get_data_base_path(config) + '/' + 'betas_horvath_calculator.csv'
 
+    suffix = ''
+    if bool(config.experiment.data_params):
+        suffix += '_' + config.experiment.get_data_params_str()
+
     if os.path.isfile(fn_list):
         f = open(fn_list)
         cpgs = f.readlines()
@@ -22,7 +26,7 @@ def load_betas_horvath_calculator(config):
 
     if not os.path.isfile(fn_data_csv):
 
-        fn_betas = get_data_base_path(config) + '/' + 'betas.txt'
+        fn_betas = get_data_base_path(config) + '/' + 'betas' + suffix + '.txt'
 
         f = open(fn_betas)
         header_line = f.readline()

@@ -88,3 +88,9 @@ class CreateSetUpStrategy(SetupStrategy):
 
     def setup(self, config, configs_child):
         pass
+
+
+class LoadSetUpStrategy(SetupStrategy):
+
+    def setup(self, config, configs_child):
+        pass

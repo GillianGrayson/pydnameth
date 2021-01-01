@@ -9,27 +9,30 @@ from pydnameth.model.tree import build_tree, calc_tree
 
 
 def betas_horvath_calculator_create_regular(
-    data
+    chip_type,
+    observables_fn,
+    data,
+    data_params,
 ):
     annotations = Annotations(
         name='annotations',
-        type='450k',
+        type=chip_type,
         exclude='none',
         select_dict={}
     )
 
     cells = Cells(
-        name='cells',
+        name='cell_counts_part(wo_noIntensity_detP)',
         types='any'
     )
 
     observables = Observables(
-        name='observables',
+        name=observables_fn,
         types={}
     )
 
     attributes = Attributes(
-        target='age',
+        target='Age',
         observables=observables,
         cells=cells
     )
@@ -39,7 +42,8 @@ def betas_horvath_calculator_create_regular(
         experiment=Experiment(
             data=DataType.betas_horvath_calculator,
             task=Task.create,
-            method=Method.regular
+            method=Method.regular,
+            data_params=copy.deepcopy(data_params)
         ),
         annotations=copy.deepcopy(annotations),
         attributes=copy.deepcopy(attributes),

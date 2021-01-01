@@ -1,4 +1,5 @@
 import abc
+import copy
 from pydnameth.config.experiment.types import Method, DataType
 from pydnameth.config.experiment.metrics import get_method_metrics_keys
 import numpy as np
@@ -21,7 +22,12 @@ from pydnameth.routines.plot.functions.variance_histogram import process_varianc
 import string
 import pandas as pd
 from statsmodels.formula.api import ols
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, pointbiserialr
+from sklearn.preprocessing import minmax_scale
+import statsmodels.formula.api as smf
+from scipy.stats import f_oneway, kruskal
+from statsmodels.multivariate.manova import MANOVA
+import statsmodels.api as sm
 
 
 class RunStrategy(metaclass=abc.ABCMeta):
@@ -52,6 +58,95 @@ class TableRunStrategy(RunStrategy):
             y = self.get_strategy.get_single_base(config, item)
             process_heteroscedasticity(x, y, config.metrics, f'_{config.hash[0:8]}')
 
+        elif config.experiment.method == Method.manova:
+
+            bop_data = config.base_dict[item]
+            raw_cpgs = bop_data['cpg']
+            passed_cpgs = [cpg for cpg in raw_cpgs if cpg in config.target_dict]
+            genes = list(bop_data['gene'])
+            cl = bop_data['class']
+
+            method_params = config.experiment.method_params
+            covariates = []
+            for key, values in method_params.items():
+                for val in values:
+                    covariates.append(val)
+
+            manova_dict = {}
+            manova_dict.update(config.observables_dict.items())
+            if len(config.cells_dict) > 0:
+                manova_dict.update(config.cells_dict.items())
+
+            for cpg_id in range(0, len(passed_cpgs)):
+                y = self.get_strategy.get_single_base(config, passed_cpgs[cpg_id])
+                manova_dict[f'cpg{cpg_id}'] = y
+            df = pd.DataFrame(manova_dict)
+
+            if len(passed_cpgs) > 0:
+
+                if len(passed_cpgs) > 2:
+
+                    p_values = {}
+                    for cov in covariates:
+                        p_values[cov] = 1
+                    p_values_wilks = copy.deepcopy(p_values)
+                    p_values_pillai_bartlett = copy.deepcopy(p_values)
+                    p_values_lawley_hotelling = copy.deepcopy(p_values)
+                    p_values_roy = copy.deepcopy(p_values)
+
+                    for w_id in range(0, len(passed_cpgs) - 2):
+                        cpg_keys = []
+                        for cpg_id in range(0, 3):
+                            cpg_keys.append(f'cpg{w_id + cpg_id}')
+                        formula = ' + '.join(cpg_keys) + ' ~ ' + ' + '.join(covariates)
+                        manova = MANOVA.from_formula(formula, df)
+                        mv_test_res = manova.mv_test()
+                        for cov in covariates:
+                            pvals = mv_test_res.results[cov]['stat'].values[0:4, 4]
+
+                            p_values_wilks[cov] = min(pvals[0], p_values_wilks[cov])
+                            p_values_pillai_bartlett[cov] = min(pvals[1], p_values_pillai_bartlett[cov])
+                            p_values_lawley_hotelling[cov] = min(pvals[2], p_values_lawley_hotelling[cov])
+                            p_values_roy[cov] = min(pvals[3], p_values_roy[cov])
+
+                else:
+
+                    p_values = {}
+                    for cov in covariates:
+                        p_values[cov] = 1
+
+                    for cpg_id in range(0, len(passed_cpgs)):
+                        formula = f'cpg{cpg_id}' + ' ~ ' + ' + '.join(covariates)
+                        anova = ols(formula, df).fit()
+                        anova_table = sm.stats.anova_lm(anova)
+                        for cov_id, cov in enumerate(covariates):
+                            p_value = anova_table.values[cov_id, 4]
+                            p_values[cov] = min(p_values[cov], p_value)
+
+                    p_values_wilks = copy.deepcopy(p_values)
+                    p_values_pillai_bartlett = copy.deepcopy(p_values)
+                    p_values_lawley_hotelling = copy.deepcopy(p_values)
+                    p_values_roy = copy.deepcopy(p_values)
+            else:
+                p_values = {}
+                for cov in covariates:
+                    p_values[cov] = 1
+                p_values_wilks = copy.deepcopy(p_values)
+                p_values_pillai_bartlett = copy.deepcopy(p_values)
+                p_values_lawley_hotelling = copy.deepcopy(p_values)
+                p_values_roy = copy.deepcopy(p_values)
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['class' + suffix].append(cl)
+            config.metrics['genes' + suffix].append(';'.join(genes))
+
+            for cov in covariates:
+                config.metrics[f'{cov}_p_value_wilks' + suffix].append(p_values_wilks[cov])
+                config.metrics[f'{cov}_p_value_pillai_bartlett' + suffix].append(p_values_pillai_bartlett[cov])
+                config.metrics[f'{cov}_p_value_lawley_hotelling' + suffix].append(p_values_lawley_hotelling[cov])
+                config.metrics[f'{cov}_p_value_roy' + suffix].append(p_values_roy[cov])
+
         elif config.experiment.method == Method.linreg:
 
             x = self.get_strategy.get_target(config, item)
@@ -64,15 +159,134 @@ class TableRunStrategy(RunStrategy):
             y = self.get_strategy.get_single_base(config, item)
             process_cluster(x, y, config.experiment.method_params, config.metrics, f'_{config.hash[0:8]}')
 
+        elif config.experiment.method == Method.formula:
+
+            y = self.get_strategy.get_single_base(config, item)
+            method_params = config.experiment.method_params
+
+            exog_dict = {}
+            for key, values in method_params.items():
+                if key == 'cells':
+                    for val in values:
+                        if val in config.cells_dict:
+                            exog_dict[val] = self.get_strategy.get_cell(config, key=val, item=item)
+                        else:
+                            raise ValueError(f'Wrong cell type in formula: {val}')
+                if key == 'observables':
+                    for val in values:
+                        if val in config.observables_dict:
+                            exog_dict[val] = self.get_strategy.get_observalbe(config, key=val, item=item)
+                        else:
+                            raise ValueError(f'Wrong observable in formula: {val}')
+
+            exog_keys = []
+            for exog_type, exog_data in exog_dict.items():
+                if config.is_observables_categorical.get(exog_type, False):
+                    exog_keys.append('C(' + exog_type + ')')
+                else:
+                    exog_keys.append(exog_type)
+            formula = 'cpg ~ ' + ' + '.join(exog_keys)
+
+            exog_dict['cpg'] = y
+            data_df = pd.DataFrame(exog_dict)
+            reg_res = smf.ols(formula=formula, data=data_df).fit()
+            params = dict(reg_res.params)
+            bse = dict(reg_res.bse)
+            pvalues = dict(reg_res.pvalues)
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['mean' + suffix].append(np.mean(y))
+            config.metrics['R2' + suffix].append(reg_res.rsquared)
+            config.metrics['R2_adj' + suffix].append(reg_res.rsquared_adj)
+            for key in params:
+                config.metrics[key + suffix].append(params[key])
+                config.metrics[key + '_std' + suffix].append(bse[key])
+                config.metrics[key + '_p_value' + suffix].append(pvalues[key])
+
+        elif config.experiment.method == Method.formula_new:
+
+            y = self.get_strategy.get_single_base(config, item)
+            method_params = config.experiment.method_params
+            formula = method_params['formula']
+
+            dict_global = {}
+            dict_global.update(config.observables_dict.items())
+            if len(config.cells_dict) > 0:
+                dict_global.update(config.cells_dict.items())
+            dict_global['cpg'] = y
+
+            data_df = pd.DataFrame(dict_global)
+            reg_res = smf.ols(formula=formula, data=data_df).fit()
+            params = dict(reg_res.params)
+            bse = dict(reg_res.bse)
+            pvalues = dict(reg_res.pvalues)
+
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['mean' + suffix].append(np.mean(y))
+            config.metrics['R2' + suffix].append(reg_res.rsquared)
+            config.metrics['R2_adj' + suffix].append(reg_res.rsquared_adj)
+            for key in params:
+                config.metrics[key + suffix].append(params[key])
+                config.metrics[key + '_std' + suffix].append(bse[key])
+                config.metrics[key + '_p_value' + suffix].append(pvalues[key])
+
         elif config.experiment.method == Method.oma:
 
             x = self.get_strategy.get_target(config, item)
             y = self.get_strategy.get_single_base(config, item)
+            lin_x = minmax_scale(x, feature_range=(0.0, 1.0))
+            lin_y = minmax_scale(y, feature_range=(0.0, 1.0))
+            tmp_x = minmax_scale(x, feature_range=(1.0, 10.0))
+            tmp_y = minmax_scale(y, feature_range=(1.0, 10.0))
+            log_x = np.log10(tmp_x)
+            log_y = np.log10(tmp_y)
 
-            corr_coeff, p_value = pearsonr(x, y)
+            lin_lin_corr_coeff, lin_lin_p_value = pearsonr(lin_x, lin_y)
+            config.metrics['lin_lin_corr_coeff' + f'_{config.hash[0:8]}'].append(lin_lin_corr_coeff)
+            config.metrics['lin_lin_p_value' + f'_{config.hash[0:8]}'].append(lin_lin_p_value)
 
-            config.metrics['corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
-            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            lin_log_corr_coeff, lin_log_p_value = pearsonr(lin_x, log_y)
+            config.metrics['lin_log_corr_coeff' + f'_{config.hash[0:8]}'].append(lin_log_corr_coeff)
+            config.metrics['lin_log_p_value' + f'_{config.hash[0:8]}'].append(lin_log_p_value)
+
+            log_lin_corr_coeff, log_lin_p_value = pearsonr(log_x, lin_y)
+            config.metrics['log_lin_corr_coeff' + f'_{config.hash[0:8]}'].append(log_lin_corr_coeff)
+            config.metrics['log_lin_p_value' + f'_{config.hash[0:8]}'].append(log_lin_p_value)
+
+            log_log_corr_coeff, log_log_p_value = pearsonr(log_x, log_y)
+            config.metrics['log_log_corr_coeff' + f'_{config.hash[0:8]}'].append(log_log_corr_coeff)
+            config.metrics['log_log_p_value' + f'_{config.hash[0:8]}'].append(log_log_p_value)
+
+        elif config.experiment.method == Method.pbc:
+
+            x = self.get_strategy.get_target(config, item)
+            y = self.get_strategy.get_single_base(config, item)
+
+            if len(set(x)) != 2:
+                raise RuntimeError('x variable is not binary in pbc')
+
+            keys = list(set(x))
+            d = {k: [] for k in keys}
+            for x_id, x_val in enumerate(x):
+                d[x_val].append(y[x_id])
+
+            corr_coeff, p_value = pointbiserialr(x, y)
+
+            if np.isnan(corr_coeff) or np.isnan(p_value):
+                corr_coeff = 0.0
+                p_value = 1.0
+                anova_p_value = 1.0
+                kw_p_value = 1.0
+            else:
+                _, anova_p_value = f_oneway(d[keys[0]], d[keys[1]])
+                _, kw_p_value = kruskal(d[keys[0]], d[keys[1]])
+
+            config.metrics['pbc_corr_coeff' + f'_{config.hash[0:8]}'].append(corr_coeff)
+            config.metrics['pbc_p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            config.metrics['anova_p_value' + f'_{config.hash[0:8]}'].append(anova_p_value)
+            config.metrics['kw_p_value' + f'_{config.hash[0:8]}'].append(kw_p_value)
 
         elif config.experiment.method == Method.polygon:
 
@@ -114,8 +328,7 @@ class TableRunStrategy(RunStrategy):
             category_all = []
             metrics_keys = get_method_metrics_keys(config)
             for config_child in configs_child:
-                update_parent_dict_with_children(metrics_keys, item, config, config_child)
-                x = self.get_strategy.get_target(config_child, item)
+                x = self.get_strategy.get_target(config_child, item, categorical=False)
                 y = self.get_strategy.get_single_base(config_child, item)
                 x_all += list(x)
                 y_all += list(y)
@@ -123,12 +336,31 @@ class TableRunStrategy(RunStrategy):
 
             data = {'x': x_all, 'y': y_all, 'category': category_all}
             df = pd.DataFrame(data)
-            formula = 'y ~ x * category'
+            formula = 'y ~ x * C(category)'
             lm = ols(formula, df)
             results = lm.fit()
-            p_value = results.pvalues[3]
 
-            config.metrics['p_value' + f'_{config.hash[0:8]}'].append(p_value)
+            suffix = f'_{config.hash[0:8]}'
+
+            config.metrics['R2' + suffix].append(results.rsquared)
+            config.metrics['R2_adj' + suffix].append(results.rsquared_adj)
+            config.metrics['f_stat' + suffix].append(results.fvalue)
+            config.metrics['prob(f_stat)' + suffix].append(results.f_pvalue)
+
+            config.metrics['intercept' + suffix].append(results.params[0])
+            config.metrics['category' + suffix].append(results.params[1])
+            config.metrics['x' + suffix].append(results.params[2])
+            config.metrics['x:category' + suffix].append(results.params[3])
+
+            config.metrics['intercept_std' + suffix].append(results.bse[0])
+            config.metrics['category_std' + suffix].append(results.bse[1])
+            config.metrics['x_std' + suffix].append(results.bse[2])
+            config.metrics['x:category_std' + suffix].append(results.bse[3])
+
+            config.metrics['intercept_pval' + suffix].append(results.pvalues[0])
+            config.metrics['category_pval' + suffix].append(results.pvalues[1])
+            config.metrics['x_pval' + suffix].append(results.pvalues[2])
+            config.metrics['x:category_pval' + suffix].append(results.pvalues[3])
 
         elif config.experiment.method == Method.aggregator:
 
@@ -188,7 +420,8 @@ class TableRunStrategy(RunStrategy):
                                       DataType.epimutations,
                                       DataType.entropy,
                                       DataType.cells,
-                                      DataType.genes]:
+                                      DataType.genes,
+                                      DataType.bop]:
 
             self.iterate(config, configs_child)
 
@@ -288,7 +521,7 @@ class ClockRunStrategy(RunStrategy):
 
 class PlotRunStrategy(RunStrategy):
 
-    def single(self, item, config, configs_child):
+    def single(self, item, config, configs_child, reverse='no'):
 
         xs = []
         ys = []
@@ -299,7 +532,7 @@ class PlotRunStrategy(RunStrategy):
             names.append(get_names(config_child, config.experiment.method_params))
 
         if config.experiment.method == Method.scatter:
-            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names)
+            process_scatter(config.experiment_data['data'], config.experiment.method_params, xs, ys, names, reverse)
 
         elif config.experiment.method == Method.range:
             process_range(config.experiment_data['data'], config.experiment.method_params, xs, ys)
@@ -309,11 +542,12 @@ class PlotRunStrategy(RunStrategy):
 
     def iterate(self, config, configs_child):
         items = config.experiment.method_params['items']
-        for item in items:
+        reverses = config.experiment.method_params['reverses']
+        for item_id, item in enumerate(items):
             if item in config.base_dict:
                 print(item)
                 config.experiment_data['item'].append(item)
-                self.single(item, config, configs_child)
+                self.single(item, config, configs_child, reverses[item_id])
             else:
                 if 'type' in config.experiment.task_params:
                     if config.experiment.task_params['type'] == 'prepare':
@@ -429,6 +663,18 @@ class PlotRunStrategy(RunStrategy):
 
 
 class CreateRunStrategy(RunStrategy):
+
+    def single(self, item, config_child, configs_child):
+        pass
+
+    def iterate(self, config, configs_child):
+        pass
+
+    def run(self, config, configs_child):
+        pass
+
+
+class LoadRunStrategy(RunStrategy):
 
     def single(self, item, config_child, configs_child):
         pass

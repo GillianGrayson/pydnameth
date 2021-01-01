@@ -12,7 +12,11 @@ class GetStrategy(metaclass=abc.ABCMeta):
     def get_aux(self, config, item):
         pass
 
-    def get_target(self, config, item='any'):
+    def get_target(self, config, item='any', categorical=True):
+        tmp = np.array(self.get_observalbe(config, key=config.attributes.target, item=item, categorical=categorical))
+        return tmp
+
+    def get_observalbe(self, config, key, item='any', categorical=True):
         if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
             passed_ids = []
             for id, col in enumerate(config.attributes_indexes):
@@ -20,10 +24,29 @@ class GetStrategy(metaclass=abc.ABCMeta):
                     passed_ids.append(id)
             data = []
             for id in passed_ids:
-                data.append(config.observables_categorical_dict[config.attributes.target][id])
+                if categorical:
+                    data.append(config.observables_categorical_dict[key][id])
+                else:
+                    data.append(config.observables_dict[key][id])
         else:
-            data = config.observables_categorical_dict[config.attributes.target]
-        return np.array(data)
+            if categorical:
+                data = config.observables_categorical_dict[key]
+            else:
+                data = config.observables_dict[key]
+        return data
+
+    def get_cell(self, config, key, item='any'):
+        if config.base_missed_dict is not None and len(config.base_missed_dict[item]) > 0:
+            passed_ids = []
+            for id, col in enumerate(config.attributes_indexes):
+                if col not in config.base_missed_dict[item]:
+                    passed_ids.append(id)
+            data = []
+            for id in passed_ids:
+                data.append(config.cells_dict[key][id])
+        else:
+            data = config.cells_dict[key]
+        return data
 
 
 class BetasGetStrategy(GetStrategy):
@@ -44,6 +67,26 @@ class BetasGetStrategy(GetStrategy):
         aux = ''
         if item in config.cpg_gene_dict:
             aux = ';'.join(config.cpg_gene_dict[item])
+        return aux
+
+
+class BOPsGetStrategy(GetStrategy):
+
+    def get_single_base(self, config, item):
+        row = config.target_dict[item]
+        if len(config.base_missed_dict[item]) > 0:
+            cols = []
+            for col in config.attributes_indexes:
+                if col not in config.base_missed_dict[item]:
+                    cols.append(col)
+            data = config.base_data[row, cols]
+        else:
+            data = config.base_data[row, config.attributes_indexes]
+        return data
+
+    def get_aux(self, config, item):
+        cpgs = config.bops[item]['cpg']
+        aux = ';'.join(cpgs)
         return aux
 
 

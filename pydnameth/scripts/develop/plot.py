@@ -94,11 +94,13 @@ def plot_scatter_comparison(
     attributes = attributes_list[0]
 
     items = rows_dict['items']
+    reverses = rows_dict['reverses']
     data_bases = cols_dict['data_bases']
 
     task_params = {'type': 'run'}
 
     method_params['items'] = items
+    method_params['reverses'] = reverses
     method_params['data_bases'] = data_bases
     if 'aux' in rows_dict:
         method_params['aux'] = rows_dict['aux']
@@ -132,6 +134,7 @@ def plot_scatter_comparison(
     for data_base_id, data_base in enumerate(data_bases):
         method_params_lvl_1 = copy.deepcopy(method_params)
         method_params_lvl_1['items'] = items
+        method_params_lvl_1['reverses'] = reverses
         method_params_lvl_1['x_ranges'] = [cols_dict['begins'][data_base_id], cols_dict['ends'][data_base_id]]
         method_params_lvl_1['y_ranges'] = []
 

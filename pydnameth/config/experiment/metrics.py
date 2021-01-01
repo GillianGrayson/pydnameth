@@ -1,4 +1,7 @@
 from pydnameth import DataType, Task, Method
+import statsmodels.formula.api as smf
+import pandas as pd
+import numpy as np
 
 
 def get_method_metrics_keys(config):
@@ -11,7 +14,8 @@ def get_method_metrics_keys(config):
                                   DataType.residuals,
                                   DataType.resid_old,
                                   DataType.cells,
-                                  DataType.genes]:
+                                  DataType.genes,
+                                  DataType.bop]:
 
         if config.experiment.task == Task.table:
 
@@ -44,7 +48,99 @@ def get_method_metrics_keys(config):
                     'gq_type'
                 ]
 
-            if config.experiment.method == Method.linreg:
+            elif config.experiment.method == Method.manova:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'class',
+                    'genes',
+                ]
+
+                method_params = config.experiment.method_params
+
+                for key, values in method_params.items():
+                    for val in values:
+                        metrics.append(f'{val}_p_value_wilks')
+                        metrics.append(f'{val}_p_value_pillai_bartlett')
+                        metrics.append(f'{val}_p_value_lawley_hotelling')
+                        metrics.append(f'{val}_p_value_roy')
+
+            elif config.experiment.method == Method.formula:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'R2',
+                    'R2_adj',
+                    'mean'
+                ]
+
+                method_params = config.experiment.method_params
+
+                exog_dict = {}
+                for key, values in method_params.items():
+                    if key == 'cells':
+                        for val in values:
+                            if val in config.cells_dict:
+                                exog_dict[val] = config.cells_dict[val]
+                            else:
+                                raise ValueError(f'Wrong cell type in formula: {val}')
+                    if key == 'observables':
+                        for val in values:
+                            if val in config.observables_categorical_dict:
+                                exog_dict[val] = config.observables_categorical_dict[val]
+                            else:
+                                raise ValueError(f'Wrong observable in formula: {val}')
+
+                exog_keys = []
+                for exog_type, exog_data in exog_dict.items():
+                    if config.is_observables_categorical.get(exog_type, False):
+                        exog_keys.append('C(' + exog_type + ')')
+                    else:
+                        exog_keys.append(exog_type)
+                formula = 'cpg ~ ' + ' + '.join(exog_keys)
+
+                exog_dict['cpg'] = np.random.rand(len(config.attributes_indexes))
+                data_df = pd.DataFrame(exog_dict)
+                reg_res = smf.ols(formula=formula, data=data_df).fit()
+                params = dict(reg_res.params)
+
+                for key in params:
+                    metrics.append(key)
+                    metrics.append(key + '_std')
+                    metrics.append(key + '_p_value')
+
+            elif config.experiment.method == Method.formula_new:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'R2',
+                    'R2_adj',
+                    'mean'
+                ]
+
+                method_params = config.experiment.method_params
+                formula = method_params['formula']
+
+                dict_global = {}
+                dict_global.update(config.observables_dict.items())
+                if len(config.cells_dict) > 0:
+                    dict_global.update(config.cells_dict.items())
+
+                dict_global['cpg'] = np.random.rand(len(config.attributes_indexes))
+
+                data_df = pd.DataFrame(dict_global)
+                reg_res = smf.ols(formula=formula, data=data_df).fit()
+                params = dict(reg_res.params)
+
+                for key in params:
+                    metrics.append(key)
+                    metrics.append(key + '_std')
+                    metrics.append(key + '_p_value')
+
+            elif config.experiment.method == Method.linreg:
 
                 metrics = [
                     'item',
@@ -82,9 +178,30 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
-                    'p_value',
-                    'p_value_fdr_bh',
-                    'p_value_bonferroni'
+                    'R2',
+                    'R2_adj',
+                    'f_stat',
+                    'prob(f_stat)',
+                    'intercept',
+                    'category',
+                    'x',
+                    'x:category',
+                    'intercept_std',
+                    'category_std',
+                    'x_std',
+                    'x:category_std',
+                    'intercept_pval',
+                    'category_pval',
+                    'x_pval',
+                    'x:category_pval',
+                    'intercept_pval_fdr_bh',
+                    'category_pval_fdr_bh',
+                    'x_pval_fdr_bh',
+                    'x:category_pval_fdr_bh',
+                    'intercept_pval_fdr_bon',
+                    'category_pval_fdr_bon',
+                    'x_pval_fdr_bon',
+                    'x:category_pval_fdr_bon',
                 ]
 
             elif config.experiment.method == Method.oma:
@@ -92,10 +209,39 @@ def get_method_metrics_keys(config):
                 metrics = [
                     'item',
                     'aux',
-                    'corr_coeff',
-                    'p_value',
-                    'p_value_fdr_bh',
-                    'p_value_bonferroni'
+                    'lin_lin_corr_coeff',
+                    'lin_lin_p_value',
+                    'lin_lin_p_value_fdr_bh',
+                    'lin_lin_p_value_bonferroni',
+                    'lin_log_corr_coeff',
+                    'lin_log_p_value',
+                    'lin_log_p_value_fdr_bh',
+                    'lin_log_p_value_bonferroni',
+                    'log_lin_corr_coeff',
+                    'log_lin_p_value',
+                    'log_lin_p_value_fdr_bh',
+                    'log_lin_p_value_bonferroni',
+                    'log_log_corr_coeff',
+                    'log_log_p_value',
+                    'log_log_p_value_fdr_bh',
+                    'log_log_p_value_bonferroni',
+                ]
+
+            elif config.experiment.method == Method.pbc:
+
+                metrics = [
+                    'item',
+                    'aux',
+                    'pbc_corr_coeff',
+                    'pbc_p_value',
+                    'pbc_p_value_fdr_bh',
+                    'pbc_p_value_bonferroni',
+                    'anova_p_value',
+                    'anova_p_value_fdr_bh',
+                    'anova_p_value_bonferroni',
+                    'kw_p_value',
+                    'kw_p_value_fdr_bh',
+                    'kw_p_value_bonferroni'
                 ]
 
             elif config.experiment.method == Method.variance:

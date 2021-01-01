@@ -6,6 +6,7 @@ import plotly.figure_factory as ff
 from pydnameth.routines.plot.functions.layout import get_layout
 from pydnameth.routines.common import get_axis, is_float
 import math
+import numpy as np
 
 
 class ReleaseStrategy(metaclass=abc.ABCMeta):
@@ -25,22 +26,86 @@ class TableReleaseStrategy(ReleaseStrategy):
                                       DataType.resid_old,
                                       DataType.epimutations,
                                       DataType.entropy,
-                                      DataType.cells]:
+                                      DataType.cells,
+                                      DataType.bop]:
 
-            if config.experiment.method in [Method.ancova, Method.oma]:
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
-                    0.05,
-                    method='fdr_bh'
-                )
-                config.metrics['p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
+            if config.experiment.method in [Method.pbc]:
 
-                reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
-                    config.metrics['p_value' + f'_{config.hash[0:8]}'],
-                    0.05,
-                    method='bonferroni'
-                )
-                config.metrics['p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+                for prefix in ['pbc', 'anova', 'kw']:
+                    key = prefix + '_p_value' + f'_{config.hash[0:8]}'
+                    pvals = np.asarray(config.metrics[key])
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[prefix + '_p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        pvals,
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[prefix + '_p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+
+            if config.experiment.method in [Method.ancova]:
+
+                suffix = f'_{config.hash[0:8]}'
+
+                for prefix in ['intercept_pval', 'category_pval', 'x_pval', 'x:category_pval']:
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + suffix],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[prefix + '_fdr_bh' + suffix] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + suffix],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[prefix + '_fdr_bon' + suffix] = pvals_corr
+
+            if config.experiment.method in [Method.oma]:
+                for prefix in ['lin_lin_', 'log_lin_', 'lin_log_', 'log_log_']:
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + 'p_value' + f'_{config.hash[0:8]}'],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[prefix + 'p_value_fdr_bh' + f'_{config.hash[0:8]}'] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[prefix + 'p_value' + f'_{config.hash[0:8]}'],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[prefix + 'p_value_bonferroni' + f'_{config.hash[0:8]}'] = pvals_corr
+
+            if config.experiment.method in [Method.formula, Method.formula_new, Method.manova]:
+                target_keys = []
+                for key in config.metrics:
+                    if 'p_value' in key:
+                        target_keys.append(key)
+
+                for key in target_keys:
+                    fixes = key.split('p_value')
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key],
+                        0.05,
+                        method='fdr_bh'
+                    )
+                    config.metrics[fixes[0] + 'p_value_fdr_bh' + fixes[1]] = pvals_corr
+
+                    reject, pvals_corr, alphacSidak, alphacBonf = multipletests(
+                        config.metrics[key],
+                        0.05,
+                        method='bonferroni'
+                    )
+                    config.metrics[fixes[0] + 'p_value_bonferroni' + fixes[1]] = pvals_corr
 
             if config.experiment.method == Method.heteroskedasticity:
 
@@ -195,7 +260,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     item.yaxis = y_string
 
                                     if item.mode == 'markers':
-                                        item.marker.size = 1.5
+                                        item.marker.size = 1
                                         item.marker.line.width = 0.2
                                     if item.mode == 'lines':
                                         item.line.width = 1
@@ -209,7 +274,7 @@ class PlotReleaseStrategy(ReleaseStrategy):
                                     items.marker.size = 1
                                     items.marker.line.width = 0.2
                                 if items.mode == 'lines':
-                                    items.line.width = 2
+                                    items.line.width = 1
 
                                 config.experiment_data['data'].append(items)
 
@@ -354,6 +419,12 @@ class PlotReleaseStrategy(ReleaseStrategy):
 
 
 class CreateReleaseStrategy(ReleaseStrategy):
+
+    def release(self, config, configs_child):
+        pass
+
+
+class LoadReleaseStrategy(ReleaseStrategy):
 
     def release(self, config, configs_child):
         pass
