@@ -1,7 +1,8 @@
 language: python
 python:
+- 3.9
+- 3.8
 - 3.7
-- 3.6
 dist: xenial
 sudo: true
 before_install:
@@ -36,4 +37,4 @@ deploy:
   on:
     tags: true
     repo: AaronBlare/pydnameth
-    python: 3.6
+    python: 3.9

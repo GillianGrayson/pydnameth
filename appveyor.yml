@@ -4,15 +4,20 @@ matrix:
 environment:
 
   matrix:
-    - TOXENV: 'py36'
-      MINICONDA: "C:\\Miniconda36-x64"
-      PLATFORM: x64
-      PYTHON_VERSION: "3.6"
-
     - TOXENV: 'py37'
       MINICONDA: "C:\\Miniconda37-x64"
       PLATFORM: x64
       PYTHON_VERSION: "3.7"
+
+    - TOXENV: 'py38'
+      MINICONDA: "C:\\Miniconda38-x64"
+      PLATFORM: x64
+      PYTHON_VERSION: "3.8"
+
+    - TOXENV: 'py39'
+      MINICONDA: "C:\\Miniconda39-x64"
+      PLATFORM: x64
+      PYTHON_VERSION: "3.9"
 
 # all our python builds have to happen in tests_script...
 build: false
