@@ -4,11 +4,6 @@ matrix:
 environment:
 
   matrix:
-    - TOXENV: 'py37'
-      MINICONDA: "C:\\Miniconda37-x64"
-      PLATFORM: x64
-      PYTHON_VERSION: "3.7"
-
     - TOXENV: 'py38'
       MINICONDA: "C:\\Miniconda38-x64"
       PLATFORM: x64
