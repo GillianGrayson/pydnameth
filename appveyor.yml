@@ -6,7 +6,7 @@ environment:
   matrix:
     - PYTHON_ARCH: 64
       TOXENV: 'py38'
-      MINICONDA: C:\Miniconda38-x64
+      MINICONDA: C:\Miniconda37-x64
       PYTHON_VERSION: 3.8
       platform: x64
 
