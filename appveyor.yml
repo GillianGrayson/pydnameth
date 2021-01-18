@@ -4,9 +4,11 @@ matrix:
 environment:
 
   matrix:
-    - TOXENV: 'py38'
-      MINICONDA: "C:\\Miniconda38-x64"
-      PYTHON_VERSION: "3.8"
+    - PYTHON_ARCH: 64
+      TOXENV: 'py38'
+      MINICONDA: C:\Miniconda38-x64
+      PYTHON_VERSION: 3.8
+      platform: x64
 
 # all our python builds have to happen in tests_script...
 build: false
