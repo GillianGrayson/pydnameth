@@ -38,7 +38,6 @@ class Experiment:
         if bool(params):
             params_keys = list(params.keys())
             if len(params_keys) > 0:
-                params_keys.sort()
                 params_str += '_'.join([key + '(' + str(params[key]) + ')' for key in params_keys])
 
         for f in forbidden:
