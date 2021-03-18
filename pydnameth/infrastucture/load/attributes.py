@@ -138,8 +138,6 @@ def load_cells_dict(config):
     fn_pkl = fn + '.pkl'
     fn_xlsx = fn + '.xlsx'
 
-
-
     if os.path.isfile(fn_pkl):
 
         f = open(fn_pkl, 'rb')
