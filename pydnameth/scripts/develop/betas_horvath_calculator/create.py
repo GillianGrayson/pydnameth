@@ -22,7 +22,7 @@ def betas_horvath_calculator_create_regular(
     )
 
     cells = Cells(
-        name='cell_counts_part(wo_noIntensity_detP)',
+        name='cell_counts_part(v1)',
         types='any'
     )
 

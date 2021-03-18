@@ -23,7 +23,7 @@ def load_observables_dict(config):
     else:
 
         if os.path.isfile(fn_xlsx):
-            df = pd.read_excel(fn_xlsx)
+            df = pd.read_excel(fn_xlsx, engine='openpyxl')
             tmp_dict = df.to_dict()
             observables_dict = {}
             for key in tmp_dict:
@@ -136,6 +136,9 @@ def load_cells_dict(config):
     fn = get_data_base_path(config) + '/' + config.attributes.cells.name
     fn_txt = fn + '.txt'
     fn_pkl = fn + '.pkl'
+    fn_xlsx = fn + '.xlsx'
+
+
 
     if os.path.isfile(fn_pkl):
 
@@ -143,34 +146,43 @@ def load_cells_dict(config):
         cells_dict = pickle.load(f)
         f.close()
 
-    elif not os.path.isfile(fn_txt):
-
-        return None
-
     else:
 
-        f = open(fn_txt)
-        key_line = f.readline()
-        keys = key_line.split('\t')
-        keys = [x.rstrip() for x in keys]
+        if os.path.isfile(fn_xlsx):
+            df = pd.read_excel(fn_xlsx, engine='openpyxl')
+            tmp_dict = df.to_dict()
+            cells_dict = {}
+            for key in tmp_dict:
+                curr_dict = tmp_dict[key]
+                cells_dict[key] = list(curr_dict.values())
 
-        cells_dict = {}
-        for key in keys:
-            cells_dict[key] = []
+        elif os.path.isfile(fn_txt):
 
-        for line in f:
-            values = line.split('\t')
-            for key_id in range(0, len(keys)):
-                key = keys[key_id]
-                value = values[key_id].rstrip()
-                if is_float(value):
-                    cells_dict[key].append(float(value))
-                else:
-                    cells_dict[key].append(value)
-        f.close()
+            f = open(fn_txt)
+            key_line = f.readline()
+            keys = key_line.split('\t')
+            keys = [x.rstrip() for x in keys]
 
-        f = open(fn_pkl, 'wb')
-        pickle.dump(cells_dict, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
+            cells_dict = {}
+            for key in keys:
+                cells_dict[key] = []
+
+            for line in f:
+                values = line.split('\t')
+                for key_id in range(0, len(keys)):
+                    key = keys[key_id]
+                    value = values[key_id].rstrip()
+                    if is_float(value):
+                        cells_dict[key].append(float(value))
+                    else:
+                        cells_dict[key].append(value)
+            f.close()
+
+            f = open(fn_pkl, 'wb')
+            pickle.dump(cells_dict, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
+        else:
+            return None
 
     return cells_dict
