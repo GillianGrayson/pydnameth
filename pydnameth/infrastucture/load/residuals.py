@@ -40,7 +40,7 @@ def load_residuals(config):
     else:
 
         data_params_copy = copy.deepcopy(config.experiment.data_params)
-        common_keys = ['part', 'norm']
+        common_keys = ['part', 'config', 'norm']
         config.experiment.data_params = {}
         for key in common_keys:
             if key in data_params_copy:

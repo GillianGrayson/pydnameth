@@ -210,3 +210,21 @@ def residuals_table_formula(
         method_params=method_params,
         data_params=data_params,
     )
+
+
+def residuals_table_formula_new(
+    data,
+    annotations,
+    attributes,
+    data_params,
+    method_params
+):
+    table(
+        data=data,
+        annotations=annotations,
+        attributes=attributes,
+        data_type=DataType.residuals,
+        method=Method.formula_new,
+        method_params=method_params,
+        data_params=data_params,
+    )

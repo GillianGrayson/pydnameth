@@ -90,6 +90,7 @@ from pydnameth.scripts.develop.residuals.load import \
 from pydnameth.scripts.develop.residuals.table import \
     residuals_table_pbc, \
     residuals_table_formula, \
+    residuals_table_formula_new, \
     residuals_table_linreg, \
     residuals_table_ancova, \
     residuals_table_aggregator_linreg, \
