@@ -28,7 +28,8 @@ def betas_horvath_calculator_create_regular(
 
     observables = Observables(
         name=observables_fn,
-        types={}
+        types={'Group': ['Disease'],
+               'is_v2': ['yes']}
     )
 
     attributes = Attributes(
